@@ -1,0 +1,155 @@
+import
+	../../html
+
+intro-kid html[]()
+	- section "Syntax",
+		- p quote
+			Kid (Keen Interface for Data) is a serialization format like JSON.
+			{br}
+			It is equivalent to JSON and differs only in syntax.
+		- p quote
+			Kid looks exactly like Keen.
+			It is just limited to data expressions with no variables, control flow, etc.
+		- p "Valid Kid expressions are:"
+		- bullets
+			- quote
+				{null}, booleans, numbers and strings, using the exact same syntax as JSON.
+				({parens} also returns {null}.)
+			- "Comma-separated or multi-line {fn-new} expressions, corresponding to JSON arrays."
+			- "Named-new expressions, corresponding to JSON objects."
+
+		- keen-runnable quote
+			import
+				keen/parse
+
+			main void()
+				kid-string = quote
+					null: ()
+					bool: false
+					number: 1
+					string: "hello"
+					array: 1, 2
+					another-array:
+						- 1
+						- 2
+					object: x: 1, y: 2
+					another-object:
+						x: 1
+						y: 2
+				value json =
+					null: ()
+					bool: false
+					number: 1
+					string: "hello"
+					array: 1, 2
+					another-array:
+						- 1
+						- 2
+					object: x: 1, y: 2
+					another-object:
+						x: 1
+						y: 2
+				parsed = parse kid, kid-string
+				log value == parsed
+				log value
+
+		- aside-small quote
+			{quote_} starts a multi-line string literal. More in {intro-link strings}.
+			{br}
+			In {function "parse"}{sp}{function "kid"}{comma}{variable "kid-string"},
+			{function "kid"} is the name of a {std-type "keen/parse", "grammar"}.
+
+		- p quote
+			The {json} type is the type of a parsed JSON value.
+			{br}
+			Since Kid has the same data model as JSON, a parsed Kid value is also of type {json}.
+
+		- aside-small quote
+			{fn-log} logs its argument(s) as Kid.
+			{br}
+			So the above program's output looks like its source code, just normalized (such as sorting keys).
+
+	- section "Keen and Kid",
+		- p quote
+			In the above example, {variable "value"} is created using a variety of functions (such as {fn-named-new})
+			that return {json}.
+			{br}
+			Conveniently, the syntax is exactly the same as Kid.
+
+		- p quote
+			This is also true for typed objects.
+			Below, the syntax to construct a {type "point"} in Keen is the exactly the same same
+			as the syntax for the Kid expression that converts to it.
+
+		- keen-runnable quote
+			import
+				keen/parse
+
+			main void()
+				kid-string = quote
+					x: 1
+					y: 2
+				value point =
+					x: 1
+					y: 2
+				parsed = to::point parse kid, kid-string
+				log value == parsed
+				log parsed
+
+			point record(x float, y float)
+			to point(a json)
+				a["x"].to, a["y"].to
+
+		- p "Since the syntax is the same, you can cut and paste data between Keen and Kid files."
+		- p "It's also useful to be able to output a value in a format that is valid source code."
+
+	- section "Empty values",
+		- p quote
+			Keen has a single syntax for empty values: {parens}.
+			{br}
+			JSON has 3: {null}, {code "[]"}, and {code "\{\}"}.
+			{br}
+			Usually you should just use {parens} (which means {null})
+			and expect the user to treat it the same as other empty values.
+			{br}
+			In cases where it does matter, use {function "empty-array"} or {function "empty-object"}.
+			This works the same in both Keen and Kid.
+		- keen-runnable quote
+			import
+				keen/parse
+
+			main void()
+				kid-string = quote
+					null: ()
+					array: empty-array
+					object: empty-object
+				value json =
+					null: ()
+					array: empty-array
+					object: empty-object
+				parsed = parse kid, kid-string
+				log value == parsed
+				log parsed
+
+	- section "Using JSON values",
+		- p quote
+			{std-function "keen/json", "subscript"} gets a value from a {json} value.
+			If it is not an object containing the key, this returns {null} (displayed as {parens}).
+		- p quote
+			There are many functions named {fn-to} that convert {json} to various types.
+			{br}
+			These typically throw an exception if the {json} value does not look like what is expected.
+			(Though as mentioned above, {null} is typically allowed as an empty array or object.)
+			{br}
+			See {std-module "keen/json"} to see them.
+
+		- keen-runnable quote
+			main void()
+				j json =
+					n: 1
+					s: "ok"
+				log j["n"]
+				log to::nat j["n"]
+				log to::symbol j["s"]
+				log j["missing-key"]
+				log to::symbol j["n"] # throws

@@ -1,0 +1,122 @@
+import
+	../../html
+
+intro-more-overloading html[]()
+	- section "Multiple expected types",
+		- p quote
+			Due to overloading, an expression can have multiple expected types.
+			{br}
+			In most cases, this is basically like having no expected type, but in some cases it can matter.
+			{br}
+			Below, {num-1} has two expected types {nat8} and {string}.
+			It chooses {nat8} since a number literal can't be a {string}.
+			{br}
+			With no expected type, the type would have been {nat} instead.
+
+		- keen-runnable quote
+			main void()
+				log foo 1
+
+			foo nat8(a nat8)
+				a * 10
+			foo string(a string) # not used
+				a
+
+	- section "Effects of left to right type checking",
+		- p quote
+			Since type checking works from left to right,
+			if you do need type annotations, it's best to put them on earlier arguments.
+			{br}
+			This gives the type checker information earlier.
+
+		- keen-runnable quote
+			import
+				keen/bits
+
+			main void()
+				# 'a' is 'nat8'
+				a = foo 0::nat8, 1
+				log count-ones ~a
+				# 'b' is 'nat64' ('1::nat8' implicitly converts to 'nat64')
+				b = foo 0, 1::nat8
+				log count-ones ~b
+
+			foo[t] t(a t, _ t)
+				a
+
+		- aside-small quote
+			It's even better to annotate the return type:
+			{var-a}{sp}{nat8}{sp}{keyword "="}{sp}{fn-foo}{sp}{num-0}{comma}{num-1}
+
+	- section "More examples",
+		- keen-runnable quote
+			main void()
+				log foo::string bar
+
+			foo nat(a int) # this is not used
+				a.to
+			foo string(a symbol)
+				log "Using foo string(a symbol)"
+				a.to
+			bar int() # this is not used
+				1
+			bar symbol()
+				log "Using bar symbol()"
+				"a"
+
+		- p quote
+			Keen type-checks function calls from left to right (assuming prefix syntax). So:
+		- bullets
+			- quote
+				If first sees a call to {fn-foo} expecting a {string} (due to the {colon-colon}{string} at the call).
+				{br}
+				There is only one {fn-foo} function that returns a {string}, so the other overload is discarded.
+			- quote
+				Then it checks the argument to {fn-foo} expecting a {symbol},
+				since that is the parameter type of the only surviving {fn-foo} overload.
+			- quote
+				That argument is a call to {fn-bar}.
+				{br}
+				There is only one {fn-bar} returning a {symbol}, so the other overload is discarded.
+			- quote
+				After checking the call to {fn-bar},
+				it now has an argument type {symbol} and finishes checking the call to {fn-foo}.
+				{br}
+				The argument type matches the remaining {fn-foo}'s parameter type, so it's done.
+
+		- p quote
+			Another example:
+		- keen-runnable quote
+			main void()
+				log foo bar
+
+			foo string(a bool) # This is not used
+				"\{a\}"
+			foo string(a symbol)
+				log "Using foo string(a symbol)"
+				a.to
+			bar int() # this is not used
+				1
+			bar symbol()
+				log "Using bar symbol()"
+				"a"
+
+		- bullets
+			- quote
+				If first sees a call to {fn-foo}.
+				{br}
+				There are two {fn-foo} functions,
+				and it can't discard any based on the number of arguments or return type.
+			- quote
+				Then it checks the argument to {fn-foo} expecting a {bool} or {symbol},
+				since those are the parameter types of the {fn-foo} functions.
+			- quote
+				That argument is a call to {fn-bar}.
+				Only the {fn-bar} returning {symbol} matches one of the expected types.
+				{br}
+				The {fn-bar} returning {int} is discarded as it can't match {bool} or {symbol}.
+			- quote
+				After checking the call to {fn-bar},
+				it now has an argument type {symbol} and finishes checking the call to {fn-foo}.
+				{br}
+				Since only one {fn-foo} declares a {symbol} parameter, it uses that one.

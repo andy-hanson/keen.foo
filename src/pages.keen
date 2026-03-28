@@ -1,0 +1,31 @@
+import
+	./doc
+	./html
+	./pages/download
+	./pages/faq
+	./pages/index
+	./pages/play
+	./pages/intro/all
+	./page-template
+
+pages path-and-content[]() global
+	- "index.html", index.render.to
+	- "download.html", download.render.to
+	- "faq.html", faq.render.to
+	- "play.html", play.render.to
+	- "hello.txt", "Hello, fetchers!"::string.to
+	-- doc-pages
+	-- for intro in members::intro-page[]
+		intro-template intro
+
+-intro-template path-and-content(page intro-page)
+	template page.path, page.title,
+		nav-items: for x in members::intro-page[]
+			name: title x
+			href: "/{path x}"
+			is-current: x == page
+		main:
+			- h1 title page
+			-- intro page
+			- if next = next page
+				link "/{next.path}", (id: "next"), "next: {title next}"

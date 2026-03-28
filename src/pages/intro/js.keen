@@ -1,0 +1,187 @@
+import
+	../../html
+
+intro-js html[]()
+	- section "Building JavaScript",
+		- p quote
+			To build to JavaScript, run a command like {code "keen build foo.keen --out foo.js"}.
+			{br}
+			Then include it in a web page using {code "<script type=\"module\" src=\"/foo.js\"></script>"} .
+		- p quote
+			You can also run {code "node foo.js"} .
+			Node.js support is mostly intended for quick testing and not as the main build target.
+
+		- aside-small
+			- p quote
+				Despite using a {code "module"} target,
+				Keen currently doesn't support defining a module with imports and exports.
+				It only supports building to a script that executes the {function "main"} function on load.
+			- p quote
+				If you want to call Keen code from JS code, you could have the {function "main"}
+				function generate an object full of functions and store it to a global variable.
+
+	- section "Calling JavaScript functions",
+		- p quote
+			Now we'll write "Hello, world" directly using JavaScript APIs.
+		- keen-runnable quote
+			import
+				keen/js
+
+			main void() js, global, unsafe
+				alert js-any = js-global["alert"]
+				_ = call alert, "Hello, world!"
+
+		- p quote
+			The {js-any} type can hold any JavaScript value.
+			Basically any function using this type is {unsafe}.
+		- p quote
+			{fn-js-global} is equivalent to {code "window"} (or {code "self"}) in the browser
+			or {code "global"} in Node.js .
+		- p quote
+			{fn-js-subscript} reads a property from a JS object.
+			So {function "js-global"}{lbracket}{string "\"alert\""}{rbracket} is equivalent to
+			{code "window.alert"} in JS.
+		- p quote
+			{fn-call} is a JS function call.
+			So {fn-call}{sp}{variable "alert"}{code ", "}{string "\"Hello, world!\""}
+			is equivalent to {code "alert(\"Hello, world!\")"} in JS.
+		- p quote
+			{fn-call} returns {js-any}.
+			{code "_ ="} drops the {js-any} value to get {type "void"}.
+
+	- section "Use JavaScript objects",
+		- p "To call a method on a JavaScript object, use {fn-call-property}."
+		- keen-runnable quote
+			import
+				keen/js
+				keen/js/dom
+
+			main void() js, global, unsafe
+				home = call-property document, "querySelector", "#test-p"
+				home["style"]["border"] := "1px solid pink"
+
+		- p (id: "test-p"), quote
+			This paragraph has ID {code "test-p"}. After running the above script it will have a border.
+
+
+		- p quote
+			The first line above is equivalent to {code "document.querySelector(\"#test-p\")"} in JS.
+			{br}
+			The second line is equivalent to {code "home.style.border = \"1px solid pink\";"} in JS.
+
+		- aside-small quote
+			As with Java, Keen {string}s are not JS {string}s.
+			{br}
+			A string literal can directly create a {js-any} value.
+
+	- section "Conversion",
+		- p quote
+			There is no guarantee about how Keen values are represented in JS.
+			{br}
+			For example, a Keen {string} is not a JS {code "string"}.
+		- p "{std-module "keen/js"} defines many {function "to"} functions for converting between Keen and JS values."
+		- keen-runnable quote
+			import
+				keen/js
+
+			main void() js
+				n nat = 1
+				j js-any = n.to
+				log j.to::nat
+
+	- section "Make JavaScript objects",
+		- p quote
+			{std-function "keen/js/util", "named-new"} from {std-module "keen/js/util"}
+			is useful for creating JS {code "object"}s.
+		- keen-runnable quote
+			import
+				keen/js
+				keen/js/util
+
+			main void() js, unsafe
+				o js-any = x: 1, y: 2
+				log o["x"].to::nat
+
+	- section "Async",
+		- p "To call a JavaScript {code "async"} function, simply call and {std-function "keen/js", "await"} it."
+		- keen-runnable quote
+			import
+				keen/js
+
+			main void() js, global, unsafe
+				log fetch-text "/hello.txt"
+
+			fetch-text string(url string) js, global, unsafe
+				fetch = js-global["fetch"]
+				response = await call fetch, url.to
+				to::string await call-property response, "text"
+
+		- p quote
+			For best performance, try to avoid doing async things in a deeply nested functions,
+			since this makes their callers (and callers' callers, etc.) async functions too.
+
+		- aside-small quote
+			{std-module "keen/js/browser"} has convenient typed {std-function "keen/js/browser", "fetch"} functions.
+
+	- section "Callbacks",
+		- p "A Keen lambda can be converted to a JS function using {function "to"}."
+		- p "These functions support lambdas taking {void} or {js-any} and returning {void} or {js-any}."
+		- keen-runnable quote
+			import
+				keen/js
+
+			main void() js, global
+				sleep 5000
+				log "done"
+
+			sleep void(msec float) global, js
+				do trusted
+				resolver = of resolve js-any
+					:: void
+					_ = call js-global["setTimeout"], resolve, msec.to
+				_ = await call-new js-global["Promise"], resolver.to
+
+	- aside-small "{std-module "keen/io/time"} has a more convenient {std-function "keen/io/time", "sleep"} function."
+
+	- section "Imports",
+		- p quote
+			Keen does not yet have the ability to import JavaScript modules directly.
+			{br}
+			There is a {std-function "keen/js", "js-import"} function though.
+		- keen-runnable quote
+			import
+				keen/js
+				keen/js/util
+
+			main void() js, global, unsafe
+				module = js-import
+					"https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/+esm"
+				# This calls the default export
+				_ = call-property module, "default",
+					particleCount: 100
+					spread: 100
+
+	- section "Other JavaScript operations",
+		- p quote
+			If Keen doesn't have a function for doing what you want with JS,
+			you can write a JS snippet using {function "eval"}.
+		- keen-runnable quote
+			import
+				keen/js
+
+			main void() js, unsafe
+				log loose-equal 1, "1"
+
+			loose-equal bool(a js-any, b js-any) js, unsafe
+				f = eval quote
+					(x, y) => x == y
+				to::bool call f, a, b
+
+-fn-call html-node()
+	std-function "keen/js", "call"
+-fn-call-property html-node()
+	std-function "keen/js", "call-property"
+-fn-js-global html-node()
+	std-function "keen/js", "js-global"
+-fn-js-subscript html-node()
+	std-function "keen/js", "subscript"

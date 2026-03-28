@@ -1,0 +1,52 @@
+import
+	../../html
+
+intro-configs html[]()
+	- section "Config files",
+		- p quote
+			Each {code ".keen"} file's configuration is in the {code "config.kid"} file closest to it.
+			{br}
+			To find the config file, Keen first looks for {code "./config.kid"} (relative to the {code ".keen"} file),
+			then {code "../config.kid"}, then {code "../../config.kid"}, etc.
+			{br}
+			If none is found, the file has a default empty config.
+
+		- p quote
+			Multiple {code "config.kid"} files can be used in a single project.
+			Each config only effects its own directory and subdirectories.
+
+	- section "Configuring imports",
+		- p "The {code "imports"} section of {code "config.kid"} sets paths used by non-relative imports."
+
+		- keen-not-runnable "bar/baz.keen", quote
+			+baz string()
+				"baz"
+
+		- keen-not-runnable "foo/config.kid", quote
+			imports:
+				bar: "../bar"
+
+		- keen-runnable "foo/app/main.keen", quote
+			import
+				bar/baz
+
+			main void()
+				log baz
+
+		- p quote
+			Above, {code "foo/app/main.keen"} imports from {code "bar/baz"}.
+			{br}
+			Since there is no {code "foo/app/config.kid"},
+			its config file is the next closest one {code "foo/config.kid"}.
+			{br}
+			The config specifies {code "bar: \"../bar\""}.
+			That is relative to the config, so the library path is
+			{code "foo/../bar"}, resolving to {code "bar"}.
+		- p quote
+			The full import path concatenates the library path, the rest of the import path ({code "/baz"}),
+			and {code ".keen"},
+			so the full import path is {code "bar/baz.keen"} .
+
+		- aside-small quote
+			A {keyword "+"} on the declaration ({keyword "+"}{fn-bar})
+			is required to make it visible to non-relative importers. See {intro-link visibility}.

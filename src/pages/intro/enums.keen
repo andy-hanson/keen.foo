@@ -1,0 +1,192 @@
+import
+	../../html
+
+intro-enums html[]()
+	- section "Enums",
+		- p "An {enum_} value has a fixed set of possibilities."
+
+		- keen-runnable quote
+			main void()
+				log opposite left
+
+			direction enum
+				left
+				right
+			opposite direction(a direction)
+				if a == left
+					right
+				elif a == right
+					left
+				else
+					throw unreachable
+
+		- aside-small quote
+			Declaring an enum implicitly defines a function for each enum member.
+			{br}
+			In this case it defines {function "left"}{type " direction"}{parens}
+			and {function "right"}{type " direction"}{parens}.
+
+		- p "Short enums can be squeezed onto a single line."
+		- keen-not-runnable quote
+			direction enum(left, right)
+
+		- p "Declaring an enum implicitly declares many functions:"
+		- table
+			- thead
+				- th "Function"
+				- th "Description"
+			- tbody
+				- tr
+					- td "{fn-equal}{sp}{bool}{parenthesized a-direction-b-direction}"
+					- td "Exact equality."
+				- tr
+					- td "{fn-compare}{sp}{comparison}{parenthesized a-direction-b-direction}"
+					- td "Enum members declared earlier are less."
+				- tr
+					- td "{fn-hash}{sp}{void}{lparen}{a-direction}{comma}{variable "state"}{sp}{hash-state}{rparen}"
+					- td "Hashes the numeric value."
+				- tr
+					- td "{fn-to}{sp}{json}{parenthesized a-direction}"
+					- td "{json} value that is the name of the enum member."
+				- tr
+					- td "{fn-to}{sp}{symbol}{parenthesized a-direction}"
+					- td "The name of the enum member."
+				- tr
+					- td "{fn-to}{sp}{direction}{type "?"}{lparen}{var-a}{sp}{symbol}{rparen}"
+					- td "Gets an enum member by name."
+				- tr
+					- td "{fn-to}{sp}{nat}{parenthesized a-direction}"
+					- td "Numeric value of the enum member."
+				- tr
+					- td "{fn-to}{sp}{direction}{type "?"}{lparen}{var-a}{sp}{nat}{rparen}"
+					- td "Gets an enum member by value."
+				- tr
+					- td "{function "members"}{sp}{direction}{type "[]"}{parens}"
+					- td "Array of every enum member."
+
+		- p quote
+			Conversion from {symbol} or {nat} returns an option,
+			because not all {symbol}s and {nat} are valid {type "direction"}s.
+
+		- keen-runnable quote
+			main void()
+				log "equal", left == left
+				log "compare", left <=> right
+				log "to symbol", to::symbol left
+				log "from symbol", to::direction? "left"
+				log "from wrong symbol", to::direction? "both ways"
+				log "to nat", to::nat left
+				log "from nat", to::direction? 1
+				log "from wrong nat", to::direction? 2
+				log "all members", members::direction[]
+
+			direction enum(left, right)
+
+		- aside-small quote
+			{fn-to}{sp}{nat} actually returns the smallest type possible given the size of the enum,
+			so it usually returns a {nat8}. This implicitly converts to {nat}.
+
+	- section "\"match\" on enums",
+		- p "A more convenient way to use an enum is with a {match_} expression."
+		- keen-runnable quote
+			main void()
+				log opposite left
+
+			direction enum(left, right)
+			opposite direction(a direction)
+				match a
+				as left
+					right
+				as right
+					left
+
+		- aside-small "No {else_} branch is required, since all enum values were handled."
+
+	- section "Enum numbers",
+		- p quote
+			You can customize the number values used for the enum.
+		- keen-runnable quote
+			main void()
+				log to::nat left
+
+			direction enum
+				left = 5
+				right = 10
+
+	- section "Flags",
+		- p quote
+			A {flags_} value can contain any combination of the declared flags.
+
+		- keen-runnable quote
+			main void()
+				apple = carry | eat | toss
+				soup = carry | eat
+				rock = carry | toss
+				log "apple picnic?", can-picnic apple
+				log "soup picnic?", can-picnic soup
+				log "rock picnic?", can-picnic rock
+				log "flags a rock lacks:", ~rock
+				log "rock and soup have in common:", rock & soup
+				log "flags in either rock or soup:", rock | soup
+
+			actions flags
+				carry
+				eat
+				toss
+
+			can-picnic bool(a actions)
+				a[carry | eat]
+
+		- p quote
+			Declaring a {flags_} type implicitly defines all of the same functions as for an {enum_},
+			plus several additional functions.
+			In the above example those are:
+		- table
+			- thead
+				- th "Function"
+				- th "Use"
+			- tbody
+				- tr
+					- td "{fn-new}{sp}{actions}{parens}"
+					- td "Value with no flags set."
+				- tr
+					- td "{function "carry"}{sp}{actions}{parens}"
+					- td "Value with just the {function "carry"} flag set."
+				- tr
+					- td "{function "eat"}{sp}{actions}{parens}"
+					- td "Value with just the {function "eat"} flag set."
+				- tr
+					- td "{function "toss"}{sp}{actions}{parens}"
+					- td "Value with just the {function "toss"} flag set."
+				- tr
+					- td "{function "~"}{sp}{actions}{lparen}{var-a}{sp}{actions}{rparen}"
+					- td "Value with the opposite flags set."
+				- tr
+					- td binary-flags-function "|"
+					- td "Union; contains any flags that appear in either argument."
+				- tr
+					- td binary-flags-function "&"
+					- td "Intersection; contains only the flags that both arguments agree on."
+				- tr
+					- td "{fn-subscript}{sp}{bool}{binary-flags-params}"
+					- td quote
+						True if {var-a} contains every flag in {var-b}.
+						Written as {var-a}{lbracket}{var-b}{rbracket}.
+
+		- p "{flags_} types also support all the usual auto functions."
+
+		- aside-small "You can't {match_} a {flags_} value."
+
+-a-direction html[]()
+	"{var-a}{sp}{direction}"
+-a-direction-b-direction html[]()
+	"{a-direction}{comma}{var-b}{sp}{direction}"
+-direction html-node()
+	type "direction"
+
+-actions html-node()
+	type "actions"
+- binary-flags-function html[](name string)
+	"{function name}{sp}{actions}{binary-flags-params}"
+- binary-flags-params html[]()
+	"{lparen}{var-a}{sp}{actions}{comma}{var-b}{sp}{actions}{rparen}"

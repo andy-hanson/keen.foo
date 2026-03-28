@@ -1,0 +1,82 @@
+import
+	../../html
+
+intro-contexts html[]()
+	- section "Using contexts",
+		- p "Contexts allow values to be implicitly passed down through calls."
+
+		- keen-runnable quote
+			main void()
+				the language = greeting: "Hello"
+				# 'greet-three-times' implicitly takes 'the language'
+				log greet-three-times "world"
+
+			language record
+				greeting string
+
+			greet-three-times string(name string) language
+				# 'greet' implicitly takes 'the language'
+				join " ", n-of 3, greet name
+
+			greet string(name string) language
+				"\{the::language.greeting\}, \{name\}!"
+
+		- p quote
+			Notice how the body of {function "greet-three-times"} didn't have to mention the context.
+			{br}
+			The function signature did though; contexts aren't completely implicit.
+
+		- p "There are only 2 operations on contexts:"
+		- bullets
+			- quote
+				{the-t-equals} adds a context. The type annotation is required.
+			- quote
+				{the-t} gets the context. The type annotation is required.
+
+		- aside-small "You can't have 2 contexts of the same type."
+
+		- p quote
+			When you call a function that needs the context
+			(like {greet-three-times} or {function "greet"} above),
+			Keen checks that the context is available in the caller.
+			{br}
+			When {greet-three-times} calls {greet}, the context is available due to its own declared context.
+			{br}
+			That is the normal case of using a context: Just implicitly passing it along.
+
+		- p quote
+			Contexts are most effective when there is {the-t-equals} at the top,
+			some {the-t} accesses at the bottom, and a lot of functions in between
+			that just pass it along implicitly.
+
+	- section "Contexts and specs",
+		- p quote
+			A {spec_} can inherit from a context.
+			This allows bundling multiple contexts (and specs) into a single spec.
+		- keen-runnable quote
+			main void()
+				the language = greeting: "Hello"
+				the punctuation = terminator: "!"
+				log greet-three-times "world"
+
+			language record
+				greeting string
+			punctuation record
+				terminator string
+
+			contexts spec language, punctuation
+
+			greet-three-times string(name string) contexts
+				join " ", n-of 3, greet name
+
+			greet string(name string) contexts
+				"\{the::language.greeting\}, \{name\}\{the::punctuation.terminator\}"
+
+-greet html-node()
+	function "greet"
+-greet-three-times html-node()
+	function "greet-three-times"
+-the-t html[]()
+	"{the_}{colon-colon}{type "t"}"
+-the-t-equals html[]()
+	"{the_}{sp}{type "t"}{sp}{keyword "="}{sp}{code "..."}"

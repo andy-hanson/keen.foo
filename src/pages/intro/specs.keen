@@ -1,0 +1,191 @@
+import
+	../../html
+
+intro-specs html[]()
+	- section "Type parameters are opaque",
+		- p quote
+			Normally, you can't do anything with a type parameter {t}
+			unless it would work for every type.
+		- keen-runnable quote
+			main void()
+				log all-same 1, 1, 1
+
+			all-same[t] bool(a t, b t, c t)
+				# This won't work
+				a == b and b == c
+		- p quote
+			The above example doesn't work even though there is an {fn-equal} function for {nat}s.
+			{br}
+			{all-same} can't be defined that way unless {fn-equal} worked for every type (which it doesn't).
+
+		- p "This can be fixed by declaring {all-same} to use the {spec-equal} spec."
+
+		- keen-runnable quote
+			main void()
+				log all-same 1, 1, 1
+				log all-same 1, 1, 2
+
+			all-same[t] bool(a t, b t, c t) t equal
+				a == b and b == c
+
+		- p quote
+			The above example works because the {spec-equal} spec predeclares that an {fn-equal} function should exist.
+			{br}
+			Then the {em "caller"} of {fn-foo} is responsible for providing that function.
+		- p quote
+			The caller knows the actual type substituted for {t} (in this case {nat})
+			and looks for a concrete {fn-equal} function.
+			{br}
+			In this case it looks for {fn-equal}{sp}{bool}{lparen}{var-a}{sp}{nat}{comma}{var-b}{sp}{nat}{rparen}
+			and finds it in the standard library.
+
+		- aside-small quote
+			Like types, {spec_}s have a suffix syntax: {type "t equal"} uses the {spec-equal} spec
+			with {t} as its type argument.
+
+		- p quote
+			Specs are written after function parameters.
+			{br}
+			Multiple specs can be separated by commas as in {t}{sp}{type "data"}{comma}{t}{sp}{spec-equal} .
+			{br}
+			For a multi-line function signature, specs are written after the {do_} keyword.
+
+		- keen-runnable quote
+			main void()
+				log all-same 1, 1, 1
+				log all-same 1, 1, 2
+
+			all-same[t] bool
+				a t
+				b t
+				c t
+			do t equal
+				a == b and b == c
+
+	- section "Defining specs",
+		- p "A {spec_} declaration has a list of signatures in an indented block."
+
+		- keen-runnable quote
+			import
+				keen/math/math
+
+			main void()
+				log prism-volume (circle 1), 2
+				log prism-volume (square 1), 7
+
+			area[t] spec
+				area float(a t)
+
+			prism-volume[t] float(a t, depth float) t area
+				depth * area a
+
+			circle record(radius float)
+			area float(a circle)
+				pi * a.radius ** 2
+
+			square record(width float)
+			area float(a square)
+				a.width ** 2
+
+		- p quote
+			This defines an {type "area"} spec and uses it to define {function "prism-volume"}.
+			{br}
+			That allows that function to call {function "area"} on the type parameter.
+
+		- p "The syntax for spec signatures is the same as for union methods, but there is no implicit first parameter."
+
+	- section "Spec inheritance",
+		- p "A spec can inherit from other specs."
+
+		- keen-runnable quote
+			import
+				keen/math/math
+
+			main void()
+				log area-over-perimeter circle 1
+				log area-over-perimeter square 1
+
+			area-over-perimeter[t] float(a t) t shape
+				a.area / a.perimeter
+
+			shape[t] spec t area
+				perimeter float(a t)
+
+			area[t] spec
+				area float(a t)
+
+			circle record(radius float)
+			area float(a circle)
+				pi * a.radius ** 2
+			perimeter float(a circle)
+				pi * a.radius * 2
+
+			square record(width float)
+			area float(a square)
+				a.width ** 2
+			perimeter float(a square)
+				a.width * 4
+
+		- p quote
+			In the above example, {type "shape"} inherits from {type "area"},
+			so it includes both {function "area"} and {function "perimeter"} signatures.
+
+	- section "Special specs",
+		- p quote
+			The special spec {spec-data} doesn't include any signatures.
+			Instead, it is only satisfied for {data_} types.
+			(See {intro-link mutability}.)
+			{br}
+			{spec-shared} is the corresponding spec for {shared_} types.
+
+		- keen-runnable quote
+			main void()
+				foo 1
+				foo ()::nat mut[] # won't work
+
+			foo[t] void(_ t) t data
+				()
+
+		- p quote
+			There are also two special specs {global_} and {unsafe} that don't have a type argument or any signatures.
+			See {intro-link globals} and {intro-link unsafe}.
+
+	- section "Implicit functions and specs",
+		- p quote
+			Implicit functions like {fn-equal} will use specs as necessary.
+			{br}
+			Below, the implicit {fn-equal} for {type "wrapper"} needs to use the spec {t}{sp}{spec-equal}
+			so that it can call {fn-equal} on {variable "value"}.
+		- keen-runnable quote
+			main void()
+				a nat wrapper = value: 1
+				log a == a
+
+			wrapper[t] record(value t)
+
+	- section "Multiple type parameters",
+		- p quote
+			Specs can have any number of type parameters.
+			(Even 0 which is useful for avoiding circular imports. See {intro-link modules}.)
+			{br}
+			The below uses the {type "to"} spec, which takes the return type and parameter type of a
+			{fn-to} function as type parameters.
+		- keen-runnable quote
+			main void()
+				log next a
+				log next b
+				log next c
+
+			e enum(a, b, c)
+
+			next[t] t?(a t) (nat, t) to, (t?, nat) to
+				to::t? a.to::nat + 1
+
+	- section "Methods and specs",
+		- p "Methods (and method implementations) can not declare specs."
+
+-spec-equal html-node()
+	type "equal"
+
+-all-same html-node()
+	function "all-same"

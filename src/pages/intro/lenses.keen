@@ -1,0 +1,173 @@
+import
+	../../html
+
+intro-lenses html[]()
+	- section "Lenses",
+		- p "When dealing with an immutable record, you may want to update just one field and leave others alone."
+		- keen-runnable quote
+			main void()
+				a thing = name: "alice", size: 1
+				log change-size a, 2
+
+			thing record(name string, size nat)
+
+			change-size thing(a thing, new-size nat)
+				name: a.name
+				size: new-size
+
+		- p quote
+			Writing functions like {function "change-size"} is tedious,
+			so Keen will automatically generate a {lens} for every record field.
+
+		- keen-runnable quote
+			main void()
+				a thing = name: "alice", size: 1
+				log set a, size, 2
+
+			thing record(name string, size float)
+
+		- p quote
+			{set} is a function that takes a record, a lens, and the new value.
+			{br}
+			In this case, it uses the {function "size"} lens and sets the new size to 2.
+
+		- aside-small "Despite the name {set}, this returns a new record without mutating the original."
+
+		- p quote
+			If the new value depends on the old value, use {modify}.
+
+		- keen-runnable quote
+			main void()
+				a thing = name: "alice", size: 1
+				log modify a, size, it + 1
+
+			thing record(name string, size float)
+
+		- p quote
+			{modify} works like {set} but takes a lambda to compute the new value from the old.
+
+	- section "Combining lenses",
+		- p quote
+			{var-a}{sp}{plus}{sp}{var-b} is a lens that gets / sets both {var-a} and {var-b} as a tuple.
+
+		- keen-runnable quote
+			main void()
+				a r = x: 1, y: 2, z: 3
+				log modify a, x + z, it.swap
+
+			r record(x nat, y nat, z nat)
+
+		- p quote
+			{var-a}{sp}{times}{sp}{var-b} is a lens that delves into {var-a} then {var-b}.
+
+		- keen-runnable quote
+			main void()
+				a hands =
+					left: thumb: true, fingers: 4
+					right: thumb: true, fingers: 5
+				log set a, left * thumb, false
+
+			hands record(left hand, right hand)
+			hand record(thumb bool, fingers nat)
+
+	- section "Defining lenses",
+		- p quote
+			{lens} is an interface (see {intro-link interfaces}) and you can define your own.
+
+		- keen-runnable quote
+			main void()
+				a hands = is-left-handed: true, left: "a", right: "b"
+				log modify a, dominant-hand, "\{it\}!"
+
+			hands record(is-left-handed bool, left string, right string)
+
+			dominant-hand (hands, string) lens()
+				get: of x
+					if is-left-handed x then x.left else x.right
+				set: of x, value
+					set x, (if is-left-handed x then left else right), value
+
+		- p quote
+			The above example is simpler using {computed-lens}.
+
+		- keen-runnable quote
+			main void()
+				a hands = is-left-handed: true, left: "a", right: "b"
+				log modify a, dominant-hand, "\{it\}!"
+
+			hands record(is-left-handed bool, left string, right string)
+
+			dominant-hand (hands, string) lens()
+				computed-lens \{if is-left-handed it then left else right\}
+
+	- section "\"then\"",
+		- p quote
+			The {then_} keyword provides a syntax for chaining several updates.
+
+		- keen-runnable quote
+			main void()
+				log
+					0 .. 10
+					then to::nat[]
+					then filter::nat[] it.is-even
+					then map::nat[] it + 100
+
+		- p quote
+			Each {then_} must start on a new line.
+			{br}
+			It is followed by a function name, whose first argument is the previous line,
+			then the rest of the arguments (if any).
+			{br}
+			This is equivalent to:
+
+		- keen-runnable quote
+			main void()
+				log
+					v0 = 0 .. 10
+					v1 = to::nat[] v0
+					v2 = filter::nat[] v1, it.is-even
+					map::nat[] v2, it + 100
+
+		- p "{then_} can be used with any function, but it's particularly suited to {set} and {modify}."
+
+		- keen-runnable quote
+			import
+				keen/math/geom2d/aa-rect
+
+			main void()
+				a aa-rect32 = left: 0, right: 10, bottom: 0, top: 10
+				log
+					a
+					then set left, 3
+					then modify right, it - 3
+
+		- p "Using {then_}{sp}{if_}, the change can be conditional."
+
+		- keen-runnable quote
+			main void()
+				log foo 10, false, false
+				log foo 10, false, true
+				log foo 10, true, false
+				log foo 10, true, true
+
+			foo nat(a nat, incr bool, double bool)
+				a
+				then if incr then + 1
+				then if double then * 2
+
+		- aside-small quote
+			The two {then_} keywords in {then_}{sp}{if_}{sp}{variable "incr"}{sp}{then_} have different meaning.
+			The first introduces a {then_} chain, the second separates the {if_} condition from the consequence.
+
+-plus html-node()
+	std-function "keen/lens", "+"
+-times html-node()
+	std-function "keen/lens", "*"
+-computed-lens html-node()
+	std-function "keen/lens", "computed-lens"
+-lens html-node()
+	std-type "keen/lens", "lens"
+-modify html-node()
+	std-function "keen/lens", "modify"
+-set html-node()
+	std-function "keen/lens", "set"

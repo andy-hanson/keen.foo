@@ -1,0 +1,8 @@
+import
+	../../html
+
+intro-end html[]()
+	- p quote
+		Congratulations, you made it through the whole thing.
+	- p quote
+		You probably found some bugs along the way. Click "bugs" in the upper-right to file issues.

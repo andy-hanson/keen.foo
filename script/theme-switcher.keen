@@ -1,0 +1,83 @@
+import
+	keen/js
+	keen/js/dom
+	../style/theme-switcher.css as theme-switcher-css string
+	./icon
+
+define-theme-switcher-element void() global, js
+	define-custom-element "theme-switcher", (style: theme-switcher-css), of x
+		show-icon x.shadow-root, get-theme
+
+-show-icon void(shadow-root node, theme theme) global, js
+	res = icon theme
+	on-click = of::void _ js-any
+		new-theme = opposite theme
+		set-theme new-theme
+		show-icon shadow-root, new-theme
+	trusted
+		res["onclick"] := on-click.to
+	shadow-root.children := res,
+
+-theme enum(dark, light)
+-to theme?(a string)
+	a.to::symbol.to
+-to string(a theme)
+	a.to::symbol.to
+-opposite theme(a theme)
+	match a
+	as dark
+		light
+	as light
+		dark
+
+-icon node(a theme) js
+	match a
+	as dark
+		moon-icon
+	as light
+		sun-icon
+
+-get-theme theme() global, js
+	from-local theme? = local-storage["theme"].?to
+	sys = system-theme
+	if from-local == sys
+		local-storage -= "theme"
+	res = from-local else system-theme
+	update-root-for-theme res
+	res
+
+-set-theme void(a theme) global, js
+	if a == system-theme
+		local-storage -= "theme"
+	else
+		local-storage["theme"] := a.to
+	update-root-for-theme a
+
+-update-root-for-theme void(a theme) global, js
+	do trusted
+	root = document["documentElement"]
+	match a
+	as dark
+		root.classes := "dark-mode",
+	as light
+		root.classes := "light-mode",
+
+-local-storage record
+-subscript string?(_ local-storage, name symbol) global, js
+	do trusted
+	res = call-property js-global["localStorage"], "getItem", name.to
+	unless res == null then res.to
+
+-set-subscript void(_ local-storage, name symbol, value string) global, js
+	do trusted
+	_ = call-property js-global["localStorage"], "setItem", name.to, value.to
+
+-= void(_ local-storage, name symbol) global, js
+	do trusted
+	_ = call-property js-global["localStorage"], "removeItem", name.to
+
+-system-theme theme() global, js
+	trusted if (call js-global["matchMedia"], "(prefers-color-scheme: dark)")["matches"].to
+		dark
+	else
+		light

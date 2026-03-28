@@ -1,0 +1,118 @@
+import
+	../../html
+
+intro-visibility html[]()
+	- section "Private visibility",
+		- p quote
+			A private declaration is visible within the same module and nowhere else.
+			{br}
+			To mark any declaration as private, put a {keyword "-"} in front of the name.
+			(It is not a part of the name.)
+
+		- keen-runnable "user.keen", quote
+			import
+				./foo-bar
+
+			main void()
+				log foo-bar
+				log foo # Won't work
+
+		- keen-not-runnable "foo-bar.keen", quote
+			foo-bar string()
+				"\{foo\}\{bar\}"
+			-foo string()
+				"foo"
+			-bar string()
+				"bar"
+
+		- p quote
+			Functions, types, and specs can all be made private.
+			{br}
+			Even the individual fields of a record can be made private.
+
+		- keen-runnable "record-user.keen", quote
+			import
+				./my-record
+
+			main void()
+				a r = ()
+				log a.x
+				log a.y # Won't work
+
+		- keen-not-runnable "my-record.keen", quote
+			r record
+				x nat
+				-y nat
+			new r()
+				0, 0
+
+		- p quote
+			By default, the implicit {fn-new} function for a record is as visible as the least-visible field.
+			{br}
+			That means that if there is a private field, {fn-new} defaults to private.
+			If all fields are at the default visibility, so is {fn-new}.
+		- p "It's possible to make {fn-new} private even when the fields are not:"
+		- keen-runnable "record-user-2.keen", quote
+			import
+				./private-new-record
+
+			main void()
+				a r = ()
+				log a.x, a.y # fields are not private
+				_ r = 1, 2 # Won't work
+		- keen-not-runnable "private-new-record.keen", quote
+			r record -new
+				x nat
+				y nat
+			new r()
+				0, 0
+
+	- section "Internal visibility",
+		- p quote
+			The default visibility is called {em "internal"}.
+			{br}
+			An internal declaration is visible if imported using a relative import path like {code "./foo"},
+			but not if imported using a non-relative import path like {code "foo/bar"}.
+			{br}
+			(See {intro-link configs} for how to set up non-relative imports.)
+		- p quote
+			The assumption is that relative imports indicate a closer relationship between modules.
+			{br}
+			Non-relative imports are intended for libraries, which may want to hide implementation details.
+
+	- section "Public visibility",
+		- p quote
+			To make a declaration visible to all importers, make it public with {keyword "+"}.
+
+		- keen-not-runnable quote
+			+my-public-function void()
+				()
+
+	- section "Explicit internal visibility",
+		- p quote
+			A declaration may be marked explicitly internal using {keyword "~"}.
+			{br}
+			This is rarely needed, except in these cases:
+		- bullets
+			- quote
+				When defining a function named {function "-"}, {function "~"}, or {function "+"},
+				a visibility mark is mandatory, since otherwise the function name looks like the visibility mark.
+				{br}
+				So you might declare:
+				{keyword "~"}{sp}{function "-"}{sp}{type "my-type"}{lparen}{var-a}{sp}{type "my-type"}{rparen} .
+				{br}
+				This declares a function {function "-"} with internal ({keyword "~"}) visibility.
+			- "You may want an internal field on a public record:"
+
+		- keen-not-runnable quote
+			+public-record record
+				~internal-field bool
+
+	- section "Ignoring visibility",
+		- p quote
+			If you don't want to deal with visibility,
+			you can just leave everything at the default internal visibility.
+			{br}
+			This won't be a problem so long as you import your own code using relative imports.
+		- p quote
+			However, if you are writing a library for use by others, you should mark the public API with {keyword "+"}.

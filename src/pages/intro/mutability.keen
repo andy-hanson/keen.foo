@@ -1,0 +1,45 @@
+import
+	../../html
+
+intro-mutability html[]()
+	- section "Mutability levels",
+		- p "The three levels of mutability are:"
+		- bullets
+			- "{data_}, which is the default. These values don't change at all."
+			- "{shared_} values can change in a thread-safe way."
+			- "{mut_} values can change in any way."
+
+		- p "A type which is not {data_} must be marked as {shared_} or {mut_}."
+
+		- keen-not-runnable quote
+			r record mut
+				x mut nat
+
+		- p quote
+			That may seem redundant, but not all mutable types have {mut_} fields.
+			{br}
+			A type is considered as mutable as the most mutable thing it references.
+			{br}
+			So, a type must be marked as {mut_} if it references another {mut_} type,
+			even if it has no {mut_} fields of its own.
+
+		- p "To put it another way:"
+		- bullets
+			- "A {mut_} type can only be referenced by other {mut_} types."
+			- "A {shared_} type can be referenced by {shared_} or {mut_} types."
+			- "{data_} can be referenced anywhere."
+
+		- p quote
+			What this gets you is the guarantee that a {data_} type is immutable all the way down
+			and has no hidden state anywhere.
+
+		- p quote
+			Below, {type "mut-points"} needs to be be marked {mut_},
+			even though it has no mutable fields of its own.
+
+		- keen-not-runnable quote
+			mut-points record mut
+				points mut-point[]
+			mut-point record mut
+				x mut float
+				y mut float

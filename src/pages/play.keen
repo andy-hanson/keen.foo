@@ -1,0 +1,13 @@
+import
+	../html
+	../page-template
+
+play html()
+	page-template-without-side-nav "play.html", "play",
+		- keen-runnable-base (class: "wide"), quote
+			import
+				keen/io/print
+
+			main void() global, js
+				print "Hello, world!"
+			{repeat "\n", 24}

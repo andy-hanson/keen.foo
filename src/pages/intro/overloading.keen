@@ -1,0 +1,95 @@
+import
+	../../html
+
+intro-overloading html[]()
+	- section
+		- p quote
+			If multiple functions have the same name, they are called {em "overloaded"}.
+			{br}
+			They are still just ordinary functions with no special relationship other than having a name in common.
+			{br}
+			When Keen sees a function call, it creates a list of all functions in scope with that name.
+			{br}
+			It then filters them by:
+		- bullets
+			- "The number of arguments"
+			- "The return type"
+			- "Argument types"
+
+		- p "After that, if there are multiple functions remaining, it is an error due to ambiguity."
+
+	- section "Number of arguments",
+		- p "Overloading by number of arguments is simple:"
+
+		- keen-runnable quote
+			main void()
+				log foo 1
+				log foo 1, 2
+
+			foo nat(a nat)
+				a * 10
+			foo nat(a nat, b nat)
+				a + b
+
+		- aside-small "If you hover your mouse over a function call, the tooltip will tell you which function it calls."
+
+	- section "Return type",
+		- p "Overloading by return type uses the expected type of the expression."
+
+		- keen-runnable quote
+			main void()
+				n nat = foo
+				s string = foo
+				# This would be an error due to ambiguity
+				# x = foo
+				log n, s
+
+			foo nat()
+				1
+			foo string()
+				"a"
+
+		- aside-small quote
+			While local types are optional in general, they are needed above to provide an expected type to {fn-foo}.
+
+		- p quote
+			The expected type could also come from the argument type of an outer function.
+			{br}
+			Below, since {fn-bar} takes a {string}, that overload of {fn-foo} is used.
+
+		- keen-runnable quote
+			main void()
+				log bar foo
+
+			bar string(a string)
+				"foo \{a\}"
+			foo nat() # not used
+				1
+			foo string()
+				"a"
+
+	- section "Argument type",
+		- p "Basic overloading by argument type:"
+
+		- keen-runnable quote
+			main void()
+				log foo 1
+				log foo "a"
+
+			foo nat(a nat)
+				a * 10
+			foo string(a string)
+				a
+
+	- section "Troubleshooting",
+		- p quote
+			If you are having trouble with a piece of code and want to be sure you are calling the intended overload,
+			add type annotations on everything, as in:
+			{br}
+			{fn-foo}{colon-colon}{string}{sp}{fn-bar}{colon-colon}{symbol}
+			{br}
+			That way it's clear you want to call {fn-foo}{sp}{string}{lparen}{code "_"}{sp}{symbol}{rparen} .
+			{br}
+			Once the code is working, remove unnecessary type annotations.
+
+		- p "More details of Keen type-checking are in {intro-link more-overloading}."

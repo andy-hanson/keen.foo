@@ -1,0 +1,196 @@
+import
+	../../html
+
+intro-new html[]()
+	- section "new and list-new",
+		- p quote
+			The function for creating a new value is usually called {fn-new} or {fn-list-new},
+			and there is a special syntax for calling these functions.
+
+		- keen-runnable quote
+			main void()
+				# Same as 'new 1, 2, 3'
+				tuple (nat, nat, nat) = 1, 2, 3
+				log tuple
+				# Same as 'list-new (1, 2, 3)'
+				array nat[] = 1, 2, 3
+				log array
+
+		- aside-small quote
+			Tuples will be explained in {intro-link tuples} and arrays in {intro-link collections}.
+			{br}
+			The focus here is on the syntax.
+
+		- p "The syntax {num-1-2-3} may call either:"
+		- bullets
+			- "A {fn-new} function taking those arguments, making it equivalent to {fn-new}{sp}{num-1-2-3}"
+			- "A {fn-list-new} function taking with an array containg {num-1-2-3}"
+		- p quote
+			{fn-new} is for functions that expect a fixed number of arguments.
+			{br}
+			{fn-list-new} is for functions that take a variable number of arguments.
+		- p quote
+			{num-1-2-3} is a call expression.
+			Keen will build the initial overload set using all functions named {fn-new} or {fn-list-new},
+			then go through the same logic described in {intro-link overloading}.
+
+		- p quote
+			{fn-foo}{sp}{num-1-2} and {fn-foo}{sp}{parenthesized num-1-2} are two different expressions.
+			{br}
+			The former just calls {fn-foo}. The latter calls {fn-new} first, then {fn-foo} on the result.
+		- keen-runnable quote
+			main void()
+				log foo (1, 2)
+				log foo 1, 2
+
+			foo nat(tuple (nat, nat))
+				tuple.a + tuple.b
+			foo nat(a nat, b nat)
+				a * b
+
+	- section "More \"new\" syntax",
+		- subsection "Single-argument new",
+			- p "To call {fn-new} with a single argument, end with a trailing comma."
+			- keen-runnable quote
+				main void()
+					xs nat[] = 1,
+					log xs
+
+		- subsection "Empty new",
+			- p "To call {fn-new} with no arguments, write {parens}."
+			- keen-runnable quote
+				main void()
+					xs nat[] = ()
+					log xs
+
+		- subsection "Implicit empty new",
+			- p "In many contexts fn-new with no arguments will be called implicitly."
+			- keen-runnable quote
+				main void()
+					xs nat[] = if false
+						1, 2
+					log xs
+
+	- section "Defining a \"new\" function",
+		- p "{fn-new} functions are just ordinary functions and are declared in the usual way."
+
+		- keen-runnable quote
+			main void()
+				log (1, "hello", true)::nat
+
+			new nat(a nat, b string, c bool)
+				a + b.size + c.to
+
+		- aside-small quote
+			Normally you wouldn't define {fn-new} for {nat},
+			but we haven't introduced user-defined types yet.
+
+	- section "Defining a \"list-new\" function",
+		- p "{fn-list-new} functions are also just ordinary functions."
+
+		- keen-runnable quote
+			main void()
+				log (1, 2, 3)::string
+
+			list-new string(values nat[])
+				to-json values
+
+		- p "Keen generates an array from all the arguments before calling {fn-list-new}."
+
+	- section "Multi-line new",
+		- p quote
+			There is an equivalent syntax for calling {fn-new} or {fn-list-new}:
+
+		- keen-runnable quote
+			main void()
+				xs nat[] =
+					- 1
+					- 2
+					- 3
+				log xs
+
+		- p quote
+			This behaves the same as {num-1-2-3}, just with a multi-line syntax to make it convenient for bigger calls.
+		- p quote
+			The extra indentation is not needed when it is the return value of a function:
+		- keen-runnable quote
+			main void()
+				log xs
+
+			xs nat[]()
+				- 1
+				- 2
+				- 3
+
+	- section "Multi-line new with arrays",
+		- p quote
+			Using {keyword "--"} instead of {keyword "-"}
+			concatenates all the elements of an array into the array passed to {fn-list-new}.
+		- keen-runnable quote
+			main void()
+				xs nat[] = 2, 3
+				log
+					:: nat[]
+					- 1
+					-- xs
+					- 4
+
+		- aside-small quote
+			Since the number of arguments can't be known ahead of time,
+			a multi-line new with any {keyword "--"} lines can only call {fn-list-new},
+			never {fn-new}.
+
+		- p "This can be used to conditionally include elements in an array."
+		- keen-runnable quote
+			main void()
+				log
+					:: nat[]
+					-- if true
+						- 1
+					-- if false
+						- 2
+					- 3
+
+	- section "Named-new",
+		- p quote
+			The syntax {var-x}{colon}{num-1}{comma}{var-y}{colon}{num-2} calls either:
+		- bullets
+			- "A {fn-new} function with parameters named {var-x} and {var-y}."
+			- "A {fn-named-new} function taking an array of names and an array of values."
+		- p quote
+			Keen will build the initial overload set with both kinds of function,
+			then filter using the logic described in {intro-link overloading}.
+
+		- keen-runnable quote
+			main void()
+				# This calls 'named-new'
+				a json = x: 1, y: 2
+				log a
+
+		- p "This has a multi-line form which is usually preferred."
+
+		- keen-runnable quote
+			main void()
+				log a
+
+			a json()
+				x: 1
+				y: 2
+
+		- p "To demonstrate with a custom {fn-new}:"
+
+		- keen-runnable quote
+			main void()
+				log (x: 1, y: 2)::nat
+
+			new nat(x nat, y nat)
+				x + y
+
+		- p "To demonstrate with a custom {fn-named-new}:"
+
+		- keen-runnable quote
+			main void()
+				log (x: 1, y: 2)::string
+
+			named-new string(names symbol[], values nat[])
+				names.to-json ~~ values.to-json

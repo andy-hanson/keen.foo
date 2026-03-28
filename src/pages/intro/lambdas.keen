@@ -1,0 +1,240 @@
+import
+	../../html
+
+intro-lambdas html[]()
+	- section "Lambda expressions",
+		- p "A lambda expression consists of:"
+		- bullets
+			- "The {of_} keyword"
+			- "A destructuring; the same syntax as for locals"
+			- "An indented block"
+		- p quote
+			{fn-subscript} calls the lambda.
+
+		- keen-runnable quote
+			main void()
+				f = of x nat
+					x * 10
+				log f[1], f[2]
+
+		- p "An optional return type annotation goes after {of_}."
+		- keen-runnable quote
+			main void()
+				f = of::nat x nat
+					x * 10
+				log f[1], f[2]
+
+		- p "A lambda can be squeezed onto one line using {then_}."
+
+		- keen-runnable quote
+			main void()
+				f = of x nat then x * 10
+				log f[1], f[2]
+
+	- section "Lambda parameters",
+		- p quote
+			All lambdas take a single parameter.
+			{br}
+			If nothing is written after the {of_}, it means the parameter is {void}.
+
+		- keen-runnable quote
+			main void()
+				f = of
+					log "OK"
+				f[]
+
+		- aside-small quote
+			Empty brackets {lbracket}{rbracket} call {fn-subscript} with an argument of {parens}.
+
+		- p "As with locals, comma-separated names destructure a single tuple parameter."
+
+		- keen-runnable quote
+			main void()
+				f = of x nat, y string
+					log repeat y, x
+				f[3, "foo"]
+
+	- section "Lambda types",
+		- p "A lambda type consists of:"
+		- bullets
+			- "The return type"
+			- "The mutability ({data_}, {shared_}, or {mut_})"
+			- "A destructuring in parentheses."
+		- p "This syntax is used for the type of {var-f} below:"
+
+		- keen-runnable quote
+			main void()
+				f nat mut(x nat) = of x
+					x * 10
+				log f[1], f[2]
+
+		- aside-small quote
+			The name {variable "x"} in the type has no effect and doesn't have to match the actual parameter name.
+
+		- p quote
+			If the lambda expression ({of_}{sp}{var-x} above) has an expected type,
+			it doesn't need to re-declare the parameter type ({nat}).
+
+	- section "Mutability",
+		- p quote
+			The code in a lambda can access and even modify variables outside the lambda.
+			This is called a {em "closure"}.
+
+		- keen-runnable quote
+			main void()
+				cur mut = 0
+				f = of
+					cur +:= 1
+					cur
+				log f[]
+				log f[]
+
+		- p quote
+			There are different kinds of lambdas for different mutability levels.
+			(See {intro-link mutability}.)
+			{br}
+			The closure of a lambda affects its mutability:
+		- bullets
+			- "A {mut_} lambda has no restrictions. This is the default for lambdas with an inferred type."
+			- quote
+				A {shared_} lambda can only have {shared_} (or {data_}) types in its closure.
+				{br}
+				It can't reference {mut_} locals (even just to read them) regardless of their type.
+			- quote
+				A {data_} lambda can only have {data_} types in its closure.
+				{br}
+				It also can't call any {global_} functions. (See {intro-link globals}.)
+
+		- p quote
+			Most lambdas are {mut_} when there is no need to restrict them.
+			{br}
+			{shared_} lambdas are used in parallel code. (See {intro-link parallel}.)
+			{br}
+			{data_} lambdas are rarely used,
+			but may be useful in situations where the lambda must be stateless.
+			For example, a comparator lambda used for sorting might be {data_}.
+
+	- section "\"it\"",
+		- p quote
+			A lambda can also be written as an expression in wrapped in {braces}.
+			In this case, the parameter is called {it_}.
+
+		- keen-runnable quote
+			main void()
+				log filter::nat[] 1 .. 5, \{is-multiple-of it, 2\}
+				# Equivalent:
+				log filter::nat[] 1 .. 5, of x then is-multiple-of x, 2
+
+		- aside-small quote
+			This kind of lambda can't take up multiple lines, so it's only suitable for simple expressions.
+
+		- p "A braced lambda doesn't have to use the {it_} keyword; in that case it ignores its parameter."
+		- keen-runnable quote
+			main void()
+				log map::nat[] 1 .. 5, \{7\}
+
+		- p "{braces} alone is a lambda returning {fn-new}."
+		- keen-runnable quote
+			main void()
+				log map::nat[] 1 .. 5, \{\}
+
+		- p quote
+			For simple lambdas, the braces are optional.
+
+		- keen-runnable quote
+			main void()
+				log filter::nat[] 1 .. 5, it.is-even
+				log map::nat[] 1 .. 5, it * 2
+
+		- p quote
+			When braces are omitted,
+			they are implicitly around the tightly-packed expression containing the {it_} keyword.
+			{br}
+			Such tightly-packed expressions are:
+
+		- bullets
+			- "Dotted function calls: {it_}{dot}{function "is-even"}"
+			- "Prefix operators: {function "-"}{it_}"
+			- "Binary operators: {it_}{sp}{function "*"}{sp}{num-2}"
+			- "{fn-subscript} calls: {it_}{lbracket}{num-0}{rbracket}"
+			- "Type annotations: {it_}{colon-colon}{nat}"
+			- "Option forcing: {it_}{bang}"
+
+		- p quote
+			The {it_} lambda can contain any number of these tightly-packed operations:
+		- keen-runnable quote
+			import
+				keen/math/math
+
+			main void()
+				a nat[] = 2, 8, 18, 32
+				log map::float[] a, (it * 2).to::float.square-root / 10
+
+		- p "… though the above is just to prove a point and would be more readable as an {of_} lambda."
+
+	- section "\"new\" interfaces",
+		- p quote
+			Defining an interface implicitly defines a {fn-new} function
+			that takes lambdas corresponding to each interface method.
+		- keen-runnable quote
+			main void()
+				a i =
+					name: \{"keen"\}
+					number: \{1\}
+				log a.name, a.number
+
+			i interface
+				name string()
+				number nat()
+
+	- section "\"with\" blocks",
+		- p quote
+			Many functions that take a lambda do some preparation, call the lambda once, and then return.
+			{br}
+			To make that intention clear, there is a {with_} keyword providing a syntax for it.
+			{with_} blocks provide a syntax to make that intention clear.
+
+		- p "A common use of {with_} is to build a collection using {fn-build}."
+
+		- keen-runnable quote
+			main void()
+				xs nat[] = with out in build
+					out ~= 1
+					out ~= 2
+				log xs
+
+		- p quote
+			The above is equivalent to calling
+			{fn-with-block}{sp}{fn-build}{comma}{of_}{sp}{variable "out"}{sp}{code "..."}
+
+		- p quote
+			A type annotation on the {with_} keyword applies to the return type of {fn-with-block}.
+		- keen-runnable quote
+			main void()
+				log with::nat[] out in build
+					out ~= 1
+					out ~= 2
+
+		- p "A {fn-with-block} function can be defined like so:"
+
+		- keen-runnable quote
+			main void()
+				log with in log-start-and-end "a"
+					log "computing a"
+					"result a"
+				log with in log-start-and-end "b"
+					log "computing b"
+					"result b"
+
+			log-start-and-end record(name string)
+			with-block[t] t(a log-start-and-end, f t mut())
+				log "start \{a.name\}"
+				finally log "end \{a.name\}"
+				f[]
+
+		- aside-small quote
+			Above, the lambda takes a {void} parameter, so there is nothing written between {with_} and {in_}.
+
+		- p quote
+			It's not unusual to define a type whose only purpose is to be the first argument to {fn-with-block}.
+			{type "log-start-and-end"} above is an example.

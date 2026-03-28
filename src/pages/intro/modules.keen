@@ -1,0 +1,132 @@
+import
+	../../html
+
+intro-modules html[]()
+	- section "What is a module?",
+		- p quote
+			In Keen, every file is a module.
+			There is no need for an explicit module declaration.
+			{br}
+			Without an import, code in one file won't have access to code from a different file.
+
+	- section "The standard import",
+		- p quote
+			Every file automatically imports from {std-module "keen/std"} .
+			{br}
+			This re-exports from fundamental modules such as {std-module "keen/bool"} that we've been using all along.
+
+	- section "Standard library imports",
+		- p quote
+			Most of the standard library is not in the {std-module "keen/std"} and must be explicitly imported.
+			{br}
+			Imports from the standard library start with {code "keen/"}.
+		- p quote
+			Imports go in an indented block after the {import_} keyword, each on their own line.
+		- keen-runnable quote
+			import
+				keen/col/mut-stack
+
+			main void()
+				a nat mut-stack = 1, 2, 3
+				log pop a
+
+		- aside-small "An {import_} block must come before any declarations."
+
+	- section "Selected imports",
+		- p quote
+			To import just a few declarations from a module, write those names after a colon.
+
+		- keen-runnable quote
+			import
+				keen/col/mut-stack: list-new, mut-stack, pop
+
+			main void()
+				a nat mut-stack = 1, 2, 3
+				log pop a
+
+		- aside-small quote
+			Selected imports are rare, but can be useful to avoid importing functions that confuse overloading.
+
+	- section "Relative imports",
+		- p quote
+			Imports can use relative paths.
+			These look like the relative path to the imported file, just with {code ".keen"} omitted.
+
+		- keen-runnable "my-project/main.keen", quote
+			import
+				./greetings
+				../some-other-dir/places
+
+			main void()
+				log "\{hello\}, \{world\}!"
+
+		- keen-not-runnable "my-project/greetings.keen", quote
+			hello string()
+				"hello"
+
+		- keen-not-runnable "some-other-dir/places.keen", quote
+			world string()
+				"world"
+
+	- section "Re-exports",
+		- p quote
+			One module can re-export declarations from another.
+			{br}
+			This may be useful for defining a main entry point for a library.
+
+		- keen-runnable "importer.keen", quote
+			import
+				./re-exporter
+
+			main void()
+				log foo
+
+		- keen-not-runnable "re-exporter.keen", quote
+			export
+				./foo
+
+		- keen-not-runnable "foo.keen", quote
+			foo string()
+				"foo"
+
+		- p quote
+			The {export_} block has the same syntax as an {import_} block.
+			It must come {em "after"} any {import_} block.
+
+	- section "File imports",
+		- p "You can import a file as a {string} or {nat8-array}."
+
+		- keen-runnable quote
+			import
+				./hello.txt as hello string
+
+			main void()
+				log hello
+
+	- section "No cycles",
+		- p quote
+			Modules must be acyclic. If module A imports module B, B can't import A.
+			{br}
+			To work around this, you could use {spec_}s. (See {intro-link specs}.)
+
+		- keen-runnable "ping.keen", quote
+			import
+				./pong
+
+			main void()
+				log ping 10
+
+			ping nat[](x nat)
+				- x
+				-- unless x == 0 then pong x - 1
+
+		- keen-not-runnable "pong.keen", quote
+			ping spec
+				ping nat[](x nat)
+
+			pong nat[](x nat) ping
+				- x
+				-- unless x == 0 then ping x - 1
+
+-nat8-array html[]()
+	"{nat8}{type "[]"}"
