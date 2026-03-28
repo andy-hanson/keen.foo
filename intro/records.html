@@ -1,0 +1,90 @@
+<html><head><title>Keen programming language: Records</title><link href="/icon.svg" rel="icon" type="image/x-icon"><link href="https://cdn.jsdelivr.net/npm/hack-font@3/build/web/hack-subset.css" rel="stylesheet"><link href="/style/index.css" rel="stylesheet"><link href="/worker.js" rel="modulepreload"><script src="/index.js" type="module"></script></head><body><header><nav><div id="home"><a href="/"><keen-icon icon="home"></keen-icon></a></div><ul class="grow"><li><a href="/download.html">download</a></li><li><a class="current" href="/intro">intro</a></li><li><a href="/doc">docs</a></li><li><a href="/faq.html">faq</a></li><li><a href="/play.html">play</a></li></ul><ul><li><a href="https://discord.com/channels/1505354381707579413/1505354409733787798">chat</a></li><li><a href="https://github.com/andy-hanson/keen/issues">bugs</a></li><li><a href="https://github.com/andy-hanson/keen">source</a></li><li><theme-switcher></theme-switcher></li></ul></nav></header><div id="side-nav-wrapper"><nav><ul><li><a href="/intro/index.html">Commands</a></li><li><a href="/intro/functions.html">Functions</a></li><li><a href="/intro/expressions.html">Basic expressions</a></li><li><a href="/intro/types.html">Basic types</a></li><li><a href="/intro/ifs.html">&quot;if&quot; expressions</a></li><li><a href="/intro/overloading.html">Overloading</a></li><li><a href="/intro/new_.html">&quot;new&quot; functions</a></li><li><a href="/intro/tuples.html">Tuples</a></li><li><a class="current" href="/intro/records.html">Records</a></li><li><a href="/intro/mutability.html">Mutability</a></li><li><a href="/intro/strings.html">String literals</a></li><li><a href="/intro/kid.html">Kid</a></li><li><a href="/intro/operators.html">Operators</a></li><li><a href="/intro/options.html">Options</a></li><li><a href="/intro/matches.html">&quot;match&quot; expressions</a></li><li><a href="/intro/enums.html">Enums and flags</a></li><li><a href="/intro/loops.html">Loops</a></li><li><a href="/intro/unions.html">Unions</a></li><li><a href="/intro/interfaces.html">Interfaces and variants</a></li><li><a href="/intro/type-parameters.html">Type parameters</a></li><li><a href="/intro/specs.html">Specs</a></li><li><a href="/intro/lambdas.html">Lambdas</a></li><li><a href="/intro/iteration.html">Iteration</a></li><li><a href="/intro/collections.html">Collections</a></li><li><a href="/intro/exceptions.html">Exceptions</a></li><li><a href="/intro/modules.html">Modules</a></li><li><a href="/intro/visibility.html">Visibility</a></li><li><a href="/intro/configs.html">&quot;config.kid&quot;</a></li><li><a href="/intro/unsafe.html">Unsafe code</a></li><li><a href="/intro/globals.html">Global side effects</a></li><li><a href="/intro/targets.html">Targets</a></li><li><a href="/intro/java.html">Java</a></li><li><a href="/intro/js.html">JavaScript</a></li><li><a href="/intro/tests.html">Tests</a></li><li><a href="/intro/parallel.html">Parallelism</a></li><li><a href="/intro/contexts.html">Contexts</a></li><li><a href="/intro/dos.html">&quot;do&quot; expressions</a></li><li><a href="/intro/more-overloading.html">Advanced overloading</a></li><li><a href="/intro/misc.html">Miscellaneous</a></li><li><a href="/intro/end.html">Conclusion</a></li></ul></nav><main><h1>Records</h1><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Defining record types</h2><div><p>A record type is declared with fields in an intented block, each on their own line.</p><keen-runnable>main void()
+	a point = 1, 2
+	log a.x
+	b point = x: 1, y: 2
+	log b.y
+
+point record
+	x float
+	y float</keen-runnable><p>Defining a record implicitly defines a <code class="function">new</code> function.
+<br>
+In the above example, its signature would be:
+<code class="function">new</code><code> </code><code class="type"> point</code><code>(</code><code class="variable">x</code><code> </code><a href="/doc/keen/number.html#float"><code class="type">float</code></a><code>, </code><code class="variable">y</code><code> </code><a href="/doc/keen/number.html#float"><code class="type">float</code></a><code>)</code>
+<br>
+Like any <code class="function">new</code> function, it can be called with either <code class="number">1</code><code>, </code><code class="number">2</code> or
+<code class="variable">x</code><code>: </code><code class="number">1</code><code>, </code><code class="variable">y</code><code>: </code><code class="number">2</code>.
+<br>
+The record also implicitly defines functions for getting each field.
+<br>
+In the above example, these would have signatures of <code class="function">x</code><code> </code><a href="/doc/keen/number.html#float"><code class="type">float</code></a><code>(</code><code class="variable">a</code><code> </code><code class="type">point</code><code>)</code> and <code class="function">y</code><code> </code><a href="/doc/keen/number.html#float"><code class="type">float</code></a><code>(</code><code class="variable">a</code><code> </code><code class="type">point</code><code>)</code>.</p><aside class="small">The example uses the <code>a.x</code> syntax to get the field, but it could be written as <code>x a</code>.</aside><section><h3>Short record syntax</h3><p>For simple records, you can collapse the definition onto one line.</p><keen-runnable no-run="true">point record(x float, y float)</keen-runnable></section><section><h3>Empty records</h3><p>The fields can be omitted, resulting in an empty type.</p><keen-runnable no-run="true">empty record</keen-runnable></section><section><h3>Arguments records</h3><p>For functions with many arguments, you may want to make them a <code class="keyword">record</code>:</p><keen-runnable>main void()
+	log foo x: 1, y: 2
+
+foo-args record(x nat, y nat)
+foo nat(args foo-args)
+	args.x + args.y</keen-runnable></section></div></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Mutable records</h2><div><p>Any record fields marked with <code class="keyword">mut</code> are mutable.
+As with mutable locals, the <code class="keyword">mut</code> goes before the type.</p><keen-runnable>main void()
+	a mut-point = 1, 2
+	a.x := 3
+	log a.x
+
+mut-point record mut
+	x mut float
+	y mut float</keen-runnable><p><code>a.x := 3</code> is a syntax equivalent to calling <code class="function">set-x</code><code> </code><code class="variable">a</code><code>, </code><code class="number">3</code>.</p><p>Mutable record fields implicitly define setter functions.
+<br>
+In this case, they are <code class="function">set-x</code><code> </code><a href="/doc/keen/misc.html#void"><code class="type">void</code></a><code>(</code><code class="variable">a</code><code> </code><code class="type">point</code><code>, </code><code class="variable">value</code><code> </code><a href="/doc/keen/number.html#float"><code class="type">float</code></a><code>)</code>
+and <code class="function">set-y</code><code> </code><a href="/doc/keen/misc.html#void"><code class="type">void</code></a><code>(</code><code class="variable">a</code><code> </code><code class="type">point</code><code>, </code><code class="variable">value</code><code> </code><a href="/doc/keen/number.html#float"><code class="type">float</code></a><code>)</code>.</p></div></section><aside class="small">The <code class="keyword">mut</code> in <code class="type">mut-point</code><code> </code><code class="keyword">record</code><code> </code><code class="keyword">mut</code> will be explained in <a href="/intro/mutability.html">Mutability</a>.</aside><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Defining &quot;new&quot;</h2><div><p>Since <code class="function">new</code> functions are just ordinary functions,
+you can define additional <code class="function">new</code> overloads.</p><keen-runnable>main void()
+	a point = ()
+	log a.x
+
+point record(x float, y float)
+new point()
+	# This calls &#39;new point(x float, y float)&#39;
+	0, 0</keen-runnable></div></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Named constructors</h2><div><p>Defining a record also implicitly creates a function with the same name as the record
+and the same signature as <code class="function">new</code>.</p><keen-runnable>main void()
+	log point 1, 2
+
+point record(x float, y float)</keen-runnable><p><code class="type">point</code><code> </code><code class="number">1</code><code>, </code><code class="number">2</code> looks better than <code>(</code><code class="number">1</code><code>, </code><code class="number">2</code><code>)</code><code class="keyword">::</code><code class="type">point</code>.
+<br>
+But if the type annotation is not necessary, prefer to write just <code class="number">1</code><code>, </code><code class="number">2</code>.</p></div></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Other implicit functions</h2><div><p>Declaring a record type <code class="type">point</code> also implicitly declares:</p><ul class="bullets"><li><code class="function">==</code><code> </code><a href="/doc/keen/bool.html#bool"><code class="type">bool</code></a><code>(</code><code class="variable">a</code><code> </code><code class="type">point</code><code>, </code><code class="variable">b</code><code> </code><code class="type">point</code><code>)</code></li><li><code class="function">&lt;=&gt;</code><code> </code><a href="/doc/keen/compare.html#comparison"><code class="type">comparison</code></a><code>(</code><code class="variable">a</code><code> </code><code class="type">point</code><code>, </code><code class="variable">b</code><code> </code><code class="type">point</code><code>)</code></li><li><code class="function">hash</code><code> </code><a href="/doc/keen/misc.html#void"><code class="type">void</code></a><code>(</code><code class="variable">a</code><code> </code><code class="type">point</code><code>, </code><code class="variable">state</code><code> </code><a href="/doc/keen/hash.html#hash-state"><code class="type">hash-state</code></a><code>)</code></li><li><code class="function">to</code><code> </code><a href="/doc/keen/json.html#json"><code class="type">json</code></a><code>(</code><code class="variable">a</code><code> </code><code class="type">point</code><code>)</code></li><li><code class="function">to</code><code> </code><code class="type">point</code><code>(</code><code class="variable">a</code><code> </code><a href="/doc/keen/json.html#json"><code class="type">json</code></a><code>)</code></li></ul><keen-runnable>main void()
+	a point = 1, 2
+	log a == a
+	log a &lt;=&gt; (2, 1)
+	log deterministic-hash a # Uses &#39;hash&#39;
+	log a # Uses &#39;to json&#39;
+	log a.to::json.to::point == a
+
+point record(x float, y float)</keen-runnable><p>These functions are only defined for immutable records with no private fields.</p><p>It is possible to define these functions explicitly yourself.
+<br>
+However, <code class="function">==</code>, <code class="function">&lt;=&gt;</code>, and <code class="function">hash</code> are unsafe to define yourself,
+so the body must be wrapped in <code class="keyword">trusted</code>. (See <a href="/intro/unsafe.html">Unsafe code</a>.)
+<br>
+The reason they are unsafe is that badly written comparison or hash functions can break <a href="/doc/keen/col/map.html#map"><code class="type">map</code></a>s.
+<br>
+<a href="/doc/keen/json.html#json"><code class="type">json</code></a> conversion functions are safe to define yourself, but make sure a round trip
+(<code class="variable">a</code><code class="keyword">.</code><code class="function">to</code><code class="keyword">::</code><a href="/doc/keen/json.html#json"><code class="type">json</code></a><code class="keyword">.</code><code class="function">to</code><code class="keyword">::</code><code class="type">point</code>) is the identity function.</p><p>If they were defined explicitly, they would look like this:</p><keen-runnable>main void()
+	a point = 1, 2
+	log a == a
+	log a &lt;=&gt; (2, 1)
+	log deterministic-hash a # Uses &#39;hash&#39;
+	log a # Uses &#39;to json&#39;
+	log a.to::json.to::point == a
+
+point record(x float, y float)
+== bool(a point, b point)
+	trusted a.x == b.x and a.y == b.y
+&lt;=&gt; comparison(a point, b point)
+	trusted
+		compare-x = a.x &lt;=&gt; b.x
+		if compare-x == equal then a.y &lt;=&gt; b.y else compare-x
+hash void(a point, state hash-state)
+	trusted
+		hash a.x, state
+		hash a.y, state
+to json(a point)
+	x: a.x.to
+	y: a.y.to
+to point(a json)
+	x: a[&quot;x&quot;].to
+	y: a[&quot;y&quot;].to</keen-runnable><aside class="small"><code class="function">!=</code>, <code class="function">&lt;</code>, <code class="function">&gt;</code>, <code class="function">&lt;=</code>, or <code class="function">&gt;=</code> are generic functions
+defined in terms of <code class="function">==</code> and <code class="function">&lt;=&gt;</code>.</aside></div></section><a href="/intro/mutability.html" id="next">next: Mutability</a></main></div></body></html>

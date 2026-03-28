@@ -1,0 +1,52 @@
+<html><head><title>Keen programming language: &quot;if&quot; expressions</title><link href="/icon.svg" rel="icon" type="image/x-icon"><link href="https://cdn.jsdelivr.net/npm/hack-font@3/build/web/hack-subset.css" rel="stylesheet"><link href="/style/index.css" rel="stylesheet"><link href="/worker.js" rel="modulepreload"><script src="/index.js" type="module"></script></head><body><header><nav><div id="home"><a href="/"><keen-icon icon="home"></keen-icon></a></div><ul class="grow"><li><a href="/download.html">download</a></li><li><a class="current" href="/intro">intro</a></li><li><a href="/doc">docs</a></li><li><a href="/faq.html">faq</a></li><li><a href="/play.html">play</a></li></ul><ul><li><a href="https://discord.com/channels/1505354381707579413/1505354409733787798">chat</a></li><li><a href="https://github.com/andy-hanson/keen/issues">bugs</a></li><li><a href="https://github.com/andy-hanson/keen">source</a></li><li><theme-switcher></theme-switcher></li></ul></nav></header><div id="side-nav-wrapper"><nav><ul><li><a href="/intro/index.html">Commands</a></li><li><a href="/intro/functions.html">Functions</a></li><li><a href="/intro/expressions.html">Basic expressions</a></li><li><a href="/intro/types.html">Basic types</a></li><li><a class="current" href="/intro/ifs.html">&quot;if&quot; expressions</a></li><li><a href="/intro/overloading.html">Overloading</a></li><li><a href="/intro/new_.html">&quot;new&quot; functions</a></li><li><a href="/intro/tuples.html">Tuples</a></li><li><a href="/intro/records.html">Records</a></li><li><a href="/intro/mutability.html">Mutability</a></li><li><a href="/intro/strings.html">String literals</a></li><li><a href="/intro/kid.html">Kid</a></li><li><a href="/intro/operators.html">Operators</a></li><li><a href="/intro/options.html">Options</a></li><li><a href="/intro/matches.html">&quot;match&quot; expressions</a></li><li><a href="/intro/enums.html">Enums and flags</a></li><li><a href="/intro/loops.html">Loops</a></li><li><a href="/intro/unions.html">Unions</a></li><li><a href="/intro/interfaces.html">Interfaces and variants</a></li><li><a href="/intro/type-parameters.html">Type parameters</a></li><li><a href="/intro/specs.html">Specs</a></li><li><a href="/intro/lambdas.html">Lambdas</a></li><li><a href="/intro/iteration.html">Iteration</a></li><li><a href="/intro/collections.html">Collections</a></li><li><a href="/intro/exceptions.html">Exceptions</a></li><li><a href="/intro/modules.html">Modules</a></li><li><a href="/intro/visibility.html">Visibility</a></li><li><a href="/intro/configs.html">&quot;config.kid&quot;</a></li><li><a href="/intro/unsafe.html">Unsafe code</a></li><li><a href="/intro/globals.html">Global side effects</a></li><li><a href="/intro/targets.html">Targets</a></li><li><a href="/intro/java.html">Java</a></li><li><a href="/intro/js.html">JavaScript</a></li><li><a href="/intro/tests.html">Tests</a></li><li><a href="/intro/parallel.html">Parallelism</a></li><li><a href="/intro/contexts.html">Contexts</a></li><li><a href="/intro/dos.html">&quot;do&quot; expressions</a></li><li><a href="/intro/more-overloading.html">Advanced overloading</a></li><li><a href="/intro/misc.html">Miscellaneous</a></li><li><a href="/intro/end.html">Conclusion</a></li></ul></nav><main><h1>&quot;if&quot; expressions</h1><section><p>An <code class="keyword">if</code> expression takes a <a href="/doc/keen/bool.html#bool"><code class="type">bool</code></a> condition and two branches of the same type.
+It evaluates the first branch if the condition is <a href="/doc/keen/bool.html#true"><code class="function">true</code></a>
+and the second branch if the condition is <a href="/doc/keen/bool.html#false"><code class="function">false</code></a>.
+<br>
+The syntax uses the <code class="keyword">if</code> and <code class="keyword">else</code> keywords and indented blocks for the branches.</p><keen-runnable>main void()
+	if 1 &lt; 2
+		log &quot;ok&quot;
+	else
+		log &quot;what?&quot;</keen-runnable><p><code class="keyword">if</code> can be nested inside another expression.</p><keen-runnable>main void()
+	log if 1 &lt; 2
+		&quot;ok&quot;
+	else
+		&quot;what?&quot;</keen-runnable><p><code class="keyword">else</code> can be omitted. In that case it calls a <code class="function">new</code> function with no arguments.
+<br></p><keen-runnable>main void()
+	s string = if 2 &lt; 1
+		&quot;what?&quot;
+	log s</keen-runnable><aside class="small">There are many <code class="function">new</code> functions. Keen chooses one based on the expected type.
+See <a href="/intro/overloading.html">Overloading</a>.
+<br>
+<code class="function">new</code> with no arguments returns an empty value of the type. Above, it returns an empty string.</aside><p><code class="keyword">elif</code> can be used to chain <code class="keyword">if</code>s.</p><keen-runnable>main void()
+	log if 2 &lt; 1
+		&quot;what?&quot;
+	elif 2 &lt; 2
+		&quot;still unlikely&quot;
+	else
+		&quot;ok&quot;</keen-runnable><p>Simple <code class="keyword">if</code>s can be squeezed into a single line using <code class="keyword">then</code>.</p><keen-runnable>main void()
+	log if 1 &lt; 2 then &quot;ok&quot; else &quot;what?&quot;</keen-runnable></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>&quot;unless&quot;</h2><div><p><code class="keyword">unless</code> is the opposite of <code class="keyword">if</code>.</p><keen-runnable>main void()
+	log unless 2 &lt; 1 then &quot;ok&quot;</keen-runnable><p>It&#39;s not recommended to combine <code class="keyword">unless</code> with <code class="keyword">else</code>. (In that case just swap the branches and use <code class="keyword">if</code>.)
+<br>
+There&#39;s no <code class="keyword">elunless</code> keyword. Just use <code class="keyword">elif</code> and negate the condition.</p></div></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Type-checking order</h2><div><p>Keen always type-checks code in the order it is read: Left to right, top to bottom.
+<br>
+The first branch of an <code class="keyword">if</code> can provide an expected type for the <code class="keyword">else</code> branch.</p><keen-runnable>main void()
+	j json = &quot;j&quot;
+	log if 1 &lt; 2
+		j
+	else
+		&quot;k&quot; # This is a json literal</keen-runnable><p>Above, the first branch has a <a href="/doc/keen/json.html#json"><code class="type">json</code></a> value, so the second branch must too.
+<br>
+Below, there is an error because the first branch has a type of <a href="/doc/keen/string.html#string"><code class="type">string</code></a> (the default for string literals)
+and the second branch has an incompatible type <a href="/doc/keen/json.html#json"><code class="type">json</code></a>.</p><keen-runnable>main void()
+	j json = &quot;j&quot;
+	log if 2 &lt; 1
+		&quot;k&quot;
+	else
+		j # error</keen-runnable><p>Keen won&#39;t travel back in time to change the type of an already-checked expression.
+<br>
+To fix this, give the first branch (or the entire <code class="keyword">if</code>) an expected type.</p><keen-runnable>main void()
+	j json = &quot;j&quot;
+	log if 2 &lt; 1
+		&quot;k&quot;::json
+	else
+		j</keen-runnable></div></section><a href="/intro/overloading.html" id="next">next: Overloading</a></main></div></body></html>

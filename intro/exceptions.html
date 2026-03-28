@@ -1,0 +1,109 @@
+<html><head><title>Keen programming language: Exceptions</title><link href="/icon.svg" rel="icon" type="image/x-icon"><link href="https://cdn.jsdelivr.net/npm/hack-font@3/build/web/hack-subset.css" rel="stylesheet"><link href="/style/index.css" rel="stylesheet"><link href="/worker.js" rel="modulepreload"><script src="/index.js" type="module"></script></head><body><header><nav><div id="home"><a href="/"><keen-icon icon="home"></keen-icon></a></div><ul class="grow"><li><a href="/download.html">download</a></li><li><a class="current" href="/intro">intro</a></li><li><a href="/doc">docs</a></li><li><a href="/faq.html">faq</a></li><li><a href="/play.html">play</a></li></ul><ul><li><a href="https://discord.com/channels/1505354381707579413/1505354409733787798">chat</a></li><li><a href="https://github.com/andy-hanson/keen/issues">bugs</a></li><li><a href="https://github.com/andy-hanson/keen">source</a></li><li><theme-switcher></theme-switcher></li></ul></nav></header><div id="side-nav-wrapper"><nav><ul><li><a href="/intro/index.html">Commands</a></li><li><a href="/intro/functions.html">Functions</a></li><li><a href="/intro/expressions.html">Basic expressions</a></li><li><a href="/intro/types.html">Basic types</a></li><li><a href="/intro/ifs.html">&quot;if&quot; expressions</a></li><li><a href="/intro/overloading.html">Overloading</a></li><li><a href="/intro/new_.html">&quot;new&quot; functions</a></li><li><a href="/intro/tuples.html">Tuples</a></li><li><a href="/intro/records.html">Records</a></li><li><a href="/intro/mutability.html">Mutability</a></li><li><a href="/intro/strings.html">String literals</a></li><li><a href="/intro/kid.html">Kid</a></li><li><a href="/intro/operators.html">Operators</a></li><li><a href="/intro/options.html">Options</a></li><li><a href="/intro/matches.html">&quot;match&quot; expressions</a></li><li><a href="/intro/enums.html">Enums and flags</a></li><li><a href="/intro/loops.html">Loops</a></li><li><a href="/intro/unions.html">Unions</a></li><li><a href="/intro/interfaces.html">Interfaces and variants</a></li><li><a href="/intro/type-parameters.html">Type parameters</a></li><li><a href="/intro/specs.html">Specs</a></li><li><a href="/intro/lambdas.html">Lambdas</a></li><li><a href="/intro/iteration.html">Iteration</a></li><li><a href="/intro/collections.html">Collections</a></li><li><a class="current" href="/intro/exceptions.html">Exceptions</a></li><li><a href="/intro/modules.html">Modules</a></li><li><a href="/intro/visibility.html">Visibility</a></li><li><a href="/intro/configs.html">&quot;config.kid&quot;</a></li><li><a href="/intro/unsafe.html">Unsafe code</a></li><li><a href="/intro/globals.html">Global side effects</a></li><li><a href="/intro/targets.html">Targets</a></li><li><a href="/intro/java.html">Java</a></li><li><a href="/intro/js.html">JavaScript</a></li><li><a href="/intro/tests.html">Tests</a></li><li><a href="/intro/parallel.html">Parallelism</a></li><li><a href="/intro/contexts.html">Contexts</a></li><li><a href="/intro/dos.html">&quot;do&quot; expressions</a></li><li><a href="/intro/more-overloading.html">Advanced overloading</a></li><li><a href="/intro/misc.html">Miscellaneous</a></li><li><a href="/intro/end.html">Conclusion</a></li></ul></nav><main><h1>Exceptions</h1><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Throwing</h2><div><p><code class="keyword">throw</code> takes an <a href="/doc/keen/exception.html#exception"><code class="type">exception</code></a> and throws it.
+<br>
+<a href="/doc/keen/exception.html#error"><code class="type">error</code></a> is a generic kind of exception used for program logic errors.</p><keen-runnable>main void()
+	throw error &quot;boo&quot;</keen-runnable><p>Since a <code class="keyword">throw</code> expression won&#39;t actually return normally, it can be any type.</p><keen-runnable>main void()
+	s string = throw error &quot;boo&quot;
+	log s</keen-runnable></div></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Custom exception types</h2><div><p><a href="/doc/keen/exception.html#exception"><code class="type">exception</code></a> is a <code class="keyword">variant</code> type, so you can add new case types.
+<a href="/doc/keen/exception.html#exception"><code class="type">exception</code></a> has a single method <code class="function">show</code>.
+<br>
+(See <a href="/intro/interfaces.html">Interfaces and variants</a>.)</p><keen-runnable>main void()
+	throw my-exception
+
+my-exception record exception case
+show string(_ my-exception) = &quot;custom error message&quot;</keen-runnable></div></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Assert and forbid</h2><div><p><code class="keyword">assert</code> throws an <a href="/doc/keen/exception.html#error"><code class="type">error</code></a> if its argument is <code class="function">false</code>.
+<code class="keyword">forbid</code> throws an <a href="/doc/keen/exception.html#error"><code class="type">error</code></a> if its argument is <code class="function">true</code>.</p><keen-runnable>main void()
+	assert 1 + 1 == 2
+	forbid 2 * 2 == 4 # throws</keen-runnable><p>An optional <code class="keyword">else</code> clause specifies the exception to throw.</p><keen-runnable>main void()
+	assert 1 + 1 == 3 else error &quot;Not enough?&quot;</keen-runnable><p><code class="keyword">assert</code> and <code class="keyword">forbid</code> work with option conditions.
+<br>
+The option from an <code class="keyword">assert</code> will be available as a non-option after it.
+<br>
+The option from a <code class="keyword">forbid</code> will be available as a non-option in its <code class="keyword">else</code> clause.</p><keen-runnable>main void()
+	assert x = half 4
+	log x
+	# Will throw
+	forbid y = half 4 else error &quot;Did not expect {y}&quot;
+
+half nat?(a nat)
+	if is-even a then a / 2</keen-runnable><p><code class="keyword">is</code> is also a kind of assertion. Prefer this over <code>assert x == y</code>.</p><keen-runnable>main void()
+	1 is 2 # fails</keen-runnable></div></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Finally</h2><div><p>A <code class="keyword">finally</code> expression has <em>right</em> and <em>below</em> subexpressions.
+<br>
+If first runs the <em>below</em> expression.
+<br>
+It then runs the <em>right</em> expression, whether or not the <em>below</em> expression threw an exception.</p><p>Below, the <em>right</em> expression is <a href="/doc/keen/log.html#log"><code class="function">log</code></a><code> </code><code class="string">&quot;right&quot;</code>
+and the <em>below</em> expression is the sequence
+<a href="/doc/keen/log.html#log"><code class="function">log</code></a><code> </code><code class="string">&quot;below&quot;</code> and <a href="/doc/keen/log.html#log"><code class="function">log</code></a><code> </code><code class="number">1</code><code> </code><code class="function">/</code><code> </code><code class="number">0</code> .</p><keen-runnable>main void()
+	finally log &quot;right&quot;
+	log &quot;below&quot;
+	log 1 / 0</keen-runnable><aside class="small">Above, the division by 0 actually happens <em>before</em> <a href="/doc/keen/log.html#log"><code class="function">log</code></a><code> </code><code class="string">&quot;right&quot;</code>,
+but the exception is caught and rethrown after it runs.</aside><p>The value of a <code class="keyword">finally</code> expression is the value of the <em>below</em> expression.
+The <em>right</em> expression must be <a href="/doc/keen/misc.html#void"><code class="type">void</code></a>.</p><keen-runnable>main void()
+	result =
+		finally log &quot;end&quot;
+		&quot;value&quot;
+	log &quot;result&quot;, result</keen-runnable><p>The <em>right</em> expression can be an indented block.
+<br>
+Below, the <em>right</em> expression is on lines 3 and 4
+and the <em>below</em> expression is just <a href="/doc/keen/log.html#log"><code class="function">log</code></a><code> </code><code class="number">1</code><code> </code><code class="function">/</code><code> </code><code class="number">0</code> .</p><keen-runnable>main void()
+	finally
+		log &quot;a&quot;
+		log &quot;b&quot;
+	log 1 / 0</keen-runnable></div></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Catching exceptions</h2><div><p>A <code class="keyword">try</code> expression first evaluates the <code class="keyword">try</code> block.
+If that threw the caught type, it evaluates the <code class="keyword">catch</code> block instead.</p><keen-runnable>main void()
+	log try
+		1 / 0
+	catch as arithmetic-error
+		7</keen-runnable><aside class="small">The <code class="keyword">try</code> and <code class="keyword">catch</code> blocks must have the same type.</aside><p>The <code class="keyword">catch</code> has no effect if some other kind of exception is thrown.</p><keen-runnable>main void()
+	log try
+		# Underflows &#39;nat&#39;
+		1 - 2
+	catch as index-too-big
+		7</keen-runnable><p>A local name between <code class="keyword">catch</code> and <code class="keyword">as</code> will have the exception value.</p><keen-runnable>main void()
+	log try
+		to::nat8 256
+	catch e as arithmetic-error
+		log &quot;{nat64! only! e.inputs} won&#39;t fit in a nat8&quot;
+		7</keen-runnable><aside class="small">See <a href="/doc/keen/number.html#arithmetic-error"><code class="type">arithmetic-error</code></a> for details.</aside><p>There can be multiple <code class="keyword">catch</code> blocks for different exception types.</p><keen-runnable>main void()
+	xs nat[] = ()
+	log try
+		xs[1 / 0]
+	catch as arithmetic-error
+		7
+	catch as index-too-big
+		8</keen-runnable><p>If there is no <code class="keyword">as</code> clause, it catches every exception.</p><keen-runnable>main void()
+	log try
+		1 / 0
+	catch e
+		log &quot;Something happened: {e}&quot;
+		7</keen-runnable><aside class="small">You should almost always include an <code class="keyword">as</code> clause.
+You don&#39;t want to ignore an out of memory error
+based on an assumption that <a href="/doc/keen/number.html#arithmetic-error"><code class="type">arithmetic-error</code></a> was the only possible exception.</aside></div></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Common exceptions</h2><div><p>Throw <a href="/doc/keen/exception.html#not-implemented"><code class="function">not-implemented</code></a> if something is intentionally not implemented.
+<br>
+Throw <a href="/doc/keen/exception.html#todo"><code class="function">todo</code></a> if something hasn&#39;t been implemented, but should be.
+<br>
+Throw <a href="/doc/keen/exception.html#unreachable"><code class="function">unreachable</code></a>
+if it should not be possible to get to the <code class="keyword">throw</code> expression.</p><keen-runnable>main void()
+	log describe 1
+	log describe 2
+
+describe string(a nat)
+	match a % 2
+	as 0
+		&quot;even&quot;
+	as 1
+		&quot;odd&quot;
+	else
+		throw unreachable</keen-runnable></div></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Testing exceptions</h2><div><p>Use this pattern to test functions that should throw exceptions:</p><keen-runnable test="true">test
+	try
+		_ = to::string 1::json
+		should-throw
+	catch e as deserialize-error
+		e is expected: &quot;string&quot;, value: 1</keen-runnable><aside class="small">Tests will be explained in <a href="/intro/tests.html">Tests</a> .
+<code>&lt;&lt;no output&gt;&gt;</code> means the test passed.</aside></div></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>&quot;is&quot;</h2><div><p><code class="keyword">is</code> parses as a binary operator with the lowest precedence.
+<br>
+It asserts that the left side is equal to the right side.</p><keen-runnable>main void()
+	round 1.5 is 2
+	# is equivalent to:
+	assert (round 1.5) == 2</keen-runnable><p>Like <code class="keyword">assert</code>, <code class="keyword">is</code> can throw a custom exception with an <code class="keyword">else</code> clause.</p><keen-runnable>main void()
+	1 is 2 else error &quot;custom exception&quot;</keen-runnable><p>There&#39;s also <code class="keyword">isnt</code>.</p><keen-runnable>main void()
+	1 isnt 2</keen-runnable></div></section><a href="/intro/modules.html" id="next">next: Modules</a></main></div></body></html>

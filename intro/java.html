@@ -1,0 +1,164 @@
+<html><head><title>Keen programming language: Java</title><link href="/icon.svg" rel="icon" type="image/x-icon"><link href="https://cdn.jsdelivr.net/npm/hack-font@3/build/web/hack-subset.css" rel="stylesheet"><link href="/style/index.css" rel="stylesheet"><link href="/worker.js" rel="modulepreload"><script src="/index.js" type="module"></script></head><body><header><nav><div id="home"><a href="/"><keen-icon icon="home"></keen-icon></a></div><ul class="grow"><li><a href="/download.html">download</a></li><li><a class="current" href="/intro">intro</a></li><li><a href="/doc">docs</a></li><li><a href="/faq.html">faq</a></li><li><a href="/play.html">play</a></li></ul><ul><li><a href="https://discord.com/channels/1505354381707579413/1505354409733787798">chat</a></li><li><a href="https://github.com/andy-hanson/keen/issues">bugs</a></li><li><a href="https://github.com/andy-hanson/keen">source</a></li><li><theme-switcher></theme-switcher></li></ul></nav></header><div id="side-nav-wrapper"><nav><ul><li><a href="/intro/index.html">Commands</a></li><li><a href="/intro/functions.html">Functions</a></li><li><a href="/intro/expressions.html">Basic expressions</a></li><li><a href="/intro/types.html">Basic types</a></li><li><a href="/intro/ifs.html">&quot;if&quot; expressions</a></li><li><a href="/intro/overloading.html">Overloading</a></li><li><a href="/intro/new_.html">&quot;new&quot; functions</a></li><li><a href="/intro/tuples.html">Tuples</a></li><li><a href="/intro/records.html">Records</a></li><li><a href="/intro/mutability.html">Mutability</a></li><li><a href="/intro/strings.html">String literals</a></li><li><a href="/intro/kid.html">Kid</a></li><li><a href="/intro/operators.html">Operators</a></li><li><a href="/intro/options.html">Options</a></li><li><a href="/intro/matches.html">&quot;match&quot; expressions</a></li><li><a href="/intro/enums.html">Enums and flags</a></li><li><a href="/intro/loops.html">Loops</a></li><li><a href="/intro/unions.html">Unions</a></li><li><a href="/intro/interfaces.html">Interfaces and variants</a></li><li><a href="/intro/type-parameters.html">Type parameters</a></li><li><a href="/intro/specs.html">Specs</a></li><li><a href="/intro/lambdas.html">Lambdas</a></li><li><a href="/intro/iteration.html">Iteration</a></li><li><a href="/intro/collections.html">Collections</a></li><li><a href="/intro/exceptions.html">Exceptions</a></li><li><a href="/intro/modules.html">Modules</a></li><li><a href="/intro/visibility.html">Visibility</a></li><li><a href="/intro/configs.html">&quot;config.kid&quot;</a></li><li><a href="/intro/unsafe.html">Unsafe code</a></li><li><a href="/intro/globals.html">Global side effects</a></li><li><a href="/intro/targets.html">Targets</a></li><li><a class="current" href="/intro/java.html">Java</a></li><li><a href="/intro/js.html">JavaScript</a></li><li><a href="/intro/tests.html">Tests</a></li><li><a href="/intro/parallel.html">Parallelism</a></li><li><a href="/intro/contexts.html">Contexts</a></li><li><a href="/intro/dos.html">&quot;do&quot; expressions</a></li><li><a href="/intro/more-overloading.html">Advanced overloading</a></li><li><a href="/intro/misc.html">Miscellaneous</a></li><li><a href="/intro/end.html">Conclusion</a></li></ul></nav><main><h1>Java</h1><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Calling Java functions</h2><div><p>Consider a typical Java &quot;Hello, world&quot; program:</p><div class="code-block"><pre>import java.lang.System;
+
+class Main {
+	public static void main(String[] args) {
+		System.out.println(&quot;Hello, world!&quot;);
+	}
+}</pre></div><p>To translate it directly to Keen:</p><keen-runnable no-run="true">import
+	java/io/PrintStream
+	java/lang/System
+
+main void() java, global
+	trusted println out, &quot;Hello, world!&quot;</keen-runnable><aside class="small">These examples can&#39;t run in the browser, so you&#39;ll have to test them on the command line.</aside><p>An import beginning with <code class="keyword">java/</code> imports a class from the Java standard library.
+<br>
+(Replace <code class="keyword">.</code> with <code class="keyword">/</code>.
+So <code>java/io/PrintStream</code> imports <code>java.io.PrintStream</code> .)</p><p>Keen is not Java and doesn&#39;t have many of Java&#39;s features, such as classes and methods.
+<br>
+When Keen imports a Java class,
+the class&#39; public properties and methods are translated to functions.</p><ul class="bullets"><li>A <code>static</code> field becomes a function with no arguments. The class name is omitted.
+<br>
+For example, Java&#39;s <code>System.out</code> becomes <code class="function">out</code> in Keen.</li><li>A <code>static</code> method can be called directly. The class name is omitted.
+<br>
+For example, Java&#39;s <code>Math.sqrt</code> becomes <code class="function">sqrt</code> in Keen.</li><li>An instance field becomes a function taking the class as an argument.
+<br>
+For example, Java&#39;s <code>Point.x</code> instance field becomes a function <code class="function">x</code> in Keen.</li><li>For an instance method, a <code>this</code> argument of the class&#39; type is prepended to the arguments.
+<br>
+For example, the instance method <code class="function">println</code> takes a <code>java/io/PrintStream</code>
+(such as <code class="function">out</code>) as its first argument.</li><li>A class constructor becomes a function named <code class="function">new</code>, and a function named the same as the class.
+(Use whichever you prefer.)</li></ul><p>All functions that come from Java have the <a href="/doc/keen/misc.html#java"><code class="type">java</code></a>, <a href="/doc/keen/misc.html#global"><code class="type">global</code></a>, and <a href="/doc/keen/misc.html#unsafe"><code class="type">unsafe</code></a> specs.</p><p>In Java, methods on a class can be called anywhere without importing the class.
+Keen doesn&#39;t work like that; if you want to call a method, you need to import the class.
+<br>
+The Java program above only needed <code>import java.lang.System;</code>,
+while the Keen version needs to import both <code>java/io/PrintStream</code> and <code>java/lang/System</code>.</p></div></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Null values</h2><div><p>In Java, all reference types have a <code>null</code> value.
+<br>
+Keen considers <code>null</code> values to be <a href="/doc/keen/misc.html#unsafe"><code class="type">unsafe</code></a>,
+so don&#39;t don&#39;t mark a call to a function that comes from Java as <code class="keyword">trusted</code>
+unless you are sure it won&#39;t return <code>null</code>.</p><p><a href="/doc/keen/java.html#java-null"><code class="function">java-null</code></a> is an <a href="/doc/keen/misc.html#unsafe"><code class="type">unsafe</code></a> function returning a Java null value for a type.
+<br>
+As a convenience, <a href="/doc/keen/java.html#is-null"><code class="function">is-null</code></a><code> </code><code class="variable">a</code> is equivalent to
+<a href="/doc/keen/unsafe.html#reference-equal"><code class="function">reference-equal</code></a><code> </code><code class="variable">a</code><code>, </code><a href="/doc/keen/java.html#java-null"><code class="function">java-null</code></a>.</p><p>The below example reads a directory, handling the case where it does not exist.</p><keen-runnable no-run="true">import
+	keen/java
+	java/lang/String
+	java/io/File
+
+main void() java, global
+	log get-files &quot;some-dir&quot;
+
+get-files string[](dir-name string) java, global
+	trusted
+		dir File = dir-name.to::String,
+		files String buffer = list dir
+		forbid is-null files else error &quot;Directory does not exist&quot;
+		for file in files
+			to::string file</keen-runnable></div></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Casting</h2><div><p>Java subclasses implicitly convert to their superclasses (and interfaces).</p><p>For reference types, <a href="/doc/keen/unsafe.html#reinterpret-cast"><code class="function">reinterpret-cast</code></a> corresponds to a Java cast.
+<br>
+This can be used to convert a Java class to a subclass.</p><keen-runnable no-run="true">import
+	keen/unsafe
+	java/lang/Object
+	java/lang/String
+
+main void() java, global, unsafe
+	a String = &quot;hello&quot;
+	b Object = a
+	c String = reinterpret-cast b
+	log c.to</keen-runnable></div></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Generics</h2><div><p>Keen supports Java generic types such as <code>List</code>.</p><keen-runnable no-run="true">import
+	java/lang/Iterable
+	java/lang/String
+	java/util/Iterator
+	java/util/Arrays
+	java/util/List
+	keen/java
+
+main void() java, global, unsafe
+	buf String buffer = &quot;hello&quot;, &quot;world&quot;
+	list String List = asList buf
+	iterable String Iterable = list
+	iterator String Iterator = iterator iterable
+	log to::string next iterator
+	log to::string next iterator
+	log hasNext iterator</keen-runnable></div></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Type translation</h2><div><p>Java types translate to the following Keen types:</p><table><thead><th>Java</th><th>Keen</th></thead><tbody><tr><td><code>void</code></td><td><a href="/doc/keen/misc.html#void"><code class="type">void</code></a></td></tr><tr><td><code>bool</code></td><td><a href="/doc/keen/bool.html#bool"><code class="type">bool</code></a></td></tr><tr><td><code>byte</code></td><td><a href="/doc/keen/number.html#int8"><code class="type">int8</code></a></td></tr><tr><td><code>short</code></td><td><a href="/doc/keen/number.html#int16"><code class="type">int16</code></a></td></tr><tr><td><code>int</code></td><td><a href="/doc/keen/number.html#int32"><code class="type">int32</code></a></td></tr><tr><td><code>long</code></td><td><a href="/doc/keen/number.html#int"><code class="type">int</code></a></td></tr><tr><td><code>float</code></td><td><a href="/doc/keen/number.html#float32"><code class="type">float32</code></a></td></tr><tr><td><code>double</code></td><td><a href="/doc/keen/number.html#float64"><code class="type">float64</code></a></td></tr><tr><td><code>t[]</code></td><td><code class="type">t</code><code> </code><a href="/doc/keen/col/buffer.html#buffer"><code class="type">buffer</code></a></td></tr></tbody></table><p>Since Java <code>Array</code>s are mutable, they are translated as <a href="/doc/keen/col/buffer.html#buffer"><code class="type">buffer</code></a> instead of <a href="/doc/keen/col/array.html#array"><code class="type">array</code></a>.
+<br>
+If a Java method treats an <code>Array</code> argument as read-only.
+you could use <a href="/doc/keen/col/buffer.html#cast-mutable"><code class="function">cast-mutable</code></a> to pass in a Keen <a href="/doc/keen/col/array.html#array"><code class="type">array</code></a>.
+<br>
+If a Java method returns an <code>Array</code> that will never be mutated,
+you could use <a href="/doc/keen/col/buffer.html#cast-immutable"><code class="function">cast-immutable</code></a> to get it as a Keen <a href="/doc/keen/col/array.html#array"><code class="type">array</code></a>.</p><keen-runnable no-run="true">import
+	java/io/PrintStream
+	java/lang/String
+	java/lang/System
+
+main void() java, global, unsafe
+	bytes int8[] = 104, 101, 108, 108, 111
+	# cast-mutable because &#39;new String()&#39; does not mutate its argument
+	s String = bytes.cast-mutable,
+	println out, s</keen-runnable><p>There are additional functions in <a href="/doc/keen/unsafe.html">keen/unsafe</a> for converting between types
+that have the same runtime representation, such as <code class="type">char8 buffer</code> and <code class="type">nat8[]</code>.
+(These work in any target, not just Java.)</p><aside><h4>Strings</h4><div><p>Keen&#39;s <a href="/doc/keen/string.html#string"><code class="type">string</code></a> and <code>java/lang/String</code> are two different types.
+<br>
+There are <a href="/doc/keen/java.html#to"><code class="function">to</code></a> functions for converting.
+<br>
+A string literal can directly create a <code>java/lang/String</code>.</p></div></aside></div></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Implementing Java interfaces</h2><div><p>Keen record types can implement Java interfaces directly.
+It works just like implementing a Keen interface.</p><keen-runnable no-run="true">import
+	java/lang/Object
+	java/util/Arrays
+	java/util/Comparator
+
+main void() global, java, unsafe
+	a point buffer =
+		- 1, 2
+		- 2, 0
+		- 1, 1
+	# sort is from &#39;java/lang/Arrays&#39;
+	sort a, point-comparator
+	log a
+
+point record
+	x nat
+	y nat
+
+point-comparator record() point Comparator case
+equals bool(_ point-comparator, _ Object)
+	# Comparator requires this, but it won&#39;t actually be used
+	throw unreachable
+compare int32(_ point-comparator, a point, b point)
+	match a &lt;=&gt; b
+	as less then -1
+	as equal then 0
+	as greater then 1</keen-runnable><aside class="small">This is just an example; in a real program you would use the standard
+<a href="/doc/keen/col/sort.html#sort"><code class="function">sort</code></a>.</aside><p>Keen doesn&#39;t make use of Java generics, so:</p><ul class="bullets"><li>Java&#39;s <code class="function">sort</code> function acts on an <code class="type">Object buffer</code> .</li><li>The interface is just <code class="type">Comparator</code> with no type parameter.</li><li>The comparator accepts <code class="type">Object</code> parameters and downcasts them using <a href="/doc/keen/unsafe.html#reinterpret-cast"><code class="function">reinterpret-cast</code></a>.</li></ul><aside><h4>Extending Java classes</h4><div><p>Keen does not have a way to subclass a Java class.
+<br>
+If you need to use a Java API that requires you to subclass its class,
+write the subclass in Java.</p><p>Maybe define an interface yourself and have the subclass delegate to it,
+allowing you to write the actual implementation in Keen by implementing that interface.</p></div></aside></div></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Nested classes</h2><div><p>A nested class like <code>Map.Entry</code> is imported as <code class="namespace">Map$Entry</code>.
+The name of the type is just <code class="type">Entry</code>.</p><keen-runnable no-run="true">import
+	java/util/Iterator
+	java/util/Map
+	java/util/Map$Entry
+	java/util/Set
+
+main void() global, java, unsafe
+	map (nat, string) Map = ofEntries
+		- entry 1, &quot;one&quot;
+		- entry 2, &quot;two&quot;
+	iterator (nat, string) Entry Iterator = iterator entrySet map
+	entry = next iterator
+	log entry.getKey, entry.getValue</keen-runnable></div></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Keen types</h2><div><p>There are no guarantees about how Keen translates to Java.
+<br>
+A Keen <code class="keyword">interface</code> isn&#39;t always a Java <code class="keyword">interface</code>.
+<br>
+A Keen <code class="keyword">record</code> isn&#39;t always a Java <code class="keyword">record</code>.
+<br>
+So don&#39;t expect to use Java reflection.</p></div></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>JARs</h2><div><p>To use Java classes from outside the standard library, they must be in a JAR file.
+<br>
+The <code>imports</code> section of <code>config.kid</code> supports JAR files.
+(See <a href="/intro/configs.html">&quot;config.kid&quot;</a>.)
+<br>
+For example:</p><keen-runnable name="config.kid" no-run="true">imports:
+	&quot;org/foo&quot;: &quot;./libs/foo.jar&quot;</keen-runnable><p>With the above configuration,
+all imports starting with <code>org/foo</code> will resolve to classes from <code>libs/foo.jar</code>.</p><keen-runnable no-run="true">import
+	# Gets &#39;org/foo/Foo.class&#39; from &#39;libs/foo.jar&#39;
+	org/foo/Foo
+
+main void() global, java, unsafe
+	someStaticMethod</keen-runnable><aside class="small">Keen doesn&#39;t use Java&#39;s <code>CLASSPATH</code> for anything.</aside><p>When you build the program, all classes (even ones not directly referenced)
+from configured JAR files will be copied to the output, so it builds to a standalone executable JAR.</p></div></section><a href="/intro/js.html" id="next">next: JavaScript</a></main></div></body></html>

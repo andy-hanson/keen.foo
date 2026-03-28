@@ -1,0 +1,54 @@
+<html><head><title>Keen programming language: Modules</title><link href="/icon.svg" rel="icon" type="image/x-icon"><link href="https://cdn.jsdelivr.net/npm/hack-font@3/build/web/hack-subset.css" rel="stylesheet"><link href="/style/index.css" rel="stylesheet"><link href="/worker.js" rel="modulepreload"><script src="/index.js" type="module"></script></head><body><header><nav><div id="home"><a href="/"><keen-icon icon="home"></keen-icon></a></div><ul class="grow"><li><a href="/download.html">download</a></li><li><a class="current" href="/intro">intro</a></li><li><a href="/doc">docs</a></li><li><a href="/faq.html">faq</a></li><li><a href="/play.html">play</a></li></ul><ul><li><a href="https://discord.com/channels/1505354381707579413/1505354409733787798">chat</a></li><li><a href="https://github.com/andy-hanson/keen/issues">bugs</a></li><li><a href="https://github.com/andy-hanson/keen">source</a></li><li><theme-switcher></theme-switcher></li></ul></nav></header><div id="side-nav-wrapper"><nav><ul><li><a href="/intro/index.html">Commands</a></li><li><a href="/intro/functions.html">Functions</a></li><li><a href="/intro/expressions.html">Basic expressions</a></li><li><a href="/intro/types.html">Basic types</a></li><li><a href="/intro/ifs.html">&quot;if&quot; expressions</a></li><li><a href="/intro/overloading.html">Overloading</a></li><li><a href="/intro/new_.html">&quot;new&quot; functions</a></li><li><a href="/intro/tuples.html">Tuples</a></li><li><a href="/intro/records.html">Records</a></li><li><a href="/intro/mutability.html">Mutability</a></li><li><a href="/intro/strings.html">String literals</a></li><li><a href="/intro/kid.html">Kid</a></li><li><a href="/intro/operators.html">Operators</a></li><li><a href="/intro/options.html">Options</a></li><li><a href="/intro/matches.html">&quot;match&quot; expressions</a></li><li><a href="/intro/enums.html">Enums and flags</a></li><li><a href="/intro/loops.html">Loops</a></li><li><a href="/intro/unions.html">Unions</a></li><li><a href="/intro/interfaces.html">Interfaces and variants</a></li><li><a href="/intro/type-parameters.html">Type parameters</a></li><li><a href="/intro/specs.html">Specs</a></li><li><a href="/intro/lambdas.html">Lambdas</a></li><li><a href="/intro/iteration.html">Iteration</a></li><li><a href="/intro/collections.html">Collections</a></li><li><a href="/intro/exceptions.html">Exceptions</a></li><li><a class="current" href="/intro/modules.html">Modules</a></li><li><a href="/intro/visibility.html">Visibility</a></li><li><a href="/intro/configs.html">&quot;config.kid&quot;</a></li><li><a href="/intro/unsafe.html">Unsafe code</a></li><li><a href="/intro/globals.html">Global side effects</a></li><li><a href="/intro/targets.html">Targets</a></li><li><a href="/intro/java.html">Java</a></li><li><a href="/intro/js.html">JavaScript</a></li><li><a href="/intro/tests.html">Tests</a></li><li><a href="/intro/parallel.html">Parallelism</a></li><li><a href="/intro/contexts.html">Contexts</a></li><li><a href="/intro/dos.html">&quot;do&quot; expressions</a></li><li><a href="/intro/more-overloading.html">Advanced overloading</a></li><li><a href="/intro/misc.html">Miscellaneous</a></li><li><a href="/intro/end.html">Conclusion</a></li></ul></nav><main><h1>Modules</h1><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>What is a module?</h2><div><p>In Keen, every file is a module.
+There is no need for an explicit module declaration.
+<br>
+Without an import, code in one file won&#39;t have access to code from a different file.</p></div></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>The standard import</h2><div><p>Every file automatically imports from <a href="/doc/keen/std.html">keen/std</a> .
+<br>
+This re-exports from fundamental modules such as <a href="/doc/keen/bool.html">keen/bool</a> that we&#39;ve been using all along.</p></div></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Standard library imports</h2><div><p>Most of the standard library is not in the <a href="/doc/keen/std.html">keen/std</a> and must be explicitly imported.
+<br>
+Imports from the standard library start with <code>keen/</code>.</p><p>Imports go in an indented block after the <code class="keyword">import</code> keyword, each on their own line.</p><keen-runnable>import
+	keen/col/mut-stack
+
+main void()
+	a nat mut-stack = 1, 2, 3
+	log pop a</keen-runnable><aside class="small">An <code class="keyword">import</code> block must come before any declarations.</aside></div></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Selected imports</h2><div><p>To import just a few declarations from a module, write those names after a colon.</p><keen-runnable>import
+	keen/col/mut-stack: list-new, mut-stack, pop
+
+main void()
+	a nat mut-stack = 1, 2, 3
+	log pop a</keen-runnable><aside class="small">Selected imports are rare, but can be useful to avoid importing functions that confuse overloading.</aside></div></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Relative imports</h2><div><p>Imports can use relative paths.
+These look like the relative path to the imported file, just with <code>.keen</code> omitted.</p><keen-runnable name="my-project/main.keen">import
+	./greetings
+	../some-other-dir/places
+
+main void()
+	log &quot;{hello}, {world}!&quot;</keen-runnable><keen-runnable name="my-project/greetings.keen" no-run="true">hello string()
+	&quot;hello&quot;</keen-runnable><keen-runnable name="some-other-dir/places.keen" no-run="true">world string()
+	&quot;world&quot;</keen-runnable></div></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Re-exports</h2><div><p>One module can re-export declarations from another.
+<br>
+This may be useful for defining a main entry point for a library.</p><keen-runnable name="importer.keen">import
+	./re-exporter
+
+main void()
+	log foo</keen-runnable><keen-runnable name="re-exporter.keen" no-run="true">export
+	./foo</keen-runnable><keen-runnable name="foo.keen" no-run="true">foo string()
+	&quot;foo&quot;</keen-runnable><p>The <code class="keyword">export</code> block has the same syntax as an <code class="keyword">import</code> block.
+It must come <em>after</em> any <code class="keyword">import</code> block.</p></div></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>File imports</h2><div><p>You can import a file as a <a href="/doc/keen/string.html#string"><code class="type">string</code></a> or <a href="/doc/keen/number.html#nat8"><code class="type">nat8</code></a><code class="type">[]</code>.</p><keen-runnable>import
+	./hello.txt as hello string
+
+main void()
+	log hello</keen-runnable></div></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>No cycles</h2><div><p>Modules must be acyclic. If module A imports module B, B can&#39;t import A.
+<br>
+To work around this, you could use <code class="keyword">spec</code>s. (See <a href="/intro/specs.html">Specs</a>.)</p><keen-runnable name="ping.keen">import
+	./pong
+
+main void()
+	log ping 10
+
+ping nat[](x nat)
+	- x
+	-- unless x == 0 then pong x - 1</keen-runnable><keen-runnable name="pong.keen" no-run="true">ping spec
+	ping nat[](x nat)
+
+pong nat[](x nat) ping
+	- x
+	-- unless x == 0 then ping x - 1</keen-runnable></div></section><a href="/intro/visibility.html" id="next">next: Visibility</a></main></div></body></html>

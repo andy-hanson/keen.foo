@@ -1,0 +1,90 @@
+<html><head><title>Keen programming language: Lambdas</title><link href="/icon.svg" rel="icon" type="image/x-icon"><link href="https://cdn.jsdelivr.net/npm/hack-font@3/build/web/hack-subset.css" rel="stylesheet"><link href="/style/index.css" rel="stylesheet"><link href="/worker.js" rel="modulepreload"><script src="/index.js" type="module"></script></head><body><header><nav><div id="home"><a href="/"><keen-icon icon="home"></keen-icon></a></div><ul class="grow"><li><a href="/download.html">download</a></li><li><a class="current" href="/intro">intro</a></li><li><a href="/doc">docs</a></li><li><a href="/faq.html">faq</a></li><li><a href="/play.html">play</a></li></ul><ul><li><a href="https://discord.com/channels/1505354381707579413/1505354409733787798">chat</a></li><li><a href="https://github.com/andy-hanson/keen/issues">bugs</a></li><li><a href="https://github.com/andy-hanson/keen">source</a></li><li><theme-switcher></theme-switcher></li></ul></nav></header><div id="side-nav-wrapper"><nav><ul><li><a href="/intro/index.html">Commands</a></li><li><a href="/intro/functions.html">Functions</a></li><li><a href="/intro/expressions.html">Basic expressions</a></li><li><a href="/intro/types.html">Basic types</a></li><li><a href="/intro/ifs.html">&quot;if&quot; expressions</a></li><li><a href="/intro/overloading.html">Overloading</a></li><li><a href="/intro/new_.html">&quot;new&quot; functions</a></li><li><a href="/intro/tuples.html">Tuples</a></li><li><a href="/intro/records.html">Records</a></li><li><a href="/intro/mutability.html">Mutability</a></li><li><a href="/intro/strings.html">String literals</a></li><li><a href="/intro/kid.html">Kid</a></li><li><a href="/intro/operators.html">Operators</a></li><li><a href="/intro/options.html">Options</a></li><li><a href="/intro/matches.html">&quot;match&quot; expressions</a></li><li><a href="/intro/enums.html">Enums and flags</a></li><li><a href="/intro/loops.html">Loops</a></li><li><a href="/intro/unions.html">Unions</a></li><li><a href="/intro/interfaces.html">Interfaces and variants</a></li><li><a href="/intro/type-parameters.html">Type parameters</a></li><li><a href="/intro/specs.html">Specs</a></li><li><a class="current" href="/intro/lambdas.html">Lambdas</a></li><li><a href="/intro/iteration.html">Iteration</a></li><li><a href="/intro/collections.html">Collections</a></li><li><a href="/intro/exceptions.html">Exceptions</a></li><li><a href="/intro/modules.html">Modules</a></li><li><a href="/intro/visibility.html">Visibility</a></li><li><a href="/intro/configs.html">&quot;config.kid&quot;</a></li><li><a href="/intro/unsafe.html">Unsafe code</a></li><li><a href="/intro/globals.html">Global side effects</a></li><li><a href="/intro/targets.html">Targets</a></li><li><a href="/intro/java.html">Java</a></li><li><a href="/intro/js.html">JavaScript</a></li><li><a href="/intro/tests.html">Tests</a></li><li><a href="/intro/parallel.html">Parallelism</a></li><li><a href="/intro/contexts.html">Contexts</a></li><li><a href="/intro/dos.html">&quot;do&quot; expressions</a></li><li><a href="/intro/more-overloading.html">Advanced overloading</a></li><li><a href="/intro/misc.html">Miscellaneous</a></li><li><a href="/intro/end.html">Conclusion</a></li></ul></nav><main><h1>Lambdas</h1><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Lambda expressions</h2><div><p>A lambda expression consists of:</p><ul class="bullets"><li>The <code class="keyword">of</code> keyword</li><li>A destructuring; the same syntax as for locals</li><li>An indented block</li></ul><p><code class="function">subscript</code> calls the lambda.</p><keen-runnable>main void()
+	f = of x nat
+		x * 10
+	log f[1], f[2]</keen-runnable><p>An optional return type annotation goes after <code class="keyword">of</code>.</p><keen-runnable>main void()
+	f = of::nat x nat
+		x * 10
+	log f[1], f[2]</keen-runnable><p>A lambda can be squeezed onto one line using <code class="keyword">then</code>.</p><keen-runnable>main void()
+	f = of x nat then x * 10
+	log f[1], f[2]</keen-runnable></div></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Lambda parameters</h2><div><p>All lambdas take a single parameter.
+<br>
+If nothing is written after the <code class="keyword">of</code>, it means the parameter is <a href="/doc/keen/misc.html#void"><code class="type">void</code></a>.</p><keen-runnable>main void()
+	f = of
+		log &quot;OK&quot;
+	f[]</keen-runnable><aside class="small">Empty brackets <code>[</code><code>]</code> call <code class="function">subscript</code> with an argument of <code>()</code>.</aside><p>As with locals, comma-separated names destructure a single tuple parameter.</p><keen-runnable>main void()
+	f = of x nat, y string
+		log repeat y, x
+	f[3, &quot;foo&quot;]</keen-runnable></div></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Lambda types</h2><div><p>A lambda type consists of:</p><ul class="bullets"><li>The return type</li><li>The mutability (<code class="keyword">data</code>, <code class="keyword">shared</code>, or <code class="keyword">mut</code>)</li><li>A destructuring in parentheses.</li></ul><p>This syntax is used for the type of <code class="variable">f</code> below:</p><keen-runnable>main void()
+	f nat mut(x nat) = of x
+		x * 10
+	log f[1], f[2]</keen-runnable><aside class="small">The name <code class="variable">x</code> in the type has no effect and doesn&#39;t have to match the actual parameter name.</aside><p>If the lambda expression (<code class="keyword">of</code><code> </code><code class="variable">x</code> above) has an expected type,
+it doesn&#39;t need to re-declare the parameter type (<a href="/doc/keen/number.html#nat"><code class="type">nat</code></a>).</p></div></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Mutability</h2><div><p>The code in a lambda can access and even modify variables outside the lambda.
+This is called a <em>closure</em>.</p><keen-runnable>main void()
+	cur mut = 0
+	f = of
+		cur +:= 1
+		cur
+	log f[]
+	log f[]</keen-runnable><p>There are different kinds of lambdas for different mutability levels.
+(See <a href="/intro/mutability.html">Mutability</a>.)
+<br>
+The closure of a lambda affects its mutability:</p><ul class="bullets"><li>A <code class="keyword">mut</code> lambda has no restrictions. This is the default for lambdas with an inferred type.</li><li>A <code class="keyword">shared</code> lambda can only have <code class="keyword">shared</code> (or <code class="keyword">data</code>) types in its closure.
+<br>
+It can&#39;t reference <code class="keyword">mut</code> locals (even just to read them) regardless of their type.</li><li>A <code class="keyword">data</code> lambda can only have <code class="keyword">data</code> types in its closure.
+<br>
+It also can&#39;t call any <a href="/doc/keen/misc.html#global"><code class="type">global</code></a> functions. (See <a href="/intro/globals.html">Global side effects</a>.)</li></ul><p>Most lambdas are <code class="keyword">mut</code> when there is no need to restrict them.
+<br>
+<code class="keyword">shared</code> lambdas are used in parallel code. (See <a href="/intro/parallel.html">Parallelism</a>.)
+<br>
+<code class="keyword">data</code> lambdas are rarely used,
+but may be useful in situations where the lambda must be stateless.
+For example, a comparator lambda used for sorting might be <code class="keyword">data</code>.</p></div></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>&quot;it&quot;</h2><div><p>A lambda can also be written as an expression in wrapped in <code class="keyword">{}</code>.
+In this case, the parameter is called <code class="keyword">it</code>.</p><keen-runnable>main void()
+	log filter::nat[] 1 .. 5, {is-multiple-of it, 2}
+	# Equivalent:
+	log filter::nat[] 1 .. 5, of x then is-multiple-of x, 2</keen-runnable><aside class="small">This kind of lambda can&#39;t take up multiple lines, so it&#39;s only suitable for simple expressions.</aside><p>A braced lambda doesn&#39;t have to use the <code class="keyword">it</code> keyword; in that case it ignores its parameter.</p><keen-runnable>main void()
+	log map::nat[] 1 .. 5, {7}</keen-runnable><p><code class="keyword">{}</code> alone is a lambda returning <code class="function">new</code>.</p><keen-runnable>main void()
+	log map::nat[] 1 .. 5, {}</keen-runnable><p>For simple lambdas, the braces are optional.</p><keen-runnable>main void()
+	log filter::nat[] 1 .. 5, it.is-even
+	log map::nat[] 1 .. 5, it * 2</keen-runnable><p>When braces are omitted,
+they are implicitly around the tightly-packed expression containing the <code class="keyword">it</code> keyword.
+<br>
+Such tightly-packed expressions are:</p><ul class="bullets"><li>Dotted function calls: <code class="keyword">it</code><code class="keyword">.</code><code class="function">is-even</code></li><li>Prefix operators: <code class="function">-</code><code class="keyword">it</code></li><li>Binary operators: <code class="keyword">it</code><code> </code><code class="function">*</code><code> </code><code class="number">2</code></li><li><code class="function">subscript</code> calls: <code class="keyword">it</code><code>[</code><code class="number">0</code><code>]</code></li><li>Type annotations: <code class="keyword">it</code><code class="keyword">::</code><a href="/doc/keen/number.html#nat"><code class="type">nat</code></a></li><li>Option forcing: <code class="keyword">it</code><code class="keyword">!</code></li></ul><p>The <code class="keyword">it</code> lambda can contain any number of these tightly-packed operations:</p><keen-runnable>import
+	keen/math/math
+
+main void()
+	a nat[] = 2, 8, 18, 32
+	log map::float[] a, (it * 2).to::float.square-root / 10</keen-runnable><p>&#8230; though the above is just to prove a point and would be more readable as an <code class="keyword">of</code> lambda.</p></div></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>&quot;new&quot; interfaces</h2><div><p>Defining an interface implicitly defines a <code class="function">new</code> function
+that takes lambdas corresponding to each interface method.</p><keen-runnable>main void()
+	a i =
+		name: {&quot;keen&quot;}
+		number: {1}
+	log a.name, a.number
+
+i interface
+	name string()
+	number nat()</keen-runnable></div></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>&quot;with&quot; blocks</h2><div><p>Many functions that take a lambda do some preparation, call the lambda once, and then return.
+<br>
+To make that intention clear, there is a <code class="keyword">with</code> keyword providing a syntax for it.
+<code class="keyword">with</code> blocks provide a syntax to make that intention clear.</p><p>A common use of <code class="keyword">with</code> is to build a collection using <a href="/doc/keen/col/util.html#build"><code class="function">build</code></a>.</p><keen-runnable>main void()
+	xs nat[] = with out in build
+		out ~= 1
+		out ~= 2
+	log xs</keen-runnable><p>The above is equivalent to calling
+<code class="function">with-block</code><code> </code><a href="/doc/keen/col/util.html#build"><code class="function">build</code></a><code>, </code><code class="keyword">of</code><code> </code><code class="variable">out</code><code> </code><code>...</code></p><p>A type annotation on the <code class="keyword">with</code> keyword applies to the return type of <code class="function">with-block</code>.</p><keen-runnable>main void()
+	log with::nat[] out in build
+		out ~= 1
+		out ~= 2</keen-runnable><p>A <code class="function">with-block</code> function can be defined like so:</p><keen-runnable>main void()
+	log with in log-start-and-end &quot;a&quot;
+		log &quot;computing a&quot;
+		&quot;result a&quot;
+	log with in log-start-and-end &quot;b&quot;
+		log &quot;computing b&quot;
+		&quot;result b&quot;
+
+log-start-and-end record(name string)
+with-block[t] t(a log-start-and-end, f t mut())
+	log &quot;start {a.name}&quot;
+	finally log &quot;end {a.name}&quot;
+	f[]</keen-runnable><aside class="small">Above, the lambda takes a <a href="/doc/keen/misc.html#void"><code class="type">void</code></a> parameter, so there is nothing written between <code class="keyword">with</code> and <code class="keyword">in</code>.</aside><p>It&#39;s not unusual to define a type whose only purpose is to be the first argument to <code class="function">with-block</code>.
+<code class="type">log-start-and-end</code> above is an example.</p></div></section><a href="/intro/iteration.html" id="next">next: Iteration</a></main></div></body></html>

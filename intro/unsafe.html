@@ -1,0 +1,74 @@
+<html><head><title>Keen programming language: Unsafe code</title><link href="/icon.svg" rel="icon" type="image/x-icon"><link href="https://cdn.jsdelivr.net/npm/hack-font@3/build/web/hack-subset.css" rel="stylesheet"><link href="/style/index.css" rel="stylesheet"><link href="/worker.js" rel="modulepreload"><script src="/index.js" type="module"></script></head><body><header><nav><div id="home"><a href="/"><keen-icon icon="home"></keen-icon></a></div><ul class="grow"><li><a href="/download.html">download</a></li><li><a class="current" href="/intro">intro</a></li><li><a href="/doc">docs</a></li><li><a href="/faq.html">faq</a></li><li><a href="/play.html">play</a></li></ul><ul><li><a href="https://discord.com/channels/1505354381707579413/1505354409733787798">chat</a></li><li><a href="https://github.com/andy-hanson/keen/issues">bugs</a></li><li><a href="https://github.com/andy-hanson/keen">source</a></li><li><theme-switcher></theme-switcher></li></ul></nav></header><div id="side-nav-wrapper"><nav><ul><li><a href="/intro/index.html">Commands</a></li><li><a href="/intro/functions.html">Functions</a></li><li><a href="/intro/expressions.html">Basic expressions</a></li><li><a href="/intro/types.html">Basic types</a></li><li><a href="/intro/ifs.html">&quot;if&quot; expressions</a></li><li><a href="/intro/overloading.html">Overloading</a></li><li><a href="/intro/new_.html">&quot;new&quot; functions</a></li><li><a href="/intro/tuples.html">Tuples</a></li><li><a href="/intro/records.html">Records</a></li><li><a href="/intro/mutability.html">Mutability</a></li><li><a href="/intro/strings.html">String literals</a></li><li><a href="/intro/kid.html">Kid</a></li><li><a href="/intro/operators.html">Operators</a></li><li><a href="/intro/options.html">Options</a></li><li><a href="/intro/matches.html">&quot;match&quot; expressions</a></li><li><a href="/intro/enums.html">Enums and flags</a></li><li><a href="/intro/loops.html">Loops</a></li><li><a href="/intro/unions.html">Unions</a></li><li><a href="/intro/interfaces.html">Interfaces and variants</a></li><li><a href="/intro/type-parameters.html">Type parameters</a></li><li><a href="/intro/specs.html">Specs</a></li><li><a href="/intro/lambdas.html">Lambdas</a></li><li><a href="/intro/iteration.html">Iteration</a></li><li><a href="/intro/collections.html">Collections</a></li><li><a href="/intro/exceptions.html">Exceptions</a></li><li><a href="/intro/modules.html">Modules</a></li><li><a href="/intro/visibility.html">Visibility</a></li><li><a href="/intro/configs.html">&quot;config.kid&quot;</a></li><li><a class="current" href="/intro/unsafe.html">Unsafe code</a></li><li><a href="/intro/globals.html">Global side effects</a></li><li><a href="/intro/targets.html">Targets</a></li><li><a href="/intro/java.html">Java</a></li><li><a href="/intro/js.html">JavaScript</a></li><li><a href="/intro/tests.html">Tests</a></li><li><a href="/intro/parallel.html">Parallelism</a></li><li><a href="/intro/contexts.html">Contexts</a></li><li><a href="/intro/dos.html">&quot;do&quot; expressions</a></li><li><a href="/intro/more-overloading.html">Advanced overloading</a></li><li><a href="/intro/misc.html">Miscellaneous</a></li><li><a href="/intro/end.html">Conclusion</a></li></ul></nav><main><h1>Unsafe code</h1><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Unsafe functions</h2><div><p>Keen provides some safety guarantees:</p><ul class="bullets"><li>Every value is what the type says it is.</li><li>No value is <code>null</code>.</li><li>Immutable objects never change.</li><li>Non-<a href="/doc/keen/misc.html#global"><code class="type">global</code></a> functions don&#39;t have global side effects. (See <a href="/intro/globals.html">Global side effects</a>.)</li><li>Non-<a href="/doc/keen/misc.html#global"><code class="type">global</code></a> functions behave the same on all targets.</li></ul><p>Some functions may break these guarantees, so they are marked <a href="/doc/keen/misc.html#unsafe"><code class="type">unsafe</code></a>.
+<br>
+Some common <a href="/doc/keen/misc.html#unsafe"><code class="type">unsafe</code></a> functions are in <a href="/doc/keen/unsafe.html">keen/unsafe</a>.</p><p><a href="/doc/keen/misc.html#unsafe"><code class="type">unsafe</code></a> is a <code class="keyword">spec</code> (see <a href="/intro/specs.html">Specs</a>),
+so any function can be marked <a href="/doc/keen/misc.html#unsafe"><code class="type">unsafe</code></a> with the syntax for using a spec.
+<br>
+An <a href="/doc/keen/misc.html#unsafe"><code class="type">unsafe</code></a> function can call any other <a href="/doc/keen/misc.html#unsafe"><code class="type">unsafe</code></a> function.</p><keen-runnable>import
+	keen/unsafe
+
+main void() unsafe
+	# Bad idea:
+	log reinterpret-cast::string 1</keen-runnable><aside class="small">The above would have a different outcome in a Java build.</aside><p>You can mark your own functions <a href="/doc/keen/misc.html#unsafe"><code class="type">unsafe</code></a> for any reason.
+<br>
+For example, a function that exposes implementation details of a library could be marked <a href="/doc/keen/misc.html#unsafe"><code class="type">unsafe</code></a>
+even if the library is written using only safe code.</p></div></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Using unsafe functions safely</h2><div><p>There would be no point to <a href="/doc/keen/misc.html#unsafe"><code class="type">unsafe</code></a> functions if there weren&#39;t some way to use them safely.
+<br>
+How to do so depends on the function, so read the documentation carefully.</p><p>To call an <a href="/doc/keen/misc.html#unsafe"><code class="type">unsafe</code></a> function from a non-<a href="/doc/keen/misc.html#unsafe"><code class="type">unsafe</code></a> function, wrap the call in a <code class="keyword">trusted</code> expression.</p><keen-runnable>main void()
+	log two-of 2
+
+two-of nat[](a nat)
+	buf nat buffer = trusted uninitialized-buffer 2
+	buf[0] := a
+	buf[1] := a
+	trusted cast-immutable buf</keen-runnable><aside class="small"><code class="keyword">trusted</code> is like an identity function: <code class="keyword">trusted</code><code> </code><code class="function">foo</code> has the same value as <code class="function">foo</code>.
+<br>
+The only effect of <code class="keyword">trusted</code> is to allow calling <a href="/doc/keen/misc.html#unsafe"><code class="type">unsafe</code></a> functions in its argument.</aside><p>The above calls <a href="/doc/keen/misc.html#unsafe"><code class="type">unsafe</code></a> functions safely:</p><ul class="bullets"><li><code class="function">uninitialized-buffer</code> is <a href="/doc/keen/misc.html#unsafe"><code class="type">unsafe</code></a> <em>in general</em> because it returns uninitialized memory.
+<br>
+(That means a default value such as <code>null</code>, but that is still unsafe by Keen&#39;s standards.)
+<br>
+It&#39;s safe in this case because all buffer elements are initialized before using them.</li><li><code class="function">cast-immutable</code> is <a href="/doc/keen/misc.html#unsafe"><code class="type">unsafe</code></a> <em>in general</em>
+because it treats a <a href="/doc/keen/col/buffer.html#buffer"><code class="type">buffer</code></a> as an immutable <a href="/doc/keen/col/array.html#array"><code class="type">array</code></a> (without copying).
+<br>
+That&#39;s unsafe because immutable data should never change.
+<br>
+It&#39;s safe in this case because there is no remaining reference to the buffer.</li></ul><p>The argument to <code class="keyword">trusted</code> can be an indented block:</p><keen-runnable>main void()
+	log two-of 2
+
+two-of nat[](a nat)
+	trusted
+		buf nat buffer = uninitialized-buffer 2
+		buf[0] := a
+		buf[1] := a
+		cast-immutable buf</keen-runnable></div></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Some important unsafe functions</h2><div><p><a href="/doc/keen/unsafe.html#gc-safe-value"><code class="function">gc-safe-value</code></a> returns an arbitrary constant value for a type.
+<br>
+This is useful to overwrite unused elements of a buffer so that they don&#39;t hold on to memory.</p><keen-runnable>import
+	keen/unsafe
+
+main void() unsafe
+	buf string buffer = &quot;foo&quot;, &quot;bar&quot;
+	# Release the reference so it can be garbage collected
+	buf[1] := gc-safe-value
+	# Still safe to access other elements
+	log buf[0]</keen-runnable><aside class="small">There&#39;s no point to releasing a reference to a string literal, but this is just an example.</aside><p><a href="/doc/keen/unsafe.html#reference-equal"><code class="function">reference-equal</code></a> returns <a href="/doc/keen/bool.html#true"><code class="function">true</code></a> if two references point to the same place in memory.
+<br>
+This can vary depending on how well Keen optimizes constants.</p><keen-runnable>import
+	keen/unsafe
+
+main void() unsafe
+	a nat[] = 1, 2
+	b nat[] = 1, 2
+	# &#39;true&#39; thanks to optimization
+	log reference-equal a, b
+	c nat[] = for x in a then x * 10 / 10
+	# &#39;false&#39; since Keen can&#39;t optimize that well
+	log reference-equal a, c
+	# They are still logically equal
+	log a == c</keen-runnable><p><a href="/doc/keen/unsafe.html#reinterpret-cast"><code class="function">reinterpret-cast</code></a> treats any type as any other type.
+<br>
+This can lead to bytecode validation errors given a Java target,
+or unpredictable behavior when the target is JavaScript.</p><keen-runnable>import
+	keen/unsafe
+
+main void() unsafe
+	a int32 = -1
+	log reinterpret-cast::nat32 a</keen-runnable></div></section><a href="/intro/globals.html" id="next">next: Global side effects</a></main></div></body></html>

@@ -1,0 +1,125 @@
+<html><head><title>Keen programming language: Unions</title><link href="/icon.svg" rel="icon" type="image/x-icon"><link href="https://cdn.jsdelivr.net/npm/hack-font@3/build/web/hack-subset.css" rel="stylesheet"><link href="/style/index.css" rel="stylesheet"><link href="/worker.js" rel="modulepreload"><script src="/index.js" type="module"></script></head><body><header><nav><div id="home"><a href="/"><keen-icon icon="home"></keen-icon></a></div><ul class="grow"><li><a href="/download.html">download</a></li><li><a class="current" href="/intro">intro</a></li><li><a href="/doc">docs</a></li><li><a href="/faq.html">faq</a></li><li><a href="/play.html">play</a></li></ul><ul><li><a href="https://discord.com/channels/1505354381707579413/1505354409733787798">chat</a></li><li><a href="https://github.com/andy-hanson/keen/issues">bugs</a></li><li><a href="https://github.com/andy-hanson/keen">source</a></li><li><theme-switcher></theme-switcher></li></ul></nav></header><div id="side-nav-wrapper"><nav><ul><li><a href="/intro/index.html">Commands</a></li><li><a href="/intro/functions.html">Functions</a></li><li><a href="/intro/expressions.html">Basic expressions</a></li><li><a href="/intro/types.html">Basic types</a></li><li><a href="/intro/ifs.html">&quot;if&quot; expressions</a></li><li><a href="/intro/overloading.html">Overloading</a></li><li><a href="/intro/new_.html">&quot;new&quot; functions</a></li><li><a href="/intro/tuples.html">Tuples</a></li><li><a href="/intro/records.html">Records</a></li><li><a href="/intro/mutability.html">Mutability</a></li><li><a href="/intro/strings.html">String literals</a></li><li><a href="/intro/kid.html">Kid</a></li><li><a href="/intro/operators.html">Operators</a></li><li><a href="/intro/options.html">Options</a></li><li><a href="/intro/matches.html">&quot;match&quot; expressions</a></li><li><a href="/intro/enums.html">Enums and flags</a></li><li><a href="/intro/loops.html">Loops</a></li><li><a class="current" href="/intro/unions.html">Unions</a></li><li><a href="/intro/interfaces.html">Interfaces and variants</a></li><li><a href="/intro/type-parameters.html">Type parameters</a></li><li><a href="/intro/specs.html">Specs</a></li><li><a href="/intro/lambdas.html">Lambdas</a></li><li><a href="/intro/iteration.html">Iteration</a></li><li><a href="/intro/collections.html">Collections</a></li><li><a href="/intro/exceptions.html">Exceptions</a></li><li><a href="/intro/modules.html">Modules</a></li><li><a href="/intro/visibility.html">Visibility</a></li><li><a href="/intro/configs.html">&quot;config.kid&quot;</a></li><li><a href="/intro/unsafe.html">Unsafe code</a></li><li><a href="/intro/globals.html">Global side effects</a></li><li><a href="/intro/targets.html">Targets</a></li><li><a href="/intro/java.html">Java</a></li><li><a href="/intro/js.html">JavaScript</a></li><li><a href="/intro/tests.html">Tests</a></li><li><a href="/intro/parallel.html">Parallelism</a></li><li><a href="/intro/contexts.html">Contexts</a></li><li><a href="/intro/dos.html">&quot;do&quot; expressions</a></li><li><a href="/intro/more-overloading.html">Advanced overloading</a></li><li><a href="/intro/misc.html">Miscellaneous</a></li><li><a href="/intro/end.html">Conclusion</a></li></ul></nav><main><h1>Unions</h1><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Declaring unions</h2><div><p>A <code class="keyword">union</code> value chooses one of several possible types. These are called the <em>case types</em>.
+<br>
+Below, the case types of <code class="type">u</code> are <a href="/doc/keen/number.html#nat"><code class="type">nat</code></a> and <a href="/doc/keen/string.html#string"><code class="type">string</code></a>.
+So a <code class="type">u</code> value must be either a <a href="/doc/keen/number.html#nat"><code class="type">nat</code></a> or a <a href="/doc/keen/string.html#string"><code class="type">string</code></a>.
+<br>
+A value of a case type can implicitly convert to the union type.</p><keen-runnable>main void()
+	a u = 1
+	log a
+	b u = &quot;foo&quot;
+	log b
+
+u union
+	nat
+	string</keen-runnable><p>Short unions can be squeezed onto one line.</p><keen-runnable no-run="true">u union(nat, string)</keen-runnable></div></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Case getters</h2><div><p>Declaring the union implicitly creates functions for getting each of its case types.
+<br>
+In this example, those are
+<code class="function">nat64</code><code> </code><code class="type">nat64?</code><code>(</code><code class="variable">a</code><code> </code><code class="type">u</code><code>)</code> and <code class="function">string</code><code> </code><a href="/doc/keen/string.html#string"><code class="type">string</code></a><code class="type">?</code><code>(</code><code class="variable">a</code><code> </code><code class="type">u</code><code>)</code> .
+<br>
+(<a href="/doc/keen/number.html#nat"><code class="type">nat</code></a> is an alias for <a href="/doc/keen/number.html#nat64"><code class="type">nat64</code></a>, so the case getter function uses the type&#39;s true name.)</p><keen-runnable>main void()
+	a u = 1
+	log nat64 a
+	log string a
+	b u = &quot;foo&quot;
+	log nat64 b
+	log string b
+
+u union(nat, string)</keen-runnable><p>If a case getter is used as a condition, its argument will implicitly convert to the case type
+in the scope where the condition is true.</p><keen-runnable>main void()
+	a u = 1
+	b u = &quot;foo&quot;
+	log size a
+	log size b
+
+u union(nat, string)
+
+size nat(a u)
+	if nat64 a
+		a # &#39;a&#39; implicitly converts to &#39;nat&#39;
+	elif string a
+		# &#39;a&#39; implicitly converts to &#39;string&#39;,
+		# so this calls the &#39;size&#39; function for strings
+		size a
+	else
+		# This should never happen
+		99</keen-runnable></div></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>&quot;match&quot; on unions</h2><div><p><code class="keyword">match</code> works on a union value. This uses the same syntax as a <code class="keyword">match</code> on an enum value.
+<br>
+If you handle every case, you don&#39;t need an <code class="keyword">else</code> branch.</p><keen-runnable>main void()
+	a u = 1
+	b u = &quot;foo&quot;
+	log size a
+	log size b
+
+u union(nat, string)
+
+size nat(a u)
+	match a
+	as nat
+		# &#39;a&#39; implicitly converts to &#39;nat&#39;
+		a
+	as string
+		# &#39;a&#39; implicitly converts to &#39;string&#39;
+		size a</keen-runnable></div></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Methods</h2><div><p>A union can list functions that must exist for all case types. These are called <em>methods</em>.</p><keen-runnable>main void()
+	a u = 1
+	b u = &quot;foo&quot;
+	log size a
+	log size b
+
+u union
+	nat
+	string
+do
+	size nat()
+
+size nat(a nat)
+	a</keen-runnable><p>For each case type, there must be a function matching the method,
+with the case type injected as the first parameter.
+<br>
+This is called the method <em>implementation</em>.</p><p>Above, the method implementations are <code class="function">size</code><code> </code><a href="/doc/keen/number.html#nat"><code class="type">nat</code></a><code>(</code><code class="variable">a</code><code> </code><a href="/doc/keen/number.html#nat"><code class="type">nat</code></a><code>)</code> and
+<code class="function">size</code><code> </code><a href="/doc/keen/number.html#nat"><code class="type">nat</code></a><code>(</code><code class="variable">a</code><code> </code><a href="/doc/keen/string.html#string"><code class="type">string</code></a><code>)</code> .
+<br>
+The <a href="/doc/keen/number.html#nat"><code class="type">nat</code></a> implementation is defined in the example;
+the <a href="/doc/keen/string.html#string"><code class="type">string</code></a> implementation comes from the standard library.</p><p>Declaring the method also implicitly creates a <em>caller</em> function
+which takes the union type as its first parameter.
+<br>
+Above, the caller is <code class="function">size</code><code> </code><a href="/doc/keen/number.html#nat"><code class="type">nat</code></a><code>(</code><code class="variable">a</code><code> </code><code class="type">u</code><code>)</code> .
+<br>
+The caller matches on the union and calls the appropriate implementation.</p><aside class="small">Union methods let you break up a function that would have been a huge <code class="keyword">match</code> expression,
+and write separate functions for each case type.
+<br>
+Though, sometimes it is better to just write a <code class="keyword">match</code>.</aside><p>If the union is on one line, omit the <code class="keyword">do</code> keyword.</p><keen-runnable no-run="true">u union(nat[], string)
+	size nat()</keen-runnable></div></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>More implicit functions on unions</h2><div><p>Unions support the same implicit functions as records:
+<code class="function">==</code>, <code class="function">&lt;=&gt;</code>, <code class="function">hash</code>, and <code class="function">to</code><code> </code><a href="/doc/keen/json.html#json"><code class="type">json</code></a>.
+<br>
+As with records, the union must be immutable to get these functions.</p><keen-runnable>main void()
+	n u = 10
+	s u = &quot;9&quot;
+	log n == s
+	log n &lt;=&gt; s
+	log deterministic-hash n
+	log n
+
+u union(nat, string)</keen-runnable><ul class="bullets"><li><code class="function">==</code> returns <a href="/doc/keen/bool.html#false"><code class="function">false</code></a> for different case types.
+For values of the same case type, it calls the <code class="function">==</code> function for that type.</li><li><code class="function">&lt;=&gt;</code> works similarly.
+When the values are of the same case type, it calls <code class="function">&lt;=&gt;</code> for the case type.
+<br>
+When the values are not of the same case type,
+case types that were declared earlier are considered lesser.
+<br>
+If you declared the union as <code class="keyword">union</code><code>(</code><a href="/doc/keen/number.html#nat"><code class="type">nat</code></a><code>, </code><a href="/doc/keen/string.html#string"><code class="type">string</code></a><code>)</code> ,
+<a href="/doc/keen/number.html#nat"><code class="type">nat</code></a>s are less than <a href="/doc/keen/string.html#string"><code class="type">string</code></a>s.
+<br>
+If you declared the union as <code class="keyword">union</code><code>(</code><a href="/doc/keen/string.html#string"><code class="type">string</code></a><code>, </code><a href="/doc/keen/number.html#nat"><code class="type">nat</code></a><code>)</code> ,
+<a href="/doc/keen/string.html#string"><code class="type">string</code></a>s are less than <a href="/doc/keen/number.html#nat"><code class="type">nat</code></a>s.</li><li><code class="function">hash</code> hashes the case type index (above <a href="/doc/keen/number.html#nat"><code class="type">nat</code></a> is <code class="number">0</code> and <a href="/doc/keen/string.html#string"><code class="type">string</code></a> is <code class="number">1</code>),
+then calls the <code class="function">hash</code> function for the case type.</li><li><code class="function">to</code><code> </code><a href="/doc/keen/json.html#json"><code class="type">json</code></a> returns a single-key object with the case type name as a key,
+and calls that type&#39;s <code class="function">to</code><code> </code><a href="/doc/keen/json.html#json"><code class="type">json</code></a> for the value.</li></ul></div></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Restrictions</h2><div><p>Almost any types can be combined in a union, but:</p><ul class="bullets"><li>Multiple aliases to the same type (e.g. <a href="/doc/keen/number.html#nat"><code class="type">nat</code></a> and <a href="/doc/keen/number.html#nat64"><code class="type">nat64</code></a>) aren&#39;t allowed.</li><li>Multiple instances of the same generic type aren&#39;t allowed.
+(These will be explained in <a href="/intro/type-parameters.html">Type parameters</a>.)</li></ul><keen-runnable no-run="true">u union(nat, nat64) # This won&#39;t work
+v union(nat[], string[]) # This won&#39;t work</keen-runnable><p>You can work around that by defining wrapper types with unique names.</p><keen-runnable>main void()
+	a u = nats (1, 2, 3)
+	log a
+	b u = strings (&quot;a&quot;, &quot;b&quot;, &quot;c&quot;)
+	log b
+
+u union(nats, strings)
+nats record(values nat[])
+strings record(values string[])</keen-runnable></div></section><a href="/intro/interfaces.html" id="next">next: Interfaces and variants</a></main></div></body></html>

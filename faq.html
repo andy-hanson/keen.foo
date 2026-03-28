@@ -1,0 +1,62 @@
+<html><head><title>Keen programming language: FAQ</title><link href="/icon.svg" rel="icon" type="image/x-icon"><link href="https://cdn.jsdelivr.net/npm/hack-font@3/build/web/hack-subset.css" rel="stylesheet"><link href="/style/index.css" rel="stylesheet"><link href="/worker.js" rel="modulepreload"><script src="/index.js" type="module"></script></head><body><header><nav><div id="home"><a href="/"><keen-icon icon="home"></keen-icon></a></div><ul class="grow"><li><a href="/download.html">download</a></li><li><a href="/intro">intro</a></li><li><a href="/doc">docs</a></li><li><a class="current" href="/faq.html">faq</a></li><li><a href="/play.html">play</a></li></ul><ul><li><a href="https://discord.com/channels/1505354381707579413/1505354409733787798">chat</a></li><li><a href="https://github.com/andy-hanson/keen/issues">bugs</a></li><li><a href="https://github.com/andy-hanson/keen">source</a></li><li><theme-switcher></theme-switcher></li></ul></nav></header><div id="side-nav-wrapper"><main><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>How do I disable overflow checking?</h2><div><p>Functions like <a href="/doc/keen/numbers.html#+"><code class="function">+</code></a> will always check for overflow
+(except for <a href="/doc/keen/number.html#float"><code class="type">float</code></a> inputs). There&#39;s no way to globally disable this.
+<br>
+To allow overflow in a specific case, use functions like <a href="/doc/keen/bits.html#wrap-add"><code class="function">wrap-add</code></a>.</p><keen-runnable>import
+	keen/bits
+
+main void()
+	log wrap-add::nat8 255, 1</keen-runnable></div></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>How do I disable <code class="keyword">assert</code>s?</h2><div><p>Asserts can&#39;t be globally disabled.
+<br>
+If there are certain expensive asserts in your program that you might want to turn off,
+you will have to come up with a way to make them conditional.</p><keen-runnable>main void()
+	if expensive-asserts
+		assert every 1 .. 100, it &lt; 100
+
+expensive-asserts bool() = true</keen-runnable></div></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>How do I do nothing?</h2><div><p><code>()</code> is the empty <a href="/doc/keen/misc.html#void"><code class="type">void</code></a> value.</p><keen-runnable>main void()
+	()</keen-runnable></div></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>How do I parse JSON or Kid files?</h2><div><p>Parsing functions are in <a href="/doc/keen/parse.html">keen/parse</a>.</p><keen-runnable>import
+	keen/parse
+
+main void()
+	log parse json, &quot;[1, 2]&quot;</keen-runnable></div></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>How do I test if a string is a substring of another?</h2><div><p>There are often not string-specific functions when a generic collection function will work.
+In this case, you can use <a href="/doc/keen/col.html#contains-seq"><code class="function">contains-seq</code></a> to test for a substring.</p><keen-runnable>main void()
+	log contains-seq &quot;coworker&quot;, &quot;cow&quot;</keen-runnable></div></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Why are <a href="/doc/keen/log.html#log"><code class="function">log</code></a> and <a href="/doc/keen/io/print.html#print"><code class="function">print</code></a> different?</h2><div><p><a href="/doc/keen/log.html#log"><code class="function">log</code></a> is allowed anywhere.
+This only writes to stderr and is not considered the program&#39;s output,
+so it isn&#39;t considered a true side effect.
+<a href="/doc/keen/io/print.html#print"><code class="function">print</code></a> is the program&#39;s actual output and so is considered a true side effect.</p></div></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Why does the standard library not use interfaces or contexts?</h2><div><p>The standard library is used by all Keen programs,
+but the best interfaces to use depends on specific circumstances.
+<br>
+So instead, the standard library just defines <a href="/doc/keen/misc.html#global"><code class="type">global</code></a> functions and leaves abstraction to the programmer.</p></div></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Why can&#39;t I compare mutable values with <code class="function">==</code>?</h2><div><p>To avoid confusion.
+It&#39;s unclear whether <code class="function">==</code> on mutable values should compare the contents or the identity.
+<br>
+To compare the identity, use <a href="/doc/keen/unsafe.html#reference-equal"><code class="function">reference-equal</code></a>.
+(This is <a href="/doc/keen/misc.html#unsafe"><code class="type">unsafe</code></a> in general, but can be <code class="keyword">trusted</code> for mutable values.)
+<br>
+To compare the contents, convert to immutable values and compare those.</p><keen-runnable>import
+	keen/unsafe
+
+main void()
+	a nat mut[] = 1, 2
+	b nat mut[] = 1, 2
+	log trusted reference-equal a, b
+	log a.to::nat[] == b.to::nat[]</keen-runnable></div></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Why are <code class="keyword">enum</code> and <code class="keyword">flags</code> types different?</h2><div><p>In Keen, an <code class="keyword">enum</code> type is guaranteed to have one of the listed values.
+A <code class="keyword">flags</code> type can have any combination of values.</p></div></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Why can&#39;t I use a mutable type as a map key?</h2><div><p>If you mutated the object, its hash could change, making it unretrievable.
+<br>
+If you need to associate some data with mutable values (and can&#39;t just add it as a field),
+you could give the values an identity property and key the map by the identity.</p><keen-runnable>main void()
+	the identity-provider = 0,
+	values my-type[] = (64,), (151,)
+	map string[nat] = (values[0].id, &quot;a&quot;), (values[1].id, &quot;b&quot;)
+	for v in values
+		log v.value, map[v.id]
+
+identity-provider record mut
+	-last-id mut nat
+get-next-id nat() identity-provider
+	the::identity-provider.last-id +:= 1
+	the::identity-provider.last-id
+
+my-type record mut
+	id nat
+	value mut nat
+new my-type(value nat) identity-provider
+	get-next-id, value</keen-runnable></div></section></main></div></body></html>

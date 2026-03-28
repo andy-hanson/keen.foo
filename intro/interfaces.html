@@ -1,0 +1,60 @@
+<html><head><title>Keen programming language: Interfaces and variants</title><link href="/icon.svg" rel="icon" type="image/x-icon"><link href="https://cdn.jsdelivr.net/npm/hack-font@3/build/web/hack-subset.css" rel="stylesheet"><link href="/style/index.css" rel="stylesheet"><link href="/worker.js" rel="modulepreload"><script src="/index.js" type="module"></script></head><body><header><nav><div id="home"><a href="/"><keen-icon icon="home"></keen-icon></a></div><ul class="grow"><li><a href="/download.html">download</a></li><li><a class="current" href="/intro">intro</a></li><li><a href="/doc">docs</a></li><li><a href="/faq.html">faq</a></li><li><a href="/play.html">play</a></li></ul><ul><li><a href="https://discord.com/channels/1505354381707579413/1505354409733787798">chat</a></li><li><a href="https://github.com/andy-hanson/keen/issues">bugs</a></li><li><a href="https://github.com/andy-hanson/keen">source</a></li><li><theme-switcher></theme-switcher></li></ul></nav></header><div id="side-nav-wrapper"><nav><ul><li><a href="/intro/index.html">Commands</a></li><li><a href="/intro/functions.html">Functions</a></li><li><a href="/intro/expressions.html">Basic expressions</a></li><li><a href="/intro/types.html">Basic types</a></li><li><a href="/intro/ifs.html">&quot;if&quot; expressions</a></li><li><a href="/intro/overloading.html">Overloading</a></li><li><a href="/intro/new_.html">&quot;new&quot; functions</a></li><li><a href="/intro/tuples.html">Tuples</a></li><li><a href="/intro/records.html">Records</a></li><li><a href="/intro/mutability.html">Mutability</a></li><li><a href="/intro/strings.html">String literals</a></li><li><a href="/intro/kid.html">Kid</a></li><li><a href="/intro/operators.html">Operators</a></li><li><a href="/intro/options.html">Options</a></li><li><a href="/intro/matches.html">&quot;match&quot; expressions</a></li><li><a href="/intro/enums.html">Enums and flags</a></li><li><a href="/intro/loops.html">Loops</a></li><li><a href="/intro/unions.html">Unions</a></li><li><a class="current" href="/intro/interfaces.html">Interfaces and variants</a></li><li><a href="/intro/type-parameters.html">Type parameters</a></li><li><a href="/intro/specs.html">Specs</a></li><li><a href="/intro/lambdas.html">Lambdas</a></li><li><a href="/intro/iteration.html">Iteration</a></li><li><a href="/intro/collections.html">Collections</a></li><li><a href="/intro/exceptions.html">Exceptions</a></li><li><a href="/intro/modules.html">Modules</a></li><li><a href="/intro/visibility.html">Visibility</a></li><li><a href="/intro/configs.html">&quot;config.kid&quot;</a></li><li><a href="/intro/unsafe.html">Unsafe code</a></li><li><a href="/intro/globals.html">Global side effects</a></li><li><a href="/intro/targets.html">Targets</a></li><li><a href="/intro/java.html">Java</a></li><li><a href="/intro/js.html">JavaScript</a></li><li><a href="/intro/tests.html">Tests</a></li><li><a href="/intro/parallel.html">Parallelism</a></li><li><a href="/intro/contexts.html">Contexts</a></li><li><a href="/intro/dos.html">&quot;do&quot; expressions</a></li><li><a href="/intro/more-overloading.html">Advanced overloading</a></li><li><a href="/intro/misc.html">Miscellaneous</a></li><li><a href="/intro/end.html">Conclusion</a></li></ul></nav><main><h1>Interfaces and variants</h1><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Interfaces</h2><div><p>An <code class="keyword">interface</code> type is like a union, but does not declare its case types.
+<br>
+Instead, each case type declares itself a <code class="keyword">case</code> of the interface.</p><keen-runnable>import
+	keen/math/math
+
+main void()
+	a shape = circle 1
+	b shape = square 2
+	log area a
+	log area b
+
+shape interface
+	area float()
+
+circle record(radius float) shape case
+area float(a circle)
+	pi * a.radius ** 2
+
+square record(width float) shape case
+area float(a square)
+	a.width ** 2</keen-runnable></div></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Strong interfaces</h2><div><p>There&#39;s no way to retrieve the case type given a reference to an interface.
+<br>
+The only thing you can do with an <code class="keyword">interface</code> value is call its methods.
+<br>
+This is usually a good thing as it makes an interface a meaningful specification
+of what a value is actually used for.
+<br>
+If you want to <code class="keyword">match</code> on an interface, use a <code class="keyword">variant</code> instead.</p></div></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Interface mutability</h2><div><p>As with a <code class="keyword">union</code>, <code class="keyword">case</code> types of an <code class="keyword">interface</code> can have at most the interface&#39;s mutability.</p><keen-runnable>main void()
+	a i = r 0
+	log update a
+	log update a
+
+i interface mut
+	update nat()
+r record mut, i case
+	count mut nat
+update nat(a r)
+	a.count +:= 1
+	a.count</keen-runnable><aside class="small">Try removing <code class="keyword">mut</code> from the interface above to see the error.</aside></div></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Variants</h2><div><p><code class="keyword">variant</code>s are like interfaces, but support <code class="keyword">match</code> expressions.
+<br>
+Or to put it another way, a <code class="keyword">variant</code> is like a <code class="keyword">union</code>
+where the case types do not have to be known up-front.
+<br>
+These aren&#39;t often needed, but the <a href="/doc/keen/exception.html#exception"><code class="type">exception</code></a> type is an example variant type.
+It&#39;s a good example where it would be impractical to declare all case types up-front.</p><keen-runnable>main void()
+	a shape = circle 1
+	log match a
+	as circle
+		&quot;circle {a.radius}&quot;
+	as square
+		&quot;square {a.width}&quot;
+	else
+		&quot;some other type&quot;
+
+shape variant
+circle record(radius float) shape case
+square record(width float) shape case</keen-runnable><aside><h4>Variants are open</h4><div><p>Since any type can declare itself a <code class="keyword">case</code> of the variant, variants must be treated as open-ended.
+<br>
+No code can be assumed to know all case types.</p><p>So, the <code class="keyword">else</code> in the above example is mandatory, even though no other case types are in sight.</p><p>If you want a closed set of case types, use a <code class="keyword">union</code>.</p></div></aside></div></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Restrictions</h2><div><ul class="bullets"><li>Since a case type must explicitly <code class="keyword">case</code> an interface or variant,
+they can&#39;t contain already-declared types like <a href="/doc/keen/number.html#nat"><code class="type">nat</code></a>.</li><li>Auto functions won&#39;t work on interfaces or variants.</li></ul></div></section><a href="/intro/type-parameters.html" id="next">next: Type parameters</a></main></div></body></html>

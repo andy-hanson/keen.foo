@@ -1,0 +1,121 @@
+<html><head><title>Keen programming language: Collections</title><link href="/icon.svg" rel="icon" type="image/x-icon"><link href="https://cdn.jsdelivr.net/npm/hack-font@3/build/web/hack-subset.css" rel="stylesheet"><link href="/style/index.css" rel="stylesheet"><link href="/worker.js" rel="modulepreload"><script src="/index.js" type="module"></script></head><body><header><nav><div id="home"><a href="/"><keen-icon icon="home"></keen-icon></a></div><ul class="grow"><li><a href="/download.html">download</a></li><li><a class="current" href="/intro">intro</a></li><li><a href="/doc">docs</a></li><li><a href="/faq.html">faq</a></li><li><a href="/play.html">play</a></li></ul><ul><li><a href="https://discord.com/channels/1505354381707579413/1505354409733787798">chat</a></li><li><a href="https://github.com/andy-hanson/keen/issues">bugs</a></li><li><a href="https://github.com/andy-hanson/keen">source</a></li><li><theme-switcher></theme-switcher></li></ul></nav></header><div id="side-nav-wrapper"><nav><ul><li><a href="/intro/index.html">Commands</a></li><li><a href="/intro/functions.html">Functions</a></li><li><a href="/intro/expressions.html">Basic expressions</a></li><li><a href="/intro/types.html">Basic types</a></li><li><a href="/intro/ifs.html">&quot;if&quot; expressions</a></li><li><a href="/intro/overloading.html">Overloading</a></li><li><a href="/intro/new_.html">&quot;new&quot; functions</a></li><li><a href="/intro/tuples.html">Tuples</a></li><li><a href="/intro/records.html">Records</a></li><li><a href="/intro/mutability.html">Mutability</a></li><li><a href="/intro/strings.html">String literals</a></li><li><a href="/intro/kid.html">Kid</a></li><li><a href="/intro/operators.html">Operators</a></li><li><a href="/intro/options.html">Options</a></li><li><a href="/intro/matches.html">&quot;match&quot; expressions</a></li><li><a href="/intro/enums.html">Enums and flags</a></li><li><a href="/intro/loops.html">Loops</a></li><li><a href="/intro/unions.html">Unions</a></li><li><a href="/intro/interfaces.html">Interfaces and variants</a></li><li><a href="/intro/type-parameters.html">Type parameters</a></li><li><a href="/intro/specs.html">Specs</a></li><li><a href="/intro/lambdas.html">Lambdas</a></li><li><a href="/intro/iteration.html">Iteration</a></li><li><a class="current" href="/intro/collections.html">Collections</a></li><li><a href="/intro/exceptions.html">Exceptions</a></li><li><a href="/intro/modules.html">Modules</a></li><li><a href="/intro/visibility.html">Visibility</a></li><li><a href="/intro/configs.html">&quot;config.kid&quot;</a></li><li><a href="/intro/unsafe.html">Unsafe code</a></li><li><a href="/intro/globals.html">Global side effects</a></li><li><a href="/intro/targets.html">Targets</a></li><li><a href="/intro/java.html">Java</a></li><li><a href="/intro/js.html">JavaScript</a></li><li><a href="/intro/tests.html">Tests</a></li><li><a href="/intro/parallel.html">Parallelism</a></li><li><a href="/intro/contexts.html">Contexts</a></li><li><a href="/intro/dos.html">&quot;do&quot; expressions</a></li><li><a href="/intro/more-overloading.html">Advanced overloading</a></li><li><a href="/intro/misc.html">Miscellaneous</a></li><li><a href="/intro/end.html">Conclusion</a></li></ul></nav><main><h1>Collections</h1><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Building immutable collections</h2><div><p>Mutable collections can start out empty and be built up.
+This doesn&#39;t work for immutable collections.
+<br>
+Below are the ways to initialize immutable collections, starting with the simplest:</p><ul class="bullets"><li>Using <code class="function">new</code> or <code class="function">list-new</code>. See <a href="/intro/new_.html">&quot;new&quot; functions</a>.</li><li>Using <code class="keyword">for</code> or <code class="keyword">for*</code> loop. See <a href="/intro/iteration.html">Iteration</a>.</li><li>Using <a href="/doc/keen/col/util.html#build"><code class="function">build</code></a>. This exposes a <a href="/doc/keen/col/util.html#builder"><code class="type">builder</code></a> which is used to add elements one at a time.
+<br>
+There is no way to inspect the elements in a <a href="/doc/keen/col/util.html#builder"><code class="type">builder</code></a> until it&#39;s finished.</li><li>Using a <a href="/doc/keen/col/mut-array.html#mut-array"><code class="type">mut-array</code></a>, then calling <code class="function">move-to</code> at the end. This is the most flexible approach.</li></ul><p>To demonstrate each method:</p><keen-runnable>main void()
+	log (1, 2, 3)::nat[]
+	log
+		:: nat[]
+		- 1
+		-- 2, 3
+	log for::nat[] x in 0 .. 3
+		x + 1
+	log for*::nat[] x in 0 .. 3
+		- x + 1
+	log with::nat[] out in build
+		out ~= 1
+		out ~~= 2, 3
+	log
+		out nat mut[] = ()
+		out ~= 1
+		out ~~= 2, 3
+		move-to::nat[] out</keen-runnable><p>All of these methods can also be used to initialize mutable collections.</p></div></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Arrays</h2><div><p>The basic <a href="/doc/keen/col/array.html#array"><code class="type">array</code></a> operations are <code class="function">size</code> and <code class="function">subscript</code>.</p><keen-runnable>main void()
+	a nat[] = 1, 2, 3
+	log size a
+	log a[0]</keen-runnable><p><a href="/doc/keen/col/array.html#~~"><code class="function">~~</code></a> concatenates two arrays.
+<a href="/doc/keen/col/array.html#~"><code class="function">~</code></a> prepends or appends an element to an array.</p></div></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Array views</h2><div><p>An <a href="/doc/keen/col/array.html#array-view"><code class="type">array-view</code></a> is a slice of an original <a href="/doc/keen/col/array.html#array"><code class="type">array</code></a>.
+It has similar functionality to an array, but with different performance.
+<br>
+Using an <a href="/doc/keen/col/array.html#array-view"><code class="type">array-view</code></a> avoids copying the array elements,
+but holds onto the entire original array even if only viewing a small part.
+<br>
+It also adds a level of indirection.
+<br>
+You should usually use arrays and only use a view when there is a clear advantage.</p><p>There are two ways to get an <a href="/doc/keen/col/array.html#array-view"><code class="type">array-view</code></a>:</p><ul class="bullets"><li>An <a href="/doc/keen/col/array.html#array"><code class="type">array</code></a> can implicitly convert to an <a href="/doc/keen/col/array.html#array-view"><code class="type">array-view</code></a>.</li><li>Slicing an array returns an <a href="/doc/keen/col/array.html#array-view"><code class="type">array-view</code></a>:
+<code class="variable">a</code><code>[</code><code class="number">2</code><code> </code><code class="function">..</code><code> </code><code class="number">5</code><code>]</code>&quot;</li></ul><p>Slicing can also index relative to the array size, such as
+<code class="variable">a</code><code>[</code><code class="number">1</code><code> </code><code class="function">..</code><code> </code><code class="function">end</code><code>]</code>
+which is equivalent to
+<code class="variable">a</code><code>[</code><code class="number">1</code><code> </code><code class="function">..</code><code> </code><code class="variable">a</code><code class="keyword">.</code><code class="function">size</code><code>]</code> .</p><keen-runnable>main void()
+	a nat[] = 0, 1, 2, 3, 4
+	b nat array-view = a
+	log b
+	c nat array-view = a[1 .. 3]
+	log c
+	d nat array-view = a[1 .. end - 1]
+	log d</keen-runnable><p>To slice an <a href="/doc/keen/col/array.html#array"><code class="type">array</code></a> and get another <a href="/doc/keen/col/array.html#array"><code class="type">array</code></a>, use <code class="function">to</code>.</p><keen-runnable>main void()
+	a nat[] = 0, 1, 2, 3, 4
+	log to::nat[] a[1 .. 3]</keen-runnable></div></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Collection conversion</h2><div><p>Most collections define at least two <code class="function">to</code> functions:
+one converting to an array and one converting from an array.
+This makes it possible to convert between any two collections by going through an array.</p><p>To convert to another collection while emptying the original collection,
+there is often a <code class="function">move-to</code> function.</p><keen-runnable>main void()
+	a nat mut[] = 1, 2, 3
+	b = a.move-to::nat[]
+	log a, b</keen-runnable></div></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Mutable arrays</h2><div><p>A mutable array is written <code class="type">t mut[]</code>, equivalent to <code class="type">t</code><code> </code><a href="/doc/keen/col/mut-array.html#mut-array"><code class="type">mut-array</code></a> .</p><keen-runnable>main void()
+	a nat mut[] = ()
+	a ~= 1
+	log a</keen-runnable><p>To prevent bugs, a <a href="/doc/keen/col/mut-array.html#mut-array"><code class="type">mut-array</code></a> can&#39;t be mutated during iteration.</p><keen-runnable>main void()
+	a nat mut[] = 1, 2, 3
+	for x in a
+		# This will fail
+		a ~= x
+	log a</keen-runnable><aside class="small">You can still manually iterate the indices and mutate it during that.</aside></div></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Buffers</h2><div><p>A <a href="/doc/keen/col/buffer.html#buffer"><code class="type">buffer</code></a> is like an <a href="/doc/keen/col/array.html#array"><code class="type">array</code></a> with mutable elements, but unlike a <a href="/doc/keen/col/mut-array.html#mut-array"><code class="type">mut-array</code></a>, it is fixed in size.</p><keen-runnable>main void()
+	a nat buffer = for x in 0 .. 10 then x
+	a[5] := 55
+	log a</keen-runnable><p><a href="/doc/keen/col/buffer.html#buffer"><code class="type">buffer</code></a>s aren&#39;t common, but are useful for low-level code.
+For example, <a href="/doc/keen/col/mut-array.html#mut-array"><code class="type">mut-array</code></a> is implemented using a <a href="/doc/keen/col/buffer.html#buffer"><code class="type">buffer</code></a>.
+<br>
+Low-level <a href="/doc/keen/col/buffer.html#buffer"><code class="type">buffer</code></a> use typically uses <a href="/doc/keen/col/buffer.html#uninitialized-buffer"><code class="function">uninitialized-buffer</code></a>,
+which is <a href="/doc/keen/misc.html#unsafe"><code class="type">unsafe</code></a>. (See <a href="/intro/unsafe.html">Unsafe code</a>.)</p><keen-runnable>main void()
+	a nat buffer = trusted uninitialized-buffer 10
+	a[5] := 55
+	# It&#39;s only safe to access elements that have been initialized
+	log a[5]</keen-runnable><p>A <a href="/doc/keen/col/buffer.html#buffer-view"><code class="type">buffer-view</code></a> works like an <a href="/doc/keen/col/array.html#array-view"><code class="type">array-view</code></a>.
+<br>
+Writing to a <a href="/doc/keen/col/buffer.html#buffer-view"><code class="type">buffer-view</code></a> affects the original buffer.</p><keen-runnable>main void()
+	a nat buffer = n-of 10, 0
+	view = a[5 .. 10]
+	view[1] := 6
+	log a</keen-runnable></div></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Maps</h2><div><p>A map is a collection of (key, value) pairs with unique keys
+that supports efficiently getting a value from the key.
+<br>
+The key must satisfy the <a href="/doc/keen/hash.html#key"><code class="type">key</code></a> spec, which means
+<code class="function">==</code>, <code class="function">&lt;=&gt;</code>, and <code class="function">hash</code> must be defined for it.</p><p>A map type is written as <code class="type">value</code><code>[</code><code class="type">key</code><code>]</code>,
+equivalent to <code>(</code><code class="type">key</code><code>, </code><code class="type">value</code><code>)</code><code> </code><code class="type">map</code>.</p><p>Map lookup uses the same <code class="function">subscript</code> syntax as for arrays.
+Unlike for an array, it returns an option instead of throwing an exception on a missing key.</p><p>A map is constructed from a collection of tuples and iterates as tuples too.</p><keen-runnable>main void()
+	a string[nat] =
+		- 1, &quot;one&quot;
+		- 2, &quot;two&quot;
+	for x in a
+		log x
+	log &quot;a[1]&quot;, a[1]
+	log &quot;a[3]&quot;, a[3]</keen-runnable><p>If the map key is <a href="/doc/keen/symbol.html#symbol"><code class="type">symbol</code></a>, it can be created with <code class="function">named-new</code> syntax.</p><keen-runnable>main void()
+	a string[symbol] =
+		one: &quot;uno&quot;
+		two: &quot;dos&quot;
+	log a[&quot;two&quot;]</keen-runnable></div></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Map iteration</h2><div><p>Maps are designed for efficient lookups. To accomplish this, they internally use hashing.
+<br>
+Hashing depends on a random seed.
+This makes it unsafe to expose to safe code (which should not behave randomly).</p><p>To keep it safe, map iteration sorts the map first.
+<br>
+If you will need to iterate a map frequently, consider using a <a href="/doc/keen/col/sorted-map.html#sorted-map"><code class="type">sorted-map</code></a>.
+This has the same functions as <a href="/doc/keen/col/map.html#map"><code class="type">map</code></a> but is always kept sorted, making iteration fast.
+The cost is that <a href="/doc/keen/col/sorted-map.html#sorted-map"><code class="type">sorted-map</code></a> is slower to look up keys than <a href="/doc/keen/col/map.html#map"><code class="type">map</code></a>.</p><p>If you need both fast iteration and the fastest possible lookups,
+you could call <a href="/doc/keen/col/map.html#unsorted"><code class="function">unsorted</code></a> before iterating the map.
+This is <a href="/doc/keen/misc.html#unsafe"><code class="type">unsafe</code></a>. (That will be explained in <a href="/intro/unsafe.html">Unsafe code</a>.)</p><keen-runnable>main void()
+	a nat[symbol] = beta: 2, alpha: 1
+	for x in a
+		log x
+	log &quot;unsorted:&quot;
+	trusted for x in unsorted a
+		log x</keen-runnable><aside class="small">You should only use <a href="/doc/keen/col/map.html#unsorted"><code class="function">unsorted</code></a> iteration when you are certain iteration order doesn&#39;t matter.</aside></div></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Mutable maps</h2><div><p>A mutable map is written as <code class="type">value</code><code> </code><code class="keyword">mut</code><code class="keyword">[</code><code class="type">key</code><code class="keyword">]</code>,
+equivalent to <code>(</code><code class="type">key</code><code>, </code><code class="type">value</code><code>)</code><code> </code><a href="/doc/keen/col/mut-map.html#mut-map"><code class="type">mut-map</code></a>.</p><keen-runnable>main void()
+	a nat mut[symbol] = ()
+	a[&quot;alpha&quot;] := 1
+	a[&quot;beta&quot;] := 2
+	log a[&quot;alpha&quot;]
+	log remove a, &quot;beta&quot;
+	log a[&quot;beta&quot;]</keen-runnable><p>Like with <a href="/doc/keen/col/map.html#map"><code class="type">map</code></a>, there is a <a href="/doc/keen/col/mut-sorted-map.html#mut-sorted-map"><code class="type">mut-sorted-map</code></a> that iterates faster at the expense of slower lookups.</p></div></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Other collections</h2><div><p>There are other collections in the standard library.
+Each has immutable and mutable versions.
+<br>
+There are also <code class="keyword">shared</code> collections, which will be explained in <a href="/intro/parallel.html">Parallelism</a>.</p><table><thead><th>Name</th><th>Use</th></thead><tbody><tr><td><a href="/doc/keen/col/counter.html#counter"><code class="type">counter</code></a>, <a href="/doc/keen/col/mut-counter.html#mut-counter"><code class="type">mut-counter</code></a></td><td>Tracks how many of each value it contains.</td></tr><tr><td><a href="/doc/keen/col/deque.html#deque"><code class="type">deque</code></a>, <a href="/doc/keen/col/mut-deque.html#mut-deque"><code class="type">mut-deque</code></a></td><td>Fast to push or pop to/from either end.</td></tr><tr><td><a href="/doc/keen/col/priority-queue.html#priority-queue"><code class="type">priority-queue</code></a>, <a href="/doc/keen/col/mut-priority-queue.html#mut-priority-queue"><code class="type">mut-priority-queue</code></a></td><td>(key, value) pairs sorted by key, with fast removal of the least key.</td></tr><tr><td><a href="/doc/keen/col/set.html#set"><code class="type">set</code></a>, <a href="/doc/keen/col/mut-set.html#mut-set"><code class="type">mut-set</code></a></td><td>Stores only unique values, with fast test for inclusion.</td></tr><tr><td><a href="/doc/keen/col/sorted-set.html#sorted-set"><code class="type">sorted-set</code></a>, <a href="/doc/keen/col/mut-sorted-set.html#mut-sorted-set"><code class="type">mut-sorted-set</code></a></td><td><a href="/doc/keen/col/set.html#set"><code class="type">set</code></a> with slower lookups but fast iteration.</td></tr><tr><td><a href="/doc/keen/col/stack.html#stack"><code class="type">stack</code></a>, <a href="/doc/keen/col/mut-stack.html#mut-stack"><code class="type">mut-stack</code></a></td><td>Fast to push or pop to/from the right.</td></tr><tr><td><a href="/doc/keen/col/queue.html#queue"><code class="type">queue</code></a>, <a href="/doc/keen/col/mut-queue.html#mut-queue"><code class="type">mut-queue</code></a></td><td>Fast to push to the right or pop from the left.</td></tr></tbody></table></div></section><a href="/intro/exceptions.html" id="next">next: Exceptions</a></main></div></body></html>

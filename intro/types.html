@@ -1,0 +1,61 @@
+<html><head><title>Keen programming language: Basic types</title><link href="/icon.svg" rel="icon" type="image/x-icon"><link href="https://cdn.jsdelivr.net/npm/hack-font@3/build/web/hack-subset.css" rel="stylesheet"><link href="/style/index.css" rel="stylesheet"><link href="/worker.js" rel="modulepreload"><script src="/index.js" type="module"></script></head><body><header><nav><div id="home"><a href="/"><keen-icon icon="home"></keen-icon></a></div><ul class="grow"><li><a href="/download.html">download</a></li><li><a class="current" href="/intro">intro</a></li><li><a href="/doc">docs</a></li><li><a href="/faq.html">faq</a></li><li><a href="/play.html">play</a></li></ul><ul><li><a href="https://discord.com/channels/1505354381707579413/1505354409733787798">chat</a></li><li><a href="https://github.com/andy-hanson/keen/issues">bugs</a></li><li><a href="https://github.com/andy-hanson/keen">source</a></li><li><theme-switcher></theme-switcher></li></ul></nav></header><div id="side-nav-wrapper"><nav><ul><li><a href="/intro/index.html">Commands</a></li><li><a href="/intro/functions.html">Functions</a></li><li><a href="/intro/expressions.html">Basic expressions</a></li><li><a class="current" href="/intro/types.html">Basic types</a></li><li><a href="/intro/ifs.html">&quot;if&quot; expressions</a></li><li><a href="/intro/overloading.html">Overloading</a></li><li><a href="/intro/new_.html">&quot;new&quot; functions</a></li><li><a href="/intro/tuples.html">Tuples</a></li><li><a href="/intro/records.html">Records</a></li><li><a href="/intro/mutability.html">Mutability</a></li><li><a href="/intro/strings.html">String literals</a></li><li><a href="/intro/kid.html">Kid</a></li><li><a href="/intro/operators.html">Operators</a></li><li><a href="/intro/options.html">Options</a></li><li><a href="/intro/matches.html">&quot;match&quot; expressions</a></li><li><a href="/intro/enums.html">Enums and flags</a></li><li><a href="/intro/loops.html">Loops</a></li><li><a href="/intro/unions.html">Unions</a></li><li><a href="/intro/interfaces.html">Interfaces and variants</a></li><li><a href="/intro/type-parameters.html">Type parameters</a></li><li><a href="/intro/specs.html">Specs</a></li><li><a href="/intro/lambdas.html">Lambdas</a></li><li><a href="/intro/iteration.html">Iteration</a></li><li><a href="/intro/collections.html">Collections</a></li><li><a href="/intro/exceptions.html">Exceptions</a></li><li><a href="/intro/modules.html">Modules</a></li><li><a href="/intro/visibility.html">Visibility</a></li><li><a href="/intro/configs.html">&quot;config.kid&quot;</a></li><li><a href="/intro/unsafe.html">Unsafe code</a></li><li><a href="/intro/globals.html">Global side effects</a></li><li><a href="/intro/targets.html">Targets</a></li><li><a href="/intro/java.html">Java</a></li><li><a href="/intro/js.html">JavaScript</a></li><li><a href="/intro/tests.html">Tests</a></li><li><a href="/intro/parallel.html">Parallelism</a></li><li><a href="/intro/contexts.html">Contexts</a></li><li><a href="/intro/dos.html">&quot;do&quot; expressions</a></li><li><a href="/intro/more-overloading.html">Advanced overloading</a></li><li><a href="/intro/misc.html">Miscellaneous</a></li><li><a href="/intro/end.html">Conclusion</a></li></ul></nav><main><h1>Basic types</h1><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Type annotations</h2><div><p>Types come after the name of the thing they are the type of.
+<br>
+Function return types and parameter types are required.
+Local variable types are optional.</p><keen-runnable>main void()
+	log foo 1
+
+foo string(n nat)
+	s string = &quot;{n}&quot;
+	s</keen-runnable><p>Above, <code class="function">main</code> is <a href="/doc/keen/misc.html#void"><code class="type">void</code></a>, <code class="function">foo</code> is <a href="/doc/keen/string.html#string"><code class="type">string</code></a>,
+<code class="variable">n</code> is <a href="/doc/keen/number.html#nat"><code class="type">nat</code></a>, and <code class="variable">s</code> is <a href="/doc/keen/string.html#string"><code class="type">string</code></a>.</p></div></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Anonymous type annotations</h2><div><p>An anonymous type annotation that attaches to an expression instead of to a name.
+<br>
+<code class="variable">expr</code><code class="keyword">::</code><code class="type">type</code> specifies the type of an expression.
+<br>
+In a function call like <code class="function">to</code><code class="keyword">::</code><a href="/doc/keen/number.html#int"><code class="type">int</code></a><code> </code><code class="number">1.5</code>,
+the type is the return type of the function.
+<br>
+You can also write <code class="keyword">::</code><code class="type"> type</code> at the start of an indented block to type the block.</p><keen-runnable>main void()
+	n = 1::nat
+	m = to::int 1.5
+	log
+		# This applies to the expression below it, not to &#39;log&#39;
+		:: string
+		&quot;{n} {m}&quot;</keen-runnable><aside class="small">If <code class="keyword">::</code> were an operator it would be the most tightly binding one.</aside></div></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Expected types</h2><div><p>When Keen type-checks an expression, it may have an <em>expected type</em>.</p><ul class="bullets"><li>A function body&#39;s expected type is the function&#39;s return type.</li><li>A function argument&#39;s expected type is the function&#39;s declared argument type.
+<br>
+(Overloading complicates this; this will be explained in <a href="/intro/overloading.html">Overloading</a>.)</li><li>A local&#39;s expected type is the declared type (if any).</li><li>Any expression with an anonymous type annotation has that as an expected type.</li><li>Certain expressions have an expected type;
+for example, in a sequence expression, any subexpression but the last must be <a href="/doc/keen/misc.html#void"><code class="type">void</code></a>.</li></ul><p>The below example uses <code>()</code> which can take on many types.
+This will be fully explained in <a href="/intro/new_.html">&quot;new&quot; functions</a>.</p><keen-runnable>main void()
+	() # is void
+	# &#39;()&#39; is a bool
+	_ bool = ()
+	# &#39;()&#39; is a nat
+	_ = foo ()
+
+foo string(_ nat)
+	() # is a string</keen-runnable><p>Many expressions do not need an expected type.
+<br>
+For example, the call to <code class="function">foo</code> does not need an expected type,
+since there is only one <code class="function">foo</code> and it returns a <a href="/doc/keen/string.html#string"><code class="type">string</code></a>.</p></div></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Literal expressions</h2><div><p>Literal expressions have favorite types that they will use automatically if there is no expected type.</p><p>A number literal prefers to be a <a href="/doc/keen/number.html#nat"><code class="type">nat</code></a>, but a negative number will be an <a href="/doc/keen/number.html#int"><code class="type">int</code></a>
+and a number with a decimal point (even if <code class="number">.0</code>) will be a <a href="/doc/keen/number.html#float"><code class="type">float</code></a>.</p><p>A string literal prefers to be a <a href="/doc/keen/string.html#string"><code class="type">string</code></a>.</p><keen-runnable>main void()
+	n = 1 # nat
+	i = -1 # int
+	f = 1.1 # float
+	s = &quot;hello&quot; # string
+	log n, i, f, s</keen-runnable><p>If there is an expected type, a literal expression will use that instead of its default type.
+<br>
+(More on expected types in <a href="/intro/overloading.html">Overloading</a>.)</p><keen-runnable>main void()
+	f float = 1
+	s symbol = &quot;hello&quot;
+	j json = 4
+	log f, s, j</keen-runnable><p>The possible number literal types are:</p><ul class="bullets"><li><a href="/doc/keen/number.html#nat8"><code class="type">nat8</code></a>, <a href="/doc/keen/number.html#nat16"><code class="type">nat16</code></a>, <a href="/doc/keen/number.html#nat32"><code class="type">nat32</code></a>, <a href="/doc/keen/number.html#nat64"><code class="type">nat64</code></a> (<a href="/doc/keen/number.html#nat"><code class="type">nat</code></a> is an alias for <a href="/doc/keen/number.html#nat64"><code class="type">nat64</code></a>)</li><li><a href="/doc/keen/number.html#int8"><code class="type">int8</code></a>, <a href="/doc/keen/number.html#int16"><code class="type">int16</code></a>, <a href="/doc/keen/number.html#int32"><code class="type">int32</code></a>, <a href="/doc/keen/number.html#int64"><code class="type">int64</code></a> (<a href="/doc/keen/number.html#int"><code class="type">int</code></a> is an alias for <a href="/doc/keen/number.html#int64"><code class="type">int64</code></a>)</li><li><a href="/doc/keen/number.html#float32"><code class="type">float32</code></a>, <a href="/doc/keen/number.html#float64"><code class="type">float64</code></a> (<a href="/doc/keen/number.html#float"><code class="type">float</code></a> is an alias for <code class="type">float64</code>)</li><li><a href="/doc/keen/json.html#json"><code class="type">json</code></a></li></ul><p>The possible string literal types are:</p><ul class="bullets"><li><a href="/doc/keen/string.html#string"><code class="type">string</code></a></li><li><a href="/doc/keen/symbol.html#symbol"><code class="type">symbol</code></a></li><li><a href="/doc/keen/string.html#char8"><code class="type">char8</code></a>, <code class="type">char8[]</code></li><li><a href="/doc/keen/string.html#char32"><code class="type">char32</code></a>, <code class="type">char32[]</code></li><li><a href="/doc/keen/json.html#json"><code class="type">json</code></a></li></ul><p>For <a href="/doc/keen/string.html#char8"><code class="type">char8</code></a> or <a href="/doc/keen/string.html#char32"><code class="type">char32</code></a>, the string literal must contain a single character.
+<br>
+String literals can even be a user-defined type; see <a href="/intro/strings.html">String literals</a>.</p></div></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Implicit conversion of numbers</h2><div><p>Number types implicitly convert to larger number types of the same kind.
+<br>
+Keen will not implicitly convert between <a href="/doc/keen/number.html#nat"><code class="type">nat</code></a>s, <a href="/doc/keen/number.html#int"><code class="type">int</code></a>s, and <a href="/doc/keen/number.html#float"><code class="type">float</code></a>s, just within each category.</p><keen-runnable>main void()
+	n8 nat8 = 1
+	n nat = n8
+	i8 int8 = n.to
+	i int = i8
+	f32 float32 = i.to
+	f float = f32
+	log f</keen-runnable><aside class="small">When you do need a conversion function, it is usually named <code class="function">to</code>.</aside></div></section><a href="/intro/ifs.html" id="next">next: &quot;if&quot; expressions</a></main></div></body></html>

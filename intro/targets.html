@@ -1,0 +1,48 @@
+<html><head><title>Keen programming language: Targets</title><link href="/icon.svg" rel="icon" type="image/x-icon"><link href="https://cdn.jsdelivr.net/npm/hack-font@3/build/web/hack-subset.css" rel="stylesheet"><link href="/style/index.css" rel="stylesheet"><link href="/worker.js" rel="modulepreload"><script src="/index.js" type="module"></script></head><body><header><nav><div id="home"><a href="/"><keen-icon icon="home"></keen-icon></a></div><ul class="grow"><li><a href="/download.html">download</a></li><li><a class="current" href="/intro">intro</a></li><li><a href="/doc">docs</a></li><li><a href="/faq.html">faq</a></li><li><a href="/play.html">play</a></li></ul><ul><li><a href="https://discord.com/channels/1505354381707579413/1505354409733787798">chat</a></li><li><a href="https://github.com/andy-hanson/keen/issues">bugs</a></li><li><a href="https://github.com/andy-hanson/keen">source</a></li><li><theme-switcher></theme-switcher></li></ul></nav></header><div id="side-nav-wrapper"><nav><ul><li><a href="/intro/index.html">Commands</a></li><li><a href="/intro/functions.html">Functions</a></li><li><a href="/intro/expressions.html">Basic expressions</a></li><li><a href="/intro/types.html">Basic types</a></li><li><a href="/intro/ifs.html">&quot;if&quot; expressions</a></li><li><a href="/intro/overloading.html">Overloading</a></li><li><a href="/intro/new_.html">&quot;new&quot; functions</a></li><li><a href="/intro/tuples.html">Tuples</a></li><li><a href="/intro/records.html">Records</a></li><li><a href="/intro/mutability.html">Mutability</a></li><li><a href="/intro/strings.html">String literals</a></li><li><a href="/intro/kid.html">Kid</a></li><li><a href="/intro/operators.html">Operators</a></li><li><a href="/intro/options.html">Options</a></li><li><a href="/intro/matches.html">&quot;match&quot; expressions</a></li><li><a href="/intro/enums.html">Enums and flags</a></li><li><a href="/intro/loops.html">Loops</a></li><li><a href="/intro/unions.html">Unions</a></li><li><a href="/intro/interfaces.html">Interfaces and variants</a></li><li><a href="/intro/type-parameters.html">Type parameters</a></li><li><a href="/intro/specs.html">Specs</a></li><li><a href="/intro/lambdas.html">Lambdas</a></li><li><a href="/intro/iteration.html">Iteration</a></li><li><a href="/intro/collections.html">Collections</a></li><li><a href="/intro/exceptions.html">Exceptions</a></li><li><a href="/intro/modules.html">Modules</a></li><li><a href="/intro/visibility.html">Visibility</a></li><li><a href="/intro/configs.html">&quot;config.kid&quot;</a></li><li><a href="/intro/unsafe.html">Unsafe code</a></li><li><a href="/intro/globals.html">Global side effects</a></li><li><a class="current" href="/intro/targets.html">Targets</a></li><li><a href="/intro/java.html">Java</a></li><li><a href="/intro/js.html">JavaScript</a></li><li><a href="/intro/tests.html">Tests</a></li><li><a href="/intro/parallel.html">Parallelism</a></li><li><a href="/intro/contexts.html">Contexts</a></li><li><a href="/intro/dos.html">&quot;do&quot; expressions</a></li><li><a href="/intro/more-overloading.html">Advanced overloading</a></li><li><a href="/intro/misc.html">Miscellaneous</a></li><li><a href="/intro/end.html">Conclusion</a></li></ul></nav><main><h1>Targets</h1><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>About targets</h2><div><p>Keen currently supports two targets: Java and JavaScript.
+The default is Java.</p><p>Commands that use Java:</p><ul class="bullets"><li><code>keen foo.keen</code></li><li><code>keen run foo.keen</code></li><li><code>keen build foo.keen</code></li><li><code>keen test foo.keen</code> (see <a href="/intro/tests.html">Tests</a>)</li></ul><p>Commands that use JavaScript:</p><ul class="bullets"><li><code>keen run foo.keen --node-js</code></li><li><code>keen build foo.keen --out foo.js</code></li><li><code>keen test foo.keen --node-js</code></li></ul><p>The target is considered global state.
+<br>
+So, non-<a href="/doc/keen/misc.html#global"><code class="type">global</code></a>, non-<a href="/doc/keen/misc.html#unsafe"><code class="type">unsafe</code></a> functions behave the same regardless of the target.</p><p>Some functions only work on a particular target.
+<br>
+A function that only works in Java will use the <a href="/doc/keen/misc.html#java"><code class="type">java</code></a> spec.
+<br>
+A function that only works in JavaScript will use the <a href="/doc/keen/misc.html#js"><code class="type">js</code></a> spec.</p></div></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Testing the target</h2><div><p>It&#39;s possible to call a <a href="/doc/keen/misc.html#java"><code class="type">java</code></a> or <a href="/doc/keen/misc.html#js"><code class="type">js</code></a> function from a regular function
+by first testing <a href="/doc/keen/misc.html#java"><code class="function">java</code></a> or <a href="/doc/keen/misc.html#js"><code class="function">js</code></a>.
+<br>
+These are functions returning <a href="/doc/keen/bool.html#bool"><code class="type">bool</code></a>, but Keen treats them specially.</p><keen-runnable>import
+	java/io/PrintStream
+	java/lang/System
+	keen/js
+
+main void() global
+	if java
+		java-only-function
+	elif js
+		js-only-function
+	else
+		throw todo
+
+java-only-function void() global, java
+	trusted println out, &quot;This will only appear if the target is Java&quot;
+
+js-only-function void() global, js
+	_ = trusted call-property js-global[&quot;console&quot;], &quot;info&quot;,
+		&quot;This will only appear if the target is JavaScript&quot;</keen-runnable><aside class="small">The details will be explained in <a href="/intro/java.html">Java</a> and <a href="/intro/js.html">JavaScript</a>.</aside><p>The functions <a href="/doc/keen/misc.html#java"><code class="function">java</code></a> and <a href="/doc/keen/misc.html#js"><code class="function">js</code></a> are <a href="/doc/keen/misc.html#global"><code class="type">global</code></a>, since the target is considered global state.
+<br>
+Use <code class="keyword">trusted</code> to erase <a href="/doc/keen/misc.html#global"><code class="type">global</code></a> if the behavior is the same in any target.</p><keen-runnable>import
+	keen/js
+	java/lang/Math
+
+main void()
+	log square-root 4
+
+square-root float(a float)
+	trusted if java
+		sqrt a
+	elif js
+		to call-property js-global[&quot;Math&quot;], &quot;sqrt&quot;, a.to
+	else
+		throw todo</keen-runnable><aside class="small">The standard <a href="/doc/keen/col/math.html#square-root"><code class="function">square-root</code></a> uses an implementation like this.</aside></div></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Main target</h2><div><p>A <code class="function">main</code> function can use a target.</p><keen-runnable>import
+	keen/js
+
+main void() global, js
+	_ = trusted call-property js-global[&quot;console&quot;], &quot;info&quot;, &quot;JS only!&quot;</keen-runnable></div></section><a href="/intro/java.html" id="next">next: Java</a></main></div></body></html>

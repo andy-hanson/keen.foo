@@ -1,0 +1,45 @@
+<html><head><title>Keen programming language: &quot;do&quot; expressions</title><link href="/icon.svg" rel="icon" type="image/x-icon"><link href="https://cdn.jsdelivr.net/npm/hack-font@3/build/web/hack-subset.css" rel="stylesheet"><link href="/style/index.css" rel="stylesheet"><link href="/worker.js" rel="modulepreload"><script src="/index.js" type="module"></script></head><body><header><nav><div id="home"><a href="/"><keen-icon icon="home"></keen-icon></a></div><ul class="grow"><li><a href="/download.html">download</a></li><li><a class="current" href="/intro">intro</a></li><li><a href="/doc">docs</a></li><li><a href="/faq.html">faq</a></li><li><a href="/play.html">play</a></li></ul><ul><li><a href="https://discord.com/channels/1505354381707579413/1505354409733787798">chat</a></li><li><a href="https://github.com/andy-hanson/keen/issues">bugs</a></li><li><a href="https://github.com/andy-hanson/keen">source</a></li><li><theme-switcher></theme-switcher></li></ul></nav></header><div id="side-nav-wrapper"><nav><ul><li><a href="/intro/index.html">Commands</a></li><li><a href="/intro/functions.html">Functions</a></li><li><a href="/intro/expressions.html">Basic expressions</a></li><li><a href="/intro/types.html">Basic types</a></li><li><a href="/intro/ifs.html">&quot;if&quot; expressions</a></li><li><a href="/intro/overloading.html">Overloading</a></li><li><a href="/intro/new_.html">&quot;new&quot; functions</a></li><li><a href="/intro/tuples.html">Tuples</a></li><li><a href="/intro/records.html">Records</a></li><li><a href="/intro/mutability.html">Mutability</a></li><li><a href="/intro/strings.html">String literals</a></li><li><a href="/intro/kid.html">Kid</a></li><li><a href="/intro/operators.html">Operators</a></li><li><a href="/intro/options.html">Options</a></li><li><a href="/intro/matches.html">&quot;match&quot; expressions</a></li><li><a href="/intro/enums.html">Enums and flags</a></li><li><a href="/intro/loops.html">Loops</a></li><li><a href="/intro/unions.html">Unions</a></li><li><a href="/intro/interfaces.html">Interfaces and variants</a></li><li><a href="/intro/type-parameters.html">Type parameters</a></li><li><a href="/intro/specs.html">Specs</a></li><li><a href="/intro/lambdas.html">Lambdas</a></li><li><a href="/intro/iteration.html">Iteration</a></li><li><a href="/intro/collections.html">Collections</a></li><li><a href="/intro/exceptions.html">Exceptions</a></li><li><a href="/intro/modules.html">Modules</a></li><li><a href="/intro/visibility.html">Visibility</a></li><li><a href="/intro/configs.html">&quot;config.kid&quot;</a></li><li><a href="/intro/unsafe.html">Unsafe code</a></li><li><a href="/intro/globals.html">Global side effects</a></li><li><a href="/intro/targets.html">Targets</a></li><li><a href="/intro/java.html">Java</a></li><li><a href="/intro/js.html">JavaScript</a></li><li><a href="/intro/tests.html">Tests</a></li><li><a href="/intro/parallel.html">Parallelism</a></li><li><a href="/intro/contexts.html">Contexts</a></li><li><a class="current" href="/intro/dos.html">&quot;do&quot; expressions</a></li><li><a href="/intro/more-overloading.html">Advanced overloading</a></li><li><a href="/intro/misc.html">Miscellaneous</a></li><li><a href="/intro/end.html">Conclusion</a></li></ul></nav><main><h1>&quot;do&quot; expressions</h1><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>&quot;do&quot;</h2><div><p>The <code class="keyword">do</code> keyword can be used to reduce indentation.
+<br>
+The below examples are equivalent:</p><keen-runnable>main void()
+	if true
+		log &quot;ok&quot;</keen-runnable><keen-runnable>main void()
+	do if true
+	log &quot;ok&quot;</keen-runnable><p><code class="keyword">do</code> can go in front of <code class="keyword">if</code>, <code class="keyword">for</code>, <code class="keyword">for*</code>, <code class="keyword">trusted</code>, <code class="keyword">unless</code>, <code class="keyword">until</code>, <code class="keyword">with</code>, or <code class="keyword">while</code>.
+<br>
+All lines after the line with the <code class="keyword">do</code> are treated as if they were an indented block.
+<br>
+This can chain to reduce many levels of indentation:</p><keen-runnable>main void()
+	do for x in (1, 2, 3)::nat[]
+	do for y in (1, 2, 3)::nat[]
+	do unless x == y
+	log x, y</keen-runnable></div></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>&quot;do if&quot; and &quot;do unless&quot;</h2><div><p>Unlike a normal <code class="keyword">if</code>, the condition in a <code class="keyword">do</code><code> </code><code class="keyword">if</code> or <code class="keyword">do</code><code> </code><code class="keyword">unless</code> can take an indented block.</p><keen-runnable>main void()
+	a nat[] = 2, 4, 6
+	do if every a, of x
+		is-even x
+	log &quot;all even&quot;</keen-runnable><p>A <code class="keyword">do</code><code> </code><code class="keyword">if</code> or <code class="keyword">do</code><code> </code><code class="keyword">unless</code> can still have an <code class="keyword">else</code> branch.
+If so, it goes to the right of the condition.
+<br>
+(This means the condition must fit on one line.)</p><keen-runnable>main void()
+	log foo 10
+	log foo 11
+
+foo string(a nat)
+	do if is-even a else &quot;some odd number&quot;
+	&quot;twice {a / 2}&quot;</keen-runnable><p>The <code class="keyword">else</code> branch can be an indented block.</p><keen-runnable>main void()
+	log foo 10
+	log foo 11
+
+foo string(a nat)
+	do if is-even a else
+		&quot;some odd number&quot;
+	&quot;twice {a / 2}&quot;</keen-runnable><p>Use <code class="keyword">do</code><code> </code><code class="keyword">if</code> and <code class="keyword">do</code><code> </code><code class="keyword">unless</code> when you want to emphasize a main path where all the <code class="keyword">if</code>s succeed.</p><keen-runnable>main void()
+	log describe 1
+	log describe 101
+	log describe 50
+	log describe 51
+
+describe string(a nat)
+	do if a &gt; 10 else &quot;too small&quot;
+	do if a &lt; 100 else &quot;too big&quot;
+	do unless is-even a else &quot;too even&quot;
+	&quot;ok&quot;</keen-runnable></div></section><a href="/intro/more-overloading.html" id="next">next: Advanced overloading</a></main></div></body></html>

@@ -1,0 +1,88 @@
+<html><head><title>Keen programming language: JavaScript</title><link href="/icon.svg" rel="icon" type="image/x-icon"><link href="https://cdn.jsdelivr.net/npm/hack-font@3/build/web/hack-subset.css" rel="stylesheet"><link href="/style/index.css" rel="stylesheet"><link href="/worker.js" rel="modulepreload"><script src="/index.js" type="module"></script></head><body><header><nav><div id="home"><a href="/"><keen-icon icon="home"></keen-icon></a></div><ul class="grow"><li><a href="/download.html">download</a></li><li><a class="current" href="/intro">intro</a></li><li><a href="/doc">docs</a></li><li><a href="/faq.html">faq</a></li><li><a href="/play.html">play</a></li></ul><ul><li><a href="https://discord.com/channels/1505354381707579413/1505354409733787798">chat</a></li><li><a href="https://github.com/andy-hanson/keen/issues">bugs</a></li><li><a href="https://github.com/andy-hanson/keen">source</a></li><li><theme-switcher></theme-switcher></li></ul></nav></header><div id="side-nav-wrapper"><nav><ul><li><a href="/intro/index.html">Commands</a></li><li><a href="/intro/functions.html">Functions</a></li><li><a href="/intro/expressions.html">Basic expressions</a></li><li><a href="/intro/types.html">Basic types</a></li><li><a href="/intro/ifs.html">&quot;if&quot; expressions</a></li><li><a href="/intro/overloading.html">Overloading</a></li><li><a href="/intro/new_.html">&quot;new&quot; functions</a></li><li><a href="/intro/tuples.html">Tuples</a></li><li><a href="/intro/records.html">Records</a></li><li><a href="/intro/mutability.html">Mutability</a></li><li><a href="/intro/strings.html">String literals</a></li><li><a href="/intro/kid.html">Kid</a></li><li><a href="/intro/operators.html">Operators</a></li><li><a href="/intro/options.html">Options</a></li><li><a href="/intro/matches.html">&quot;match&quot; expressions</a></li><li><a href="/intro/enums.html">Enums and flags</a></li><li><a href="/intro/loops.html">Loops</a></li><li><a href="/intro/unions.html">Unions</a></li><li><a href="/intro/interfaces.html">Interfaces and variants</a></li><li><a href="/intro/type-parameters.html">Type parameters</a></li><li><a href="/intro/specs.html">Specs</a></li><li><a href="/intro/lambdas.html">Lambdas</a></li><li><a href="/intro/iteration.html">Iteration</a></li><li><a href="/intro/collections.html">Collections</a></li><li><a href="/intro/exceptions.html">Exceptions</a></li><li><a href="/intro/modules.html">Modules</a></li><li><a href="/intro/visibility.html">Visibility</a></li><li><a href="/intro/configs.html">&quot;config.kid&quot;</a></li><li><a href="/intro/unsafe.html">Unsafe code</a></li><li><a href="/intro/globals.html">Global side effects</a></li><li><a href="/intro/targets.html">Targets</a></li><li><a href="/intro/java.html">Java</a></li><li><a class="current" href="/intro/js.html">JavaScript</a></li><li><a href="/intro/tests.html">Tests</a></li><li><a href="/intro/parallel.html">Parallelism</a></li><li><a href="/intro/contexts.html">Contexts</a></li><li><a href="/intro/dos.html">&quot;do&quot; expressions</a></li><li><a href="/intro/more-overloading.html">Advanced overloading</a></li><li><a href="/intro/misc.html">Miscellaneous</a></li><li><a href="/intro/end.html">Conclusion</a></li></ul></nav><main><h1>JavaScript</h1><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Building JavaScript</h2><div><p>To build to JavaScript, run a command like <code>keen build foo.keen --out foo.js</code>.
+<br>
+Then include it in a web page using <code>&lt;script type=&quot;module&quot; src=&quot;/foo.js&quot;&gt;&lt;/script&gt;</code> .</p><p>You can also run <code>node foo.js</code> .
+Node.js support is mostly intended for quick testing and not as the main build target.</p><aside class="small"><p>Despite using a <code>module</code> target,
+Keen currently doesn&#39;t support defining a module with imports and exports.
+It only supports building to a script that executes the <code class="function">main</code> function on load.</p><p>If you want to call Keen code from JS code, you could have the <code class="function">main</code>
+function generate an object full of functions and store it to a global variable.</p></aside></div></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Calling JavaScript functions</h2><div><p>Now we&#39;ll write &quot;Hello, world&quot; directly using JavaScript APIs.</p><keen-runnable>import
+	keen/js
+
+main void() js, global, unsafe
+	alert js-any = js-global[&quot;alert&quot;]
+	_ = call alert, &quot;Hello, world!&quot;</keen-runnable><p>The <a href="/doc/keen/js.html#js-any"><code class="type">js-any</code></a> type can hold any JavaScript value.
+Basically any function using this type is <a href="/doc/keen/misc.html#unsafe"><code class="type">unsafe</code></a>.</p><p><a href="/doc/keen/js.html#js-global"><code class="function">js-global</code></a> is equivalent to <code>window</code> (or <code>self</code>) in the browser
+or <code>global</code> in Node.js .</p><p><a href="/doc/keen/js.html#subscript"><code class="function">subscript</code></a> reads a property from a JS object.
+So <code class="function">js-global</code><code>[</code><code class="string">&quot;alert&quot;</code><code>]</code> is equivalent to
+<code>window.alert</code> in JS.</p><p><a href="/doc/keen/js.html#call"><code class="function">call</code></a> is a JS function call.
+So <a href="/doc/keen/js.html#call"><code class="function">call</code></a><code> </code><code class="variable">alert</code><code>, </code><code class="string">&quot;Hello, world!&quot;</code>
+is equivalent to <code>alert(&quot;Hello, world!&quot;)</code> in JS.</p><p><a href="/doc/keen/js.html#call"><code class="function">call</code></a> returns <a href="/doc/keen/js.html#js-any"><code class="type">js-any</code></a>.
+<code>_ =</code> drops the <a href="/doc/keen/js.html#js-any"><code class="type">js-any</code></a> value to get <code class="type">void</code>.</p></div></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Use JavaScript objects</h2><div><p>To call a method on a JavaScript object, use <a href="/doc/keen/js.html#call-property"><code class="function">call-property</code></a>.</p><keen-runnable>import
+	keen/js
+	keen/js/dom
+
+main void() js, global, unsafe
+	home = call-property document, &quot;querySelector&quot;, &quot;#test-p&quot;
+	home[&quot;style&quot;][&quot;border&quot;] := &quot;1px solid pink&quot;</keen-runnable><p id="test-p">This paragraph has ID <code>test-p</code>. After running the above script it will have a border.</p><p>The first line above is equivalent to <code>document.querySelector(&quot;#test-p&quot;)</code> in JS.
+<br>
+The second line is equivalent to <code>home.style.border = &quot;1px solid pink&quot;;</code> in JS.</p><aside class="small">As with Java, Keen <a href="/doc/keen/string.html#string"><code class="type">string</code></a>s are not JS <a href="/doc/keen/string.html#string"><code class="type">string</code></a>s.
+<br>
+A string literal can directly create a <a href="/doc/keen/js.html#js-any"><code class="type">js-any</code></a> value.</aside></div></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Conversion</h2><div><p>There is no guarantee about how Keen values are represented in JS.
+<br>
+For example, a Keen <a href="/doc/keen/string.html#string"><code class="type">string</code></a> is not a JS <code>string</code>.</p><p><a href="/doc/keen/js.html">keen/js</a> defines many <code class="function">to</code> functions for converting between Keen and JS values.</p><keen-runnable>import
+	keen/js
+
+main void() js
+	n nat = 1
+	j js-any = n.to
+	log j.to::nat</keen-runnable></div></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Make JavaScript objects</h2><div><p><a href="/doc/keen/js/util.html#named-new"><code class="function">named-new</code></a> from <a href="/doc/keen/js/util.html">keen/js/util</a>
+is useful for creating JS <code>object</code>s.</p><keen-runnable>import
+	keen/js
+	keen/js/util
+
+main void() js, unsafe
+	o js-any = x: 1, y: 2
+	log o[&quot;x&quot;].to::nat</keen-runnable></div></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Async</h2><div><p>To call a JavaScript <code>async</code> function, simply call and <a href="/doc/keen/js.html#await"><code class="function">await</code></a> it.</p><keen-runnable>import
+	keen/js
+
+main void() js, global, unsafe
+	log fetch-text &quot;/hello.txt&quot;
+
+fetch-text string(url string) js, global, unsafe
+	fetch = js-global[&quot;fetch&quot;]
+	response = await call fetch, url.to
+	to::string await call-property response, &quot;text&quot;</keen-runnable><p>For best performance, try to avoid doing async things in a deeply nested functions,
+since this makes their callers (and callers&#39; callers, etc.) async functions too.</p><aside class="small"><a href="/doc/keen/js/browser.html">keen/js/browser</a> has convenient typed <a href="/doc/keen/js/browser.html#fetch"><code class="function">fetch</code></a> functions.</aside></div></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Callbacks</h2><div><p>A Keen lambda can be converted to a JS function using <code class="function">to</code>.</p><p>These functions support lambdas taking <a href="/doc/keen/misc.html#void"><code class="type">void</code></a> or <a href="/doc/keen/js.html#js-any"><code class="type">js-any</code></a> and returning <a href="/doc/keen/misc.html#void"><code class="type">void</code></a> or <a href="/doc/keen/js.html#js-any"><code class="type">js-any</code></a>.</p><keen-runnable>import
+	keen/js
+
+main void() js, global
+	sleep 5000
+	log &quot;done&quot;
+
+sleep void(msec float) global, js
+	do trusted
+	resolver = of resolve js-any
+		:: void
+		_ = call js-global[&quot;setTimeout&quot;], resolve, msec.to
+	_ = await call-new js-global[&quot;Promise&quot;], resolver.to</keen-runnable></div></section><aside class="small"><a href="/doc/keen/io/time.html">keen/io/time</a> has a more convenient <a href="/doc/keen/io/time.html#sleep"><code class="function">sleep</code></a> function.</aside><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Imports</h2><div><p>Keen does not yet have the ability to import JavaScript modules directly.
+<br>
+There is a <a href="/doc/keen/js.html#js-import"><code class="function">js-import</code></a> function though.</p><keen-runnable>import
+	keen/js
+	keen/js/util
+
+main void() js, global, unsafe
+	module = js-import
+		&quot;https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/+esm&quot;
+	# This calls the default export
+	_ = call-property module, &quot;default&quot;,
+		particleCount: 100
+		spread: 100</keen-runnable></div></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Other JavaScript operations</h2><div><p>If Keen doesn&#39;t have a function for doing what you want with JS,
+you can write a JS snippet using <code class="function">eval</code>.</p><keen-runnable>import
+	keen/js
+
+main void() js, unsafe
+	log loose-equal 1, &quot;1&quot;
+
+loose-equal bool(a js-any, b js-any) js, unsafe
+	f = eval quote
+		(x, y) =&gt; x == y
+	to::bool call f, a, b</keen-runnable></div></section><a href="/intro/tests.html" id="next">next: Tests</a></main></div></body></html>

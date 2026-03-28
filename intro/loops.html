@@ -1,0 +1,59 @@
+<html><head><title>Keen programming language: Loops</title><link href="/icon.svg" rel="icon" type="image/x-icon"><link href="https://cdn.jsdelivr.net/npm/hack-font@3/build/web/hack-subset.css" rel="stylesheet"><link href="/style/index.css" rel="stylesheet"><link href="/worker.js" rel="modulepreload"><script src="/index.js" type="module"></script></head><body><header><nav><div id="home"><a href="/"><keen-icon icon="home"></keen-icon></a></div><ul class="grow"><li><a href="/download.html">download</a></li><li><a class="current" href="/intro">intro</a></li><li><a href="/doc">docs</a></li><li><a href="/faq.html">faq</a></li><li><a href="/play.html">play</a></li></ul><ul><li><a href="https://discord.com/channels/1505354381707579413/1505354409733787798">chat</a></li><li><a href="https://github.com/andy-hanson/keen/issues">bugs</a></li><li><a href="https://github.com/andy-hanson/keen">source</a></li><li><theme-switcher></theme-switcher></li></ul></nav></header><div id="side-nav-wrapper"><nav><ul><li><a href="/intro/index.html">Commands</a></li><li><a href="/intro/functions.html">Functions</a></li><li><a href="/intro/expressions.html">Basic expressions</a></li><li><a href="/intro/types.html">Basic types</a></li><li><a href="/intro/ifs.html">&quot;if&quot; expressions</a></li><li><a href="/intro/overloading.html">Overloading</a></li><li><a href="/intro/new_.html">&quot;new&quot; functions</a></li><li><a href="/intro/tuples.html">Tuples</a></li><li><a href="/intro/records.html">Records</a></li><li><a href="/intro/mutability.html">Mutability</a></li><li><a href="/intro/strings.html">String literals</a></li><li><a href="/intro/kid.html">Kid</a></li><li><a href="/intro/operators.html">Operators</a></li><li><a href="/intro/options.html">Options</a></li><li><a href="/intro/matches.html">&quot;match&quot; expressions</a></li><li><a href="/intro/enums.html">Enums and flags</a></li><li><a class="current" href="/intro/loops.html">Loops</a></li><li><a href="/intro/unions.html">Unions</a></li><li><a href="/intro/interfaces.html">Interfaces and variants</a></li><li><a href="/intro/type-parameters.html">Type parameters</a></li><li><a href="/intro/specs.html">Specs</a></li><li><a href="/intro/lambdas.html">Lambdas</a></li><li><a href="/intro/iteration.html">Iteration</a></li><li><a href="/intro/collections.html">Collections</a></li><li><a href="/intro/exceptions.html">Exceptions</a></li><li><a href="/intro/modules.html">Modules</a></li><li><a href="/intro/visibility.html">Visibility</a></li><li><a href="/intro/configs.html">&quot;config.kid&quot;</a></li><li><a href="/intro/unsafe.html">Unsafe code</a></li><li><a href="/intro/globals.html">Global side effects</a></li><li><a href="/intro/targets.html">Targets</a></li><li><a href="/intro/java.html">Java</a></li><li><a href="/intro/js.html">JavaScript</a></li><li><a href="/intro/tests.html">Tests</a></li><li><a href="/intro/parallel.html">Parallelism</a></li><li><a href="/intro/contexts.html">Contexts</a></li><li><a href="/intro/dos.html">&quot;do&quot; expressions</a></li><li><a href="/intro/more-overloading.html">Advanced overloading</a></li><li><a href="/intro/misc.html">Miscellaneous</a></li><li><a href="/intro/end.html">Conclusion</a></li></ul></nav><main><h1>Loops</h1><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>&quot;while&quot; loops</h2><div><p>A <code class="keyword">while</code> expression runs as long as the condition is <a href="/doc/keen/bool.html#true"><code class="function">true</code></a>.
+<br>
+The value of a <code class="keyword">while</code> expression is always <a href="/doc/keen/misc.html#void"><code class="type">void</code></a>.</p><keen-runnable>main void()
+	x mut = 10
+	while x != 0
+		x -:= 1
+		log x</keen-runnable><p>The condition of a <code class="keyword">while</code> loop can be an option.</p><keen-runnable>main void()
+	xs nat mut[] = 1, 2, 3
+	while x = pop xs
+		log x</keen-runnable></div></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Condition-bodied &quot;while&quot; loops</h2><div><p>The condition and body can be combined.
+This will repeatedly evaluate the body as long as it returns <a href="/doc/keen/bool.html#true"><code class="function">true</code></a>.
+<br>
+Unlike the above example, this has an additional log of an empty option.</p><keen-runnable>main void()
+	xs nat mut[] = 1, 2, 3
+	while
+		x = pop xs
+		log x
+		x</keen-runnable><aside class="small">In a condition-bodied <code class="keyword">while</code> loop,
+<a href="/doc/keen/bool.html#true"><code class="function">true</code></a> means &quot;continue the loop&quot; and <a href="/doc/keen/bool.html#false"><code class="function">false</code></a> means &quot;break&quot;.</aside></div></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>&quot;until&quot; loops</h2><div><p>An <code class="keyword">until</code> expression is like a <code class="keyword">while</code> expression with the condition negated.</p><keen-runnable>main void()
+	x mut nat = 10
+	until x == 0
+		log x
+		x -:= 1</keen-runnable><p>As with a <code class="keyword">while</code> loop, the condition can be an option.
+<br>
+Since the condition is negated, the value is avaluable <em>after</em> the loop.</p><keen-runnable>main void()
+	x mut nat = 11
+	until result = tenth x
+		# &#39;result&#39; is not in scope here
+		log &quot;x is&quot;, x
+		x +:= 1
+	log &quot;result is&quot;, result
+
+tenth nat?(a nat)
+	if is-multiple-of a, 10
+		a / 10</keen-runnable></div></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Condition-bodied &quot;until&quot; loops</h2><div><p>As with a <code class="keyword">while</code> loop, the condition and body can be combined.</p><keen-runnable>main void()
+	x mut = 10
+	until
+		log x
+		x -:= 1
+		x == 0</keen-runnable><aside class="small">In a condition-bodied <code class="keyword">until</code> loop,
+<a href="/doc/keen/bool.html#true"><code class="function">true</code></a> means &quot;break the loop&quot; and <a href="/doc/keen/bool.html#false"><code class="function">false</code></a> means &quot;continue&quot;.</aside><p>The body can also return an option.
+<br>
+In that case, the value of the <code class="keyword">until</code> expression is the first non-empty option returned by the body.
+<br>
+(It is unwrapped to a non-optional type, meaning <a href="/doc/keen/number.html#nat"><code class="type">nat</code></a> instead of <code class="type">nat?</code> below.)
+<br>
+This is the only kind of loop to not be <a href="/doc/keen/misc.html#void"><code class="type">void</code></a>.</p><keen-runnable>main void()
+	x mut = 11
+	result = until
+		log &quot;x is&quot;, x
+		x +:= 1
+		tenth x
+	log &quot;result is&quot;, result
+
+tenth nat?(a nat)
+	if is-multiple-of a, 10
+		a / 10</keen-runnable><aside class="small"><code class="keyword">until</code> with an option body is a generally useful loop.
+<br>
+It runs any expression until it returns a result.</aside></div></section><a href="/intro/unions.html" id="next">next: Unions</a></main></div></body></html>

@@ -1,0 +1,67 @@
+<html><head><title>Keen programming language: &quot;match&quot; expressions</title><link href="/icon.svg" rel="icon" type="image/x-icon"><link href="https://cdn.jsdelivr.net/npm/hack-font@3/build/web/hack-subset.css" rel="stylesheet"><link href="/style/index.css" rel="stylesheet"><link href="/worker.js" rel="modulepreload"><script src="/index.js" type="module"></script></head><body><header><nav><div id="home"><a href="/"><keen-icon icon="home"></keen-icon></a></div><ul class="grow"><li><a href="/download.html">download</a></li><li><a class="current" href="/intro">intro</a></li><li><a href="/doc">docs</a></li><li><a href="/faq.html">faq</a></li><li><a href="/play.html">play</a></li></ul><ul><li><a href="https://discord.com/channels/1505354381707579413/1505354409733787798">chat</a></li><li><a href="https://github.com/andy-hanson/keen/issues">bugs</a></li><li><a href="https://github.com/andy-hanson/keen">source</a></li><li><theme-switcher></theme-switcher></li></ul></nav></header><div id="side-nav-wrapper"><nav><ul><li><a href="/intro/index.html">Commands</a></li><li><a href="/intro/functions.html">Functions</a></li><li><a href="/intro/expressions.html">Basic expressions</a></li><li><a href="/intro/types.html">Basic types</a></li><li><a href="/intro/ifs.html">&quot;if&quot; expressions</a></li><li><a href="/intro/overloading.html">Overloading</a></li><li><a href="/intro/new_.html">&quot;new&quot; functions</a></li><li><a href="/intro/tuples.html">Tuples</a></li><li><a href="/intro/records.html">Records</a></li><li><a href="/intro/mutability.html">Mutability</a></li><li><a href="/intro/strings.html">String literals</a></li><li><a href="/intro/kid.html">Kid</a></li><li><a href="/intro/operators.html">Operators</a></li><li><a href="/intro/options.html">Options</a></li><li><a class="current" href="/intro/matches.html">&quot;match&quot; expressions</a></li><li><a href="/intro/enums.html">Enums and flags</a></li><li><a href="/intro/loops.html">Loops</a></li><li><a href="/intro/unions.html">Unions</a></li><li><a href="/intro/interfaces.html">Interfaces and variants</a></li><li><a href="/intro/type-parameters.html">Type parameters</a></li><li><a href="/intro/specs.html">Specs</a></li><li><a href="/intro/lambdas.html">Lambdas</a></li><li><a href="/intro/iteration.html">Iteration</a></li><li><a href="/intro/collections.html">Collections</a></li><li><a href="/intro/exceptions.html">Exceptions</a></li><li><a href="/intro/modules.html">Modules</a></li><li><a href="/intro/visibility.html">Visibility</a></li><li><a href="/intro/configs.html">&quot;config.kid&quot;</a></li><li><a href="/intro/unsafe.html">Unsafe code</a></li><li><a href="/intro/globals.html">Global side effects</a></li><li><a href="/intro/targets.html">Targets</a></li><li><a href="/intro/java.html">Java</a></li><li><a href="/intro/js.html">JavaScript</a></li><li><a href="/intro/tests.html">Tests</a></li><li><a href="/intro/parallel.html">Parallelism</a></li><li><a href="/intro/contexts.html">Contexts</a></li><li><a href="/intro/dos.html">&quot;do&quot; expressions</a></li><li><a href="/intro/more-overloading.html">Advanced overloading</a></li><li><a href="/intro/misc.html">Miscellaneous</a></li><li><a href="/intro/end.html">Conclusion</a></li></ul></nav><main><h1>&quot;match&quot; expressions</h1><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Matching numbers</h2><div><p>A <code class="keyword">match</code> expression branches based on a single value.
+It can be any numeric type.</p><keen-runnable>main void()
+	log shape-name 3
+	log shape-name 4
+	log shape-name 11
+
+shape-name string(sides nat)
+	match sides
+	as 3
+		&quot;triangle&quot;
+	as 4
+		&quot;square&quot;
+	else
+		&quot;{sides}-gon&quot;</keen-runnable><p><code class="keyword">match</code> is an expression and can be nested inside other expressions.</p><keen-runnable>main void()
+	a nat = 1
+	log match a
+	as 1
+		&quot;OK&quot;
+	else
+		&quot;what?&quot;</keen-runnable><p>Branches of the <code class="keyword">match</code> can be squeezed onto one line using <code class="keyword">then</code>.</p><keen-runnable>main void()
+	a nat = 1
+	log match a
+	as 1 then &quot;OK&quot;
+	else then &quot;what?&quot;</keen-runnable><p>The argument to <code class="keyword">match</code> can introduce a local.</p><keen-runnable>main void()
+	log match x = 3
+	as 2 then &quot;two&quot;
+	as 4 then &quot;four&quot;
+	else then &quot;some other number: {x}&quot;</keen-runnable></div></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>About symbols</h2><div><p>A <a href="/doc/keen/symbol.html#symbol"><code class="type">symbol</code></a> is a simple value that can tested against other <a href="/doc/keen/symbol.html#symbol"><code class="type">symbol</code></a> values using <code class="function">==</code>.
+<br>
+Like an <code class="keyword">enum</code> value, this kind of value is intended to be used for its identity.
+<br>
+You can&#39;t directly access the characters in a <a href="/doc/keen/symbol.html#symbol"><code class="type">symbol</code></a>, although
+it can be converted to or from a <a href="/doc/keen/string.html#string"><code class="type">string</code></a> using <a href="/doc/keen/symbol.html#to"><code class="function">to</code></a>.</p><p>Think of the <a href="/doc/keen/symbol.html#symbol"><code class="type">symbol</code></a> type as an infinitely large <code class="keyword">enum</code> supporting all possible values.
+<br>
+This makes it useful when you don&#39;t know all possible values up-front.</p><p>If you are dealing with a limited set of values with likely repetition,
+you should usually use a <a href="/doc/keen/symbol.html#symbol"><code class="type">symbol</code></a>.
+<br>
+For example, the keys of a <a href="/doc/keen/json.html#json"><code class="type">json</code></a> object are <a href="/doc/keen/symbol.html#symbol"><code class="type">symbol</code></a>s.</p></div></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Matching symbols and strings</h2><div><p><code class="keyword">match</code> works on <a href="/doc/keen/symbol.html#symbol"><code class="type">symbol</code></a> and <a href="/doc/keen/string.html#string"><code class="type">string</code></a> values too.</p><p>String values may be unquoted (as in <code class="keyword">as</code><code> </code><code class="variable">left</code> below) if they are valid Keen identifiers.
+<br>
+Otherwise they should be quoted like regular string literals.</p><keen-runnable>main void()
+	log opposite &quot;left&quot;
+	log opposite &quot;right&quot;
+	log opposite &quot;potato&quot;
+
+opposite symbol(a symbol)
+	match a
+	as left
+		&quot;right&quot;
+	as right
+		&quot;left&quot;
+	else
+		&quot;anti-{a}&quot;</keen-runnable><aside class="small">The above would work the same with <a href="/doc/keen/string.html#string"><code class="type">string</code></a>, though <a href="/doc/keen/symbol.html#symbol"><code class="type">symbol</code></a> has better performance.</aside><p><code class="keyword">match</code> also works on <a href="/doc/keen/string.html#char8"><code class="type">char8</code></a> or <a href="/doc/keen/string.html#char32"><code class="type">char32</code></a>.</p><keen-runnable>main void()
+	log opposite &quot;&lt;&quot;
+
+opposite char8(a char8)
+	match a
+	as l then &quot;r&quot;
+	as r then &quot;l&quot;
+	as &quot;&lt;&quot; then &quot;&gt;&quot;
+	as &quot;&gt;&quot; then &quot;&lt;&quot;
+	else then a</keen-runnable></div></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>&quot;else&quot; branches</h2><div><p>Unlike with an <code class="keyword">if</code> expression,
+a <code class="keyword">match</code> expression on a number or string-like type must have an <code class="keyword">else</code> branch.
+<br>
+The reason is that <code class="keyword">match</code> expressions are usually used with an enum or union,
+and in those cases no <code class="keyword">else</code> is required.
+<br>
+This will be explained in <a href="/intro/enums.html">Enums and flags</a> and <a href="/intro/unions.html">Unions</a>.</p></div></section><a href="/intro/enums.html" id="next">next: Enums and flags</a></main></div></body></html>

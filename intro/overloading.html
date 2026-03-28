@@ -1,0 +1,48 @@
+<html><head><title>Keen programming language: Overloading</title><link href="/icon.svg" rel="icon" type="image/x-icon"><link href="https://cdn.jsdelivr.net/npm/hack-font@3/build/web/hack-subset.css" rel="stylesheet"><link href="/style/index.css" rel="stylesheet"><link href="/worker.js" rel="modulepreload"><script src="/index.js" type="module"></script></head><body><header><nav><div id="home"><a href="/"><keen-icon icon="home"></keen-icon></a></div><ul class="grow"><li><a href="/download.html">download</a></li><li><a class="current" href="/intro">intro</a></li><li><a href="/doc">docs</a></li><li><a href="/faq.html">faq</a></li><li><a href="/play.html">play</a></li></ul><ul><li><a href="https://discord.com/channels/1505354381707579413/1505354409733787798">chat</a></li><li><a href="https://github.com/andy-hanson/keen/issues">bugs</a></li><li><a href="https://github.com/andy-hanson/keen">source</a></li><li><theme-switcher></theme-switcher></li></ul></nav></header><div id="side-nav-wrapper"><nav><ul><li><a href="/intro/index.html">Commands</a></li><li><a href="/intro/functions.html">Functions</a></li><li><a href="/intro/expressions.html">Basic expressions</a></li><li><a href="/intro/types.html">Basic types</a></li><li><a href="/intro/ifs.html">&quot;if&quot; expressions</a></li><li><a class="current" href="/intro/overloading.html">Overloading</a></li><li><a href="/intro/new_.html">&quot;new&quot; functions</a></li><li><a href="/intro/tuples.html">Tuples</a></li><li><a href="/intro/records.html">Records</a></li><li><a href="/intro/mutability.html">Mutability</a></li><li><a href="/intro/strings.html">String literals</a></li><li><a href="/intro/kid.html">Kid</a></li><li><a href="/intro/operators.html">Operators</a></li><li><a href="/intro/options.html">Options</a></li><li><a href="/intro/matches.html">&quot;match&quot; expressions</a></li><li><a href="/intro/enums.html">Enums and flags</a></li><li><a href="/intro/loops.html">Loops</a></li><li><a href="/intro/unions.html">Unions</a></li><li><a href="/intro/interfaces.html">Interfaces and variants</a></li><li><a href="/intro/type-parameters.html">Type parameters</a></li><li><a href="/intro/specs.html">Specs</a></li><li><a href="/intro/lambdas.html">Lambdas</a></li><li><a href="/intro/iteration.html">Iteration</a></li><li><a href="/intro/collections.html">Collections</a></li><li><a href="/intro/exceptions.html">Exceptions</a></li><li><a href="/intro/modules.html">Modules</a></li><li><a href="/intro/visibility.html">Visibility</a></li><li><a href="/intro/configs.html">&quot;config.kid&quot;</a></li><li><a href="/intro/unsafe.html">Unsafe code</a></li><li><a href="/intro/globals.html">Global side effects</a></li><li><a href="/intro/targets.html">Targets</a></li><li><a href="/intro/java.html">Java</a></li><li><a href="/intro/js.html">JavaScript</a></li><li><a href="/intro/tests.html">Tests</a></li><li><a href="/intro/parallel.html">Parallelism</a></li><li><a href="/intro/contexts.html">Contexts</a></li><li><a href="/intro/dos.html">&quot;do&quot; expressions</a></li><li><a href="/intro/more-overloading.html">Advanced overloading</a></li><li><a href="/intro/misc.html">Miscellaneous</a></li><li><a href="/intro/end.html">Conclusion</a></li></ul></nav><main><h1>Overloading</h1><section><p>If multiple functions have the same name, they are called <em>overloaded</em>.
+<br>
+They are still just ordinary functions with no special relationship other than having a name in common.
+<br>
+When Keen sees a function call, it creates a list of all functions in scope with that name.
+<br>
+It then filters them by:</p><ul class="bullets"><li>The number of arguments</li><li>The return type</li><li>Argument types</li></ul><p>After that, if there are multiple functions remaining, it is an error due to ambiguity.</p></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Number of arguments</h2><div><p>Overloading by number of arguments is simple:</p><keen-runnable>main void()
+	log foo 1
+	log foo 1, 2
+
+foo nat(a nat)
+	a * 10
+foo nat(a nat, b nat)
+	a + b</keen-runnable><aside class="small">If you hover your mouse over a function call, the tooltip will tell you which function it calls.</aside></div></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Return type</h2><div><p>Overloading by return type uses the expected type of the expression.</p><keen-runnable>main void()
+	n nat = foo
+	s string = foo
+	# This would be an error due to ambiguity
+	# x = foo
+	log n, s
+
+foo nat()
+	1
+foo string()
+	&quot;a&quot;</keen-runnable><aside class="small">While local types are optional in general, they are needed above to provide an expected type to <code class="function">foo</code>.</aside><p>The expected type could also come from the argument type of an outer function.
+<br>
+Below, since <code class="function">bar</code> takes a <a href="/doc/keen/string.html#string"><code class="type">string</code></a>, that overload of <code class="function">foo</code> is used.</p><keen-runnable>main void()
+	log bar foo
+
+bar string(a string)
+	&quot;foo {a}&quot;
+foo nat() # not used
+	1
+foo string()
+	&quot;a&quot;</keen-runnable></div></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Argument type</h2><div><p>Basic overloading by argument type:</p><keen-runnable>main void()
+	log foo 1
+	log foo &quot;a&quot;
+
+foo nat(a nat)
+	a * 10
+foo string(a string)
+	a</keen-runnable></div></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Troubleshooting</h2><div><p>If you are having trouble with a piece of code and want to be sure you are calling the intended overload,
+add type annotations on everything, as in:
+<br>
+<code class="function">foo</code><code class="keyword">::</code><a href="/doc/keen/string.html#string"><code class="type">string</code></a><code> </code><code class="function">bar</code><code class="keyword">::</code><a href="/doc/keen/symbol.html#symbol"><code class="type">symbol</code></a>
+<br>
+That way it&#39;s clear you want to call <code class="function">foo</code><code> </code><a href="/doc/keen/string.html#string"><code class="type">string</code></a><code>(</code><code>_</code><code> </code><a href="/doc/keen/symbol.html#symbol"><code class="type">symbol</code></a><code>)</code> .
+<br>
+Once the code is working, remove unnecessary type annotations.</p><p>More details of Keen type-checking are in <a href="/intro/more-overloading.html">Advanced overloading</a>.</p></div></section><a href="/intro/new_.html" id="next">next: &quot;new&quot; functions</a></main></div></body></html>

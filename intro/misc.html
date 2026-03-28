@@ -1,0 +1,82 @@
+<html><head><title>Keen programming language: Miscellaneous</title><link href="/icon.svg" rel="icon" type="image/x-icon"><link href="https://cdn.jsdelivr.net/npm/hack-font@3/build/web/hack-subset.css" rel="stylesheet"><link href="/style/index.css" rel="stylesheet"><link href="/worker.js" rel="modulepreload"><script src="/index.js" type="module"></script></head><body><header><nav><div id="home"><a href="/"><keen-icon icon="home"></keen-icon></a></div><ul class="grow"><li><a href="/download.html">download</a></li><li><a class="current" href="/intro">intro</a></li><li><a href="/doc">docs</a></li><li><a href="/faq.html">faq</a></li><li><a href="/play.html">play</a></li></ul><ul><li><a href="https://discord.com/channels/1505354381707579413/1505354409733787798">chat</a></li><li><a href="https://github.com/andy-hanson/keen/issues">bugs</a></li><li><a href="https://github.com/andy-hanson/keen">source</a></li><li><theme-switcher></theme-switcher></li></ul></nav></header><div id="side-nav-wrapper"><nav><ul><li><a href="/intro/index.html">Commands</a></li><li><a href="/intro/functions.html">Functions</a></li><li><a href="/intro/expressions.html">Basic expressions</a></li><li><a href="/intro/types.html">Basic types</a></li><li><a href="/intro/ifs.html">&quot;if&quot; expressions</a></li><li><a href="/intro/overloading.html">Overloading</a></li><li><a href="/intro/new_.html">&quot;new&quot; functions</a></li><li><a href="/intro/tuples.html">Tuples</a></li><li><a href="/intro/records.html">Records</a></li><li><a href="/intro/mutability.html">Mutability</a></li><li><a href="/intro/strings.html">String literals</a></li><li><a href="/intro/kid.html">Kid</a></li><li><a href="/intro/operators.html">Operators</a></li><li><a href="/intro/options.html">Options</a></li><li><a href="/intro/matches.html">&quot;match&quot; expressions</a></li><li><a href="/intro/enums.html">Enums and flags</a></li><li><a href="/intro/loops.html">Loops</a></li><li><a href="/intro/unions.html">Unions</a></li><li><a href="/intro/interfaces.html">Interfaces and variants</a></li><li><a href="/intro/type-parameters.html">Type parameters</a></li><li><a href="/intro/specs.html">Specs</a></li><li><a href="/intro/lambdas.html">Lambdas</a></li><li><a href="/intro/iteration.html">Iteration</a></li><li><a href="/intro/collections.html">Collections</a></li><li><a href="/intro/exceptions.html">Exceptions</a></li><li><a href="/intro/modules.html">Modules</a></li><li><a href="/intro/visibility.html">Visibility</a></li><li><a href="/intro/configs.html">&quot;config.kid&quot;</a></li><li><a href="/intro/unsafe.html">Unsafe code</a></li><li><a href="/intro/globals.html">Global side effects</a></li><li><a href="/intro/targets.html">Targets</a></li><li><a href="/intro/java.html">Java</a></li><li><a href="/intro/js.html">JavaScript</a></li><li><a href="/intro/tests.html">Tests</a></li><li><a href="/intro/parallel.html">Parallelism</a></li><li><a href="/intro/contexts.html">Contexts</a></li><li><a href="/intro/dos.html">&quot;do&quot; expressions</a></li><li><a href="/intro/more-overloading.html">Advanced overloading</a></li><li><a class="current" href="/intro/misc.html">Miscellaneous</a></li><li><a href="/intro/end.html">Conclusion</a></li></ul></nav><main><h1>Miscellaneous</h1><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Short function definitions</h2><div><p>Very short functions can be written on one line using <code class="keyword">=</code>.</p><keen-runnable>main void() = log twice 3
+twice nat(a nat) = a * 2</keen-runnable></div></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Command-line arguments</h2><div><p>The signature of <code class="function">main</code> is always <a href="/doc/keen/misc.html#void"><code class="type">void</code></a> with no arguments.
+<br>
+To take command line arguments, call <a href="/doc/keen/io/process.html#command-line-args"><code class="function">command-line-args</code></a>.
+<br>
+To set a process exit code, call <a href="/doc/keen/io/process.html#exit-process"><code class="function">exit-process</code></a>.</p><keen-runnable no-run="true">import
+	keen/io/process
+
+main void() global
+	log command-line-args
+	exit-process 7</keen-runnable></div></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Type aliases</h2><div><p><code class="keyword">alias</code> introduces a new name for a type.
+<br>
+<a href="/doc/keen/number.html#float"><code class="type">float</code></a>, <a href="/doc/keen/number.html#int"><code class="type">int</code></a>, and <a href="/doc/keen/number.html#nat"><code class="type">nat</code></a> are aliases for <a href="/doc/keen/number.html#float64"><code class="type">float64</code></a>, <a href="/doc/keen/number.html#int64"><code class="type">int64</code></a>, and <a href="/doc/keen/number.html#nat64"><code class="type">nat64</code></a>.</p><keen-runnable>main void()
+	xs nats = 1, 2, 3
+	log xs
+
+nats alias
+	nat[]</keen-runnable><p>Currently, an alias can&#39;t be a template.</p></div></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Doc comments</h2><div><p>Regular comments begin with <code class="keyword">#</code>. Doc comments begin with <code class="keyword">|</code>.
+<br>
+When referring to another declaration, or a function parameter, wrap its name in <code class="keyword">{}</code>.
+<br>
+Keen will check that it really refers to something.</p><keen-runnable>main void()
+	log double triple &quot;o&quot;
+
+| Makes two of {a}
+| Use {triple} if you need just a bit more
+double string(a string)
+	repeat a, 2
+
+| Makes three of {a}
+| Use {double} if this is too much
+# This comment will not appear on hover
+triple string(a string)
+	repeat a, 3</keen-runnable><aside class="small">If you hover over <code class="function">double</code> in <code class="function">double triple </code><code class="string">&quot;o&quot;</code>,
+it shows the doc comment.</aside></div></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Region comments</h2><div><p><code class="keyword">region</code> marks the start of a section of a module.
+<br> The text to the right of the <code class="keyword">region</code> keyword is a comment.
+<br>
+This may provide a folding range in your editor. (So far only in VSCode.)
+<br>
+This has no effect on the meaning of the code;
+for example, private declarations are still visible in the whole file.</p><keen-runnable>main void()
+	log one + two
+	log &quot;{hello} {goodbye}&quot;
+
+region numbers
+
+-one nat()
+	1
+-two nat()
+	2
+
+region words
+
+-hello string()
+	&quot;hello&quot;
+-goodbye string()
+	&quot;goodbye&quot;</keen-runnable></div></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Unused internals</h2><div><p>If you run <code>keen check foo</code> (where <code>foo</code> is a directory) and <code>foo/config.kid</code> exists,
+it is assumed that this is a complete library.
+<br>
+In that case, Keen will log a diagnostic for any unused internal declarations.</p></div></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Floats</h2><div><p>In Keen, <a href="/doc/keen/number.html#float"><code class="type">float</code></a> functions (except for <a href="/doc/keen/misc.html#unsafe"><code class="type">unsafe</code></a> ones) that would return <a href="/doc/keen/number.html#nan"><code class="function">nan</code></a> instead throw an exception.</p><keen-runnable>import
+	keen/math/math
+
+main void()
+	# Every one of these throws
+	log square-root -1
+	log 1::float / 0
+	log log::float 0
+	log sin infinity</keen-runnable><p>In Keen, a value must always equal itself, so <a href="/doc/keen/number.html#nan"><code class="function">nan</code></a><code> </code><code class="function">==</code><code> </code><a href="/doc/keen/number.html#nan"><code class="function">nan</code></a>.
+<br>
+Also, two values must only be equal if they are indistinguishable,
+so <code class="number">-0</code><code> </code><code class="function">!=</code><code> </code><code class="number">0</code>.
+<br>
+For comparison, Keen uses this ordering:</p><ul class="bullets"><li><a href="/doc/keen/number.html#nan"><code class="function">nan</code></a></li><li>-<a href="/doc/keen/number.html#infinity"><code class="function">infinity</code></a></li><li>... negative numbers ...</li><li><code class="number">-0</code></li><li><code class="number">0</code></li><li> ... positive numbers ...</li><li><a href="/doc/keen/number.html#infinity"><code class="function">infinity</code></a></li></ul><p>To get the looser IEEE float comparison, use <a href="/doc/keen/number.html#float-equal"><code class="function">float-equal</code></a>
+and <a href="/doc/keen/number.html#float-less"><code class="function">float-less</code></a>.</p><keen-runnable>main void() unsafe
+	log nan == nan
+	log float-equal nan, nan
+
+	log nan &lt; -infinity
+	log float-less nan, -infinity
+
+	log -0.0 &lt; 0
+	log float-less -0, 0</keen-runnable></div></section><a href="/intro/end.html" id="next">next: Conclusion</a></main></div></body></html>

@@ -1,0 +1,101 @@
+<html><head><title>Keen programming language: Kid</title><link href="/icon.svg" rel="icon" type="image/x-icon"><link href="https://cdn.jsdelivr.net/npm/hack-font@3/build/web/hack-subset.css" rel="stylesheet"><link href="/style/index.css" rel="stylesheet"><link href="/worker.js" rel="modulepreload"><script src="/index.js" type="module"></script></head><body><header><nav><div id="home"><a href="/"><keen-icon icon="home"></keen-icon></a></div><ul class="grow"><li><a href="/download.html">download</a></li><li><a class="current" href="/intro">intro</a></li><li><a href="/doc">docs</a></li><li><a href="/faq.html">faq</a></li><li><a href="/play.html">play</a></li></ul><ul><li><a href="https://discord.com/channels/1505354381707579413/1505354409733787798">chat</a></li><li><a href="https://github.com/andy-hanson/keen/issues">bugs</a></li><li><a href="https://github.com/andy-hanson/keen">source</a></li><li><theme-switcher></theme-switcher></li></ul></nav></header><div id="side-nav-wrapper"><nav><ul><li><a href="/intro/index.html">Commands</a></li><li><a href="/intro/functions.html">Functions</a></li><li><a href="/intro/expressions.html">Basic expressions</a></li><li><a href="/intro/types.html">Basic types</a></li><li><a href="/intro/ifs.html">&quot;if&quot; expressions</a></li><li><a href="/intro/overloading.html">Overloading</a></li><li><a href="/intro/new_.html">&quot;new&quot; functions</a></li><li><a href="/intro/tuples.html">Tuples</a></li><li><a href="/intro/records.html">Records</a></li><li><a href="/intro/mutability.html">Mutability</a></li><li><a href="/intro/strings.html">String literals</a></li><li><a class="current" href="/intro/kid.html">Kid</a></li><li><a href="/intro/operators.html">Operators</a></li><li><a href="/intro/options.html">Options</a></li><li><a href="/intro/matches.html">&quot;match&quot; expressions</a></li><li><a href="/intro/enums.html">Enums and flags</a></li><li><a href="/intro/loops.html">Loops</a></li><li><a href="/intro/unions.html">Unions</a></li><li><a href="/intro/interfaces.html">Interfaces and variants</a></li><li><a href="/intro/type-parameters.html">Type parameters</a></li><li><a href="/intro/specs.html">Specs</a></li><li><a href="/intro/lambdas.html">Lambdas</a></li><li><a href="/intro/iteration.html">Iteration</a></li><li><a href="/intro/collections.html">Collections</a></li><li><a href="/intro/exceptions.html">Exceptions</a></li><li><a href="/intro/modules.html">Modules</a></li><li><a href="/intro/visibility.html">Visibility</a></li><li><a href="/intro/configs.html">&quot;config.kid&quot;</a></li><li><a href="/intro/unsafe.html">Unsafe code</a></li><li><a href="/intro/globals.html">Global side effects</a></li><li><a href="/intro/targets.html">Targets</a></li><li><a href="/intro/java.html">Java</a></li><li><a href="/intro/js.html">JavaScript</a></li><li><a href="/intro/tests.html">Tests</a></li><li><a href="/intro/parallel.html">Parallelism</a></li><li><a href="/intro/contexts.html">Contexts</a></li><li><a href="/intro/dos.html">&quot;do&quot; expressions</a></li><li><a href="/intro/more-overloading.html">Advanced overloading</a></li><li><a href="/intro/misc.html">Miscellaneous</a></li><li><a href="/intro/end.html">Conclusion</a></li></ul></nav><main><h1>Kid</h1><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Syntax</h2><div><p>Kid (Keen Interface for Data) is a serialization format like JSON.
+<br>
+It is equivalent to JSON and differs only in syntax.</p><p>Kid looks exactly like Keen.
+It is just limited to data expressions with no variables, control flow, etc.</p><p>Valid Kid expressions are:</p><ul class="bullets"><li><code>null</code>, booleans, numbers and strings, using the exact same syntax as JSON.
+(<code>()</code> also returns <code>null</code>.)</li><li>Comma-separated or multi-line <code class="function">new</code> expressions, corresponding to JSON arrays.</li><li>Named-new expressions, corresponding to JSON objects.</li></ul><keen-runnable>import
+	keen/parse
+
+main void()
+	kid-string = quote
+		null: ()
+		bool: false
+		number: 1
+		string: &quot;hello&quot;
+		array: 1, 2
+		another-array:
+			- 1
+			- 2
+		object: x: 1, y: 2
+		another-object:
+			x: 1
+			y: 2
+	value json =
+		null: ()
+		bool: false
+		number: 1
+		string: &quot;hello&quot;
+		array: 1, 2
+		another-array:
+			- 1
+			- 2
+		object: x: 1, y: 2
+		another-object:
+			x: 1
+			y: 2
+	parsed = parse kid, kid-string
+	log value == parsed
+	log value</keen-runnable><aside class="small"><code class="keyword">quote</code> starts a multi-line string literal. More in <a href="/intro/strings.html">String literals</a>.
+<br>
+In <code class="function">parse</code><code> </code><code class="function">kid</code><code>, </code><code class="variable">kid-string</code>,
+<code class="function">kid</code> is the name of a <a href="/doc/keen/parse.html#grammar"><code class="type">grammar</code></a>.</aside><p>The <a href="/doc/keen/json.html#json"><code class="type">json</code></a> type is the type of a parsed JSON value.
+<br>
+Since Kid has the same data model as JSON, a parsed Kid value is also of type <a href="/doc/keen/json.html#json"><code class="type">json</code></a>.</p><aside class="small"><a href="/doc/keen/log.html#log"><code class="function">log</code></a> logs its argument(s) as Kid.
+<br>
+So the above program&#39;s output looks like its source code, just normalized (such as sorting keys).</aside></div></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Keen and Kid</h2><div><p>In the above example, <code class="variable">value</code> is created using a variety of functions (such as <code class="function">named-new</code>)
+that return <a href="/doc/keen/json.html#json"><code class="type">json</code></a>.
+<br>
+Conveniently, the syntax is exactly the same as Kid.</p><p>This is also true for typed objects.
+Below, the syntax to construct a <code class="type">point</code> in Keen is the exactly the same same
+as the syntax for the Kid expression that converts to it.</p><keen-runnable>import
+	keen/parse
+
+main void()
+	kid-string = quote
+		x: 1
+		y: 2
+	value point =
+		x: 1
+		y: 2
+	parsed = to::point parse kid, kid-string
+	log value == parsed
+	log parsed
+
+point record(x float, y float)
+to point(a json)
+	a[&quot;x&quot;].to, a[&quot;y&quot;].to</keen-runnable><p>Since the syntax is the same, you can cut and paste data between Keen and Kid files.</p><p>It&#39;s also useful to be able to output a value in a format that is valid source code.</p></div></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Empty values</h2><div><p>Keen has a single syntax for empty values: <code>()</code>.
+<br>
+JSON has 3: <code>null</code>, <code>[]</code>, and <code>{}</code>.
+<br>
+Usually you should just use <code>()</code> (which means <code>null</code>)
+and expect the user to treat it the same as other empty values.
+<br>
+In cases where it does matter, use <code class="function">empty-array</code> or <code class="function">empty-object</code>.
+This works the same in both Keen and Kid.</p><keen-runnable>import
+	keen/parse
+
+main void()
+	kid-string = quote
+		null: ()
+		array: empty-array
+		object: empty-object
+	value json =
+		null: ()
+		array: empty-array
+		object: empty-object
+	parsed = parse kid, kid-string
+	log value == parsed
+	log parsed</keen-runnable></div></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Using JSON values</h2><div><p><a href="/doc/keen/json.html#subscript"><code class="function">subscript</code></a> gets a value from a <a href="/doc/keen/json.html#json"><code class="type">json</code></a> value.
+If it is not an object containing the key, this returns <code>null</code> (displayed as <code>()</code>).</p><p>There are many functions named <code class="function">to</code> that convert <a href="/doc/keen/json.html#json"><code class="type">json</code></a> to various types.
+<br>
+These typically throw an exception if the <a href="/doc/keen/json.html#json"><code class="type">json</code></a> value does not look like what is expected.
+(Though as mentioned above, <code>null</code> is typically allowed as an empty array or object.)
+<br>
+See <a href="/doc/keen/json.html">keen/json</a> to see them.</p><keen-runnable>main void()
+	j json =
+		n: 1
+		s: &quot;ok&quot;
+	log j[&quot;n&quot;]
+	log to::nat j[&quot;n&quot;]
+	log to::symbol j[&quot;s&quot;]
+	log j[&quot;missing-key&quot;]
+	log to::symbol j[&quot;n&quot;] # throws</keen-runnable></div></section><a href="/intro/operators.html" id="next">next: Operators</a></main></div></body></html>

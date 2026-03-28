@@ -1,0 +1,64 @@
+<html><head><title>Keen programming language: Basic expressions</title><link href="/icon.svg" rel="icon" type="image/x-icon"><link href="https://cdn.jsdelivr.net/npm/hack-font@3/build/web/hack-subset.css" rel="stylesheet"><link href="/style/index.css" rel="stylesheet"><link href="/worker.js" rel="modulepreload"><script src="/index.js" type="module"></script></head><body><header><nav><div id="home"><a href="/"><keen-icon icon="home"></keen-icon></a></div><ul class="grow"><li><a href="/download.html">download</a></li><li><a class="current" href="/intro">intro</a></li><li><a href="/doc">docs</a></li><li><a href="/faq.html">faq</a></li><li><a href="/play.html">play</a></li></ul><ul><li><a href="https://discord.com/channels/1505354381707579413/1505354409733787798">chat</a></li><li><a href="https://github.com/andy-hanson/keen/issues">bugs</a></li><li><a href="https://github.com/andy-hanson/keen">source</a></li><li><theme-switcher></theme-switcher></li></ul></nav></header><div id="side-nav-wrapper"><nav><ul><li><a href="/intro/index.html">Commands</a></li><li><a href="/intro/functions.html">Functions</a></li><li><a class="current" href="/intro/expressions.html">Basic expressions</a></li><li><a href="/intro/types.html">Basic types</a></li><li><a href="/intro/ifs.html">&quot;if&quot; expressions</a></li><li><a href="/intro/overloading.html">Overloading</a></li><li><a href="/intro/new_.html">&quot;new&quot; functions</a></li><li><a href="/intro/tuples.html">Tuples</a></li><li><a href="/intro/records.html">Records</a></li><li><a href="/intro/mutability.html">Mutability</a></li><li><a href="/intro/strings.html">String literals</a></li><li><a href="/intro/kid.html">Kid</a></li><li><a href="/intro/operators.html">Operators</a></li><li><a href="/intro/options.html">Options</a></li><li><a href="/intro/matches.html">&quot;match&quot; expressions</a></li><li><a href="/intro/enums.html">Enums and flags</a></li><li><a href="/intro/loops.html">Loops</a></li><li><a href="/intro/unions.html">Unions</a></li><li><a href="/intro/interfaces.html">Interfaces and variants</a></li><li><a href="/intro/type-parameters.html">Type parameters</a></li><li><a href="/intro/specs.html">Specs</a></li><li><a href="/intro/lambdas.html">Lambdas</a></li><li><a href="/intro/iteration.html">Iteration</a></li><li><a href="/intro/collections.html">Collections</a></li><li><a href="/intro/exceptions.html">Exceptions</a></li><li><a href="/intro/modules.html">Modules</a></li><li><a href="/intro/visibility.html">Visibility</a></li><li><a href="/intro/configs.html">&quot;config.kid&quot;</a></li><li><a href="/intro/unsafe.html">Unsafe code</a></li><li><a href="/intro/globals.html">Global side effects</a></li><li><a href="/intro/targets.html">Targets</a></li><li><a href="/intro/java.html">Java</a></li><li><a href="/intro/js.html">JavaScript</a></li><li><a href="/intro/tests.html">Tests</a></li><li><a href="/intro/parallel.html">Parallelism</a></li><li><a href="/intro/contexts.html">Contexts</a></li><li><a href="/intro/dos.html">&quot;do&quot; expressions</a></li><li><a href="/intro/more-overloading.html">Advanced overloading</a></li><li><a href="/intro/misc.html">Miscellaneous</a></li><li><a href="/intro/end.html">Conclusion</a></li></ul></nav><main><h1>Basic expressions</h1><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Block expressions</h2><div><p>An indented block is a kind of expression. Every function body is a block expression.
+<br>
+Block expressions can nest inside of other expressions.</p><keen-runnable>main void()
+	log
+		&quot;hello&quot;</keen-runnable><aside class="small">A block expression must be the <em>last</em> argument to a function call.</aside><p>The beginning and ending of an indented block act like like parentheses.</p><keen-runnable>main void()
+	# Same as log 2 * (3 + 4)
+	log 2 *
+		3 + 4</keen-runnable><p>Like any expression, you need a comma before an indented block to separate it from other arguments.</p><keen-runnable>main void()
+	# Same as log abs -1
+	log abs
+		-1
+	# Same as log 2, 3
+	log 2,
+		3</keen-runnable></div></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Sequence expressions</h2><div><p>A sequence expression evaluates each subexpression in sequence.
+<br>
+Subexpressions are separated by newlines (at the same indent level).</p><keen-runnable>main void()
+	log 1
+	log 2</keen-runnable><p>The value of a sequence expression is the value of the last line.
+<br>
+All other lines must be <a href="/doc/keen/misc.html#void"><code class="type">void</code></a>.</p><keen-runnable>main void()
+	log foo
+
+foo string()
+	log &quot;side effect&quot;
+	&quot;foo&quot;</keen-runnable><p>A sequence expression can go inside a block expression.</p><keen-runnable>main void()
+	x =
+		log &quot;in a local&quot;
+		1
+	log
+		log &quot;in an argument&quot;
+		x</keen-runnable></div></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Locals</h2><div><p>Creating a new local variable is simple: <code>name = ...</code>
+<br>
+A type after the name is optional.</p><keen-runnable>main void()
+	x = &quot;hello&quot;
+	y string = &quot;world&quot;
+	log x, y</keen-runnable><p><code class="keyword">mut</code> makes the local mutable.
+<code class="keyword">:=</code> mutates the local.</p><keen-runnable>main void()
+	x mut = 1
+	x := 2
+	log x</keen-runnable><p>If present, the type goes after <code class="keyword">mut</code>.</p><keen-runnable>main void()
+	x mut nat = 1
+	x := 2
+	log x</keen-runnable></div></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Ignoring things</h2><div><p>A sequence expression requires <a href="/doc/keen/misc.html#void"><code class="type">void</code></a> subexpressions (except the last),
+but sometimes you want to ignore a non-<a href="/doc/keen/misc.html#void"><code class="type">void</code></a> value.
+<br>
+To do so, assign it to <code class="keyword">_</code>.
+You can even give it a type annotation if necessary.</p><keen-runnable>main void()
+	_ = 1
+	_ string = &quot;foo&quot;
+	log &quot;done&quot;</keen-runnable><aside class="small"><code class="keyword">_</code> is not the name of a local. It&#39;s special syntax for dropping a value.</aside><p><code class="keyword">_</code> works in parameters too.</p><keen-runnable>main void()
+	log foo 1
+
+foo string(_ nat)
+	&quot;hello&quot;</keen-runnable></div></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Scope</h2><div><p>Locals can be nested inside other expressions.
+<br>
+The local is only in scope within its own expression.</p><keen-runnable>main void()
+	log
+		x = 1
+		x
+	log
+		# This is a different &#39;x&#39;
+		x = &quot;hello&quot;
+		x
+	# log x # Won&#39;t work, &#39;x&#39; is not in scope here</keen-runnable></div></section><a href="/intro/types.html" id="next">next: Basic types</a></main></div></body></html>

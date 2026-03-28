@@ -1,0 +1,111 @@
+<html><head><title>Keen programming language: Specs</title><link href="/icon.svg" rel="icon" type="image/x-icon"><link href="https://cdn.jsdelivr.net/npm/hack-font@3/build/web/hack-subset.css" rel="stylesheet"><link href="/style/index.css" rel="stylesheet"><link href="/worker.js" rel="modulepreload"><script src="/index.js" type="module"></script></head><body><header><nav><div id="home"><a href="/"><keen-icon icon="home"></keen-icon></a></div><ul class="grow"><li><a href="/download.html">download</a></li><li><a class="current" href="/intro">intro</a></li><li><a href="/doc">docs</a></li><li><a href="/faq.html">faq</a></li><li><a href="/play.html">play</a></li></ul><ul><li><a href="https://discord.com/channels/1505354381707579413/1505354409733787798">chat</a></li><li><a href="https://github.com/andy-hanson/keen/issues">bugs</a></li><li><a href="https://github.com/andy-hanson/keen">source</a></li><li><theme-switcher></theme-switcher></li></ul></nav></header><div id="side-nav-wrapper"><nav><ul><li><a href="/intro/index.html">Commands</a></li><li><a href="/intro/functions.html">Functions</a></li><li><a href="/intro/expressions.html">Basic expressions</a></li><li><a href="/intro/types.html">Basic types</a></li><li><a href="/intro/ifs.html">&quot;if&quot; expressions</a></li><li><a href="/intro/overloading.html">Overloading</a></li><li><a href="/intro/new_.html">&quot;new&quot; functions</a></li><li><a href="/intro/tuples.html">Tuples</a></li><li><a href="/intro/records.html">Records</a></li><li><a href="/intro/mutability.html">Mutability</a></li><li><a href="/intro/strings.html">String literals</a></li><li><a href="/intro/kid.html">Kid</a></li><li><a href="/intro/operators.html">Operators</a></li><li><a href="/intro/options.html">Options</a></li><li><a href="/intro/matches.html">&quot;match&quot; expressions</a></li><li><a href="/intro/enums.html">Enums and flags</a></li><li><a href="/intro/loops.html">Loops</a></li><li><a href="/intro/unions.html">Unions</a></li><li><a href="/intro/interfaces.html">Interfaces and variants</a></li><li><a href="/intro/type-parameters.html">Type parameters</a></li><li><a class="current" href="/intro/specs.html">Specs</a></li><li><a href="/intro/lambdas.html">Lambdas</a></li><li><a href="/intro/iteration.html">Iteration</a></li><li><a href="/intro/collections.html">Collections</a></li><li><a href="/intro/exceptions.html">Exceptions</a></li><li><a href="/intro/modules.html">Modules</a></li><li><a href="/intro/visibility.html">Visibility</a></li><li><a href="/intro/configs.html">&quot;config.kid&quot;</a></li><li><a href="/intro/unsafe.html">Unsafe code</a></li><li><a href="/intro/globals.html">Global side effects</a></li><li><a href="/intro/targets.html">Targets</a></li><li><a href="/intro/java.html">Java</a></li><li><a href="/intro/js.html">JavaScript</a></li><li><a href="/intro/tests.html">Tests</a></li><li><a href="/intro/parallel.html">Parallelism</a></li><li><a href="/intro/contexts.html">Contexts</a></li><li><a href="/intro/dos.html">&quot;do&quot; expressions</a></li><li><a href="/intro/more-overloading.html">Advanced overloading</a></li><li><a href="/intro/misc.html">Miscellaneous</a></li><li><a href="/intro/end.html">Conclusion</a></li></ul></nav><main><h1>Specs</h1><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Type parameters are opaque</h2><div><p>Normally, you can&#39;t do anything with a type parameter <code class="type">t</code>
+unless it would work for every type.</p><keen-runnable>main void()
+	log all-same 1, 1, 1
+
+all-same[t] bool(a t, b t, c t)
+	# This won&#39;t work
+	a == b and b == c</keen-runnable><p>The above example doesn&#39;t work even though there is an <code class="function">==</code> function for <a href="/doc/keen/number.html#nat"><code class="type">nat</code></a>s.
+<br>
+<code class="function">all-same</code> can&#39;t be defined that way unless <code class="function">==</code> worked for every type (which it doesn&#39;t).</p><p>This can be fixed by declaring <code class="function">all-same</code> to use the <code class="type">equal</code> spec.</p><keen-runnable>main void()
+	log all-same 1, 1, 1
+	log all-same 1, 1, 2
+
+all-same[t] bool(a t, b t, c t) t equal
+	a == b and b == c</keen-runnable><p>The above example works because the <code class="type">equal</code> spec predeclares that an <code class="function">==</code> function should exist.
+<br>
+Then the <em>caller</em> of <code class="function">foo</code> is responsible for providing that function.</p><p>The caller knows the actual type substituted for <code class="type">t</code> (in this case <a href="/doc/keen/number.html#nat"><code class="type">nat</code></a>)
+and looks for a concrete <code class="function">==</code> function.
+<br>
+In this case it looks for <code class="function">==</code><code> </code><a href="/doc/keen/bool.html#bool"><code class="type">bool</code></a><code>(</code><code class="variable">a</code><code> </code><a href="/doc/keen/number.html#nat"><code class="type">nat</code></a><code>, </code><code class="variable">b</code><code> </code><a href="/doc/keen/number.html#nat"><code class="type">nat</code></a><code>)</code>
+and finds it in the standard library.</p><aside class="small">Like types, <code class="keyword">spec</code>s have a suffix syntax: <code class="type">t equal</code> uses the <code class="type">equal</code> spec
+with <code class="type">t</code> as its type argument.</aside><p>Specs are written after function parameters.
+<br>
+Multiple specs can be separated by commas as in <code class="type">t</code><code> </code><code class="type">data</code><code>, </code><code class="type">t</code><code> </code><code class="type">equal</code> .
+<br>
+For a multi-line function signature, specs are written after the <code class="keyword">do</code> keyword.</p><keen-runnable>main void()
+	log all-same 1, 1, 1
+	log all-same 1, 1, 2
+
+all-same[t] bool
+	a t
+	b t
+	c t
+do t equal
+	a == b and b == c</keen-runnable></div></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Defining specs</h2><div><p>A <code class="keyword">spec</code> declaration has a list of signatures in an indented block.</p><keen-runnable>import
+	keen/math/math
+
+main void()
+	log prism-volume (circle 1), 2
+	log prism-volume (square 1), 7
+
+area[t] spec
+	area float(a t)
+
+prism-volume[t] float(a t, depth float) t area
+	depth * area a
+
+circle record(radius float)
+area float(a circle)
+	pi * a.radius ** 2
+
+square record(width float)
+area float(a square)
+	a.width ** 2</keen-runnable><p>This defines an <code class="type">area</code> spec and uses it to define <code class="function">prism-volume</code>.
+<br>
+That allows that function to call <code class="function">area</code> on the type parameter.</p><p>The syntax for spec signatures is the same as for union methods, but there is no implicit first parameter.</p></div></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Spec inheritance</h2><div><p>A spec can inherit from other specs.</p><keen-runnable>import
+	keen/math/math
+
+main void()
+	log area-over-perimeter circle 1
+	log area-over-perimeter square 1
+
+area-over-perimeter[t] float(a t) t shape
+	a.area / a.perimeter
+
+shape[t] spec t area
+	perimeter float(a t)
+
+area[t] spec
+	area float(a t)
+
+circle record(radius float)
+area float(a circle)
+	pi * a.radius ** 2
+perimeter float(a circle)
+	pi * a.radius * 2
+
+square record(width float)
+area float(a square)
+	a.width ** 2
+perimeter float(a square)
+	a.width * 4</keen-runnable><p>In the above example, <code class="type">shape</code> inherits from <code class="type">area</code>,
+so it includes both <code class="function">area</code> and <code class="function">perimeter</code> signatures.</p></div></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Special specs</h2><div><p>The special spec <a href="/doc/keen/misc.html#data"><code class="type">data</code></a> doesn&#39;t include any signatures.
+Instead, it is only satisfied for <code class="keyword">data</code> types.
+(See <a href="/intro/mutability.html">Mutability</a>.)
+<br>
+<a href="/doc/keen/misc.html#shared"><code class="type">shared</code></a> is the corresponding spec for <code class="keyword">shared</code> types.</p><keen-runnable>main void()
+	foo 1
+	foo ()::nat mut[] # won&#39;t work
+
+foo[t] void(_ t) t data
+	()</keen-runnable><p>There are also two special specs <a href="/doc/keen/misc.html#global"><code class="type">global</code></a> and <a href="/doc/keen/misc.html#unsafe"><code class="type">unsafe</code></a> that don&#39;t have a type argument or any signatures.
+See <a href="/intro/globals.html">Global side effects</a> and <a href="/intro/unsafe.html">Unsafe code</a>.</p></div></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Implicit functions and specs</h2><div><p>Implicit functions like <code class="function">==</code> will use specs as necessary.
+<br>
+Below, the implicit <code class="function">==</code> for <code class="type">wrapper</code> needs to use the spec <code class="type">t</code><code> </code><code class="type">equal</code>
+so that it can call <code class="function">==</code> on <code class="variable">value</code>.</p><keen-runnable>main void()
+	a nat wrapper = value: 1
+	log a == a
+
+wrapper[t] record(value t)</keen-runnable></div></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Multiple type parameters</h2><div><p>Specs can have any number of type parameters.
+(Even 0 which is useful for avoiding circular imports. See <a href="/intro/modules.html">Modules</a>.)
+<br>
+The below uses the <code class="type">to</code> spec, which takes the return type and parameter type of a
+<code class="function">to</code> function as type parameters.</p><keen-runnable>main void()
+	log next a
+	log next b
+	log next c
+
+e enum(a, b, c)
+
+next[t] t?(a t) (nat, t) to, (t?, nat) to
+	to::t? a.to::nat + 1</keen-runnable></div></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Methods and specs</h2><div><p>Methods (and method implementations) can not declare specs.</p></div></section><a href="/intro/lambdas.html" id="next">next: Lambdas</a></main></div></body></html>

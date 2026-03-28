@@ -1,0 +1,131 @@
+<html><head><title>Keen programming language: Options</title><link href="/icon.svg" rel="icon" type="image/x-icon"><link href="https://cdn.jsdelivr.net/npm/hack-font@3/build/web/hack-subset.css" rel="stylesheet"><link href="/style/index.css" rel="stylesheet"><link href="/worker.js" rel="modulepreload"><script src="/index.js" type="module"></script></head><body><header><nav><div id="home"><a href="/"><keen-icon icon="home"></keen-icon></a></div><ul class="grow"><li><a href="/download.html">download</a></li><li><a class="current" href="/intro">intro</a></li><li><a href="/doc">docs</a></li><li><a href="/faq.html">faq</a></li><li><a href="/play.html">play</a></li></ul><ul><li><a href="https://discord.com/channels/1505354381707579413/1505354409733787798">chat</a></li><li><a href="https://github.com/andy-hanson/keen/issues">bugs</a></li><li><a href="https://github.com/andy-hanson/keen">source</a></li><li><theme-switcher></theme-switcher></li></ul></nav></header><div id="side-nav-wrapper"><nav><ul><li><a href="/intro/index.html">Commands</a></li><li><a href="/intro/functions.html">Functions</a></li><li><a href="/intro/expressions.html">Basic expressions</a></li><li><a href="/intro/types.html">Basic types</a></li><li><a href="/intro/ifs.html">&quot;if&quot; expressions</a></li><li><a href="/intro/overloading.html">Overloading</a></li><li><a href="/intro/new_.html">&quot;new&quot; functions</a></li><li><a href="/intro/tuples.html">Tuples</a></li><li><a href="/intro/records.html">Records</a></li><li><a href="/intro/mutability.html">Mutability</a></li><li><a href="/intro/strings.html">String literals</a></li><li><a href="/intro/kid.html">Kid</a></li><li><a href="/intro/operators.html">Operators</a></li><li><a class="current" href="/intro/options.html">Options</a></li><li><a href="/intro/matches.html">&quot;match&quot; expressions</a></li><li><a href="/intro/enums.html">Enums and flags</a></li><li><a href="/intro/loops.html">Loops</a></li><li><a href="/intro/unions.html">Unions</a></li><li><a href="/intro/interfaces.html">Interfaces and variants</a></li><li><a href="/intro/type-parameters.html">Type parameters</a></li><li><a href="/intro/specs.html">Specs</a></li><li><a href="/intro/lambdas.html">Lambdas</a></li><li><a href="/intro/iteration.html">Iteration</a></li><li><a href="/intro/collections.html">Collections</a></li><li><a href="/intro/exceptions.html">Exceptions</a></li><li><a href="/intro/modules.html">Modules</a></li><li><a href="/intro/visibility.html">Visibility</a></li><li><a href="/intro/configs.html">&quot;config.kid&quot;</a></li><li><a href="/intro/unsafe.html">Unsafe code</a></li><li><a href="/intro/globals.html">Global side effects</a></li><li><a href="/intro/targets.html">Targets</a></li><li><a href="/intro/java.html">Java</a></li><li><a href="/intro/js.html">JavaScript</a></li><li><a href="/intro/tests.html">Tests</a></li><li><a href="/intro/parallel.html">Parallelism</a></li><li><a href="/intro/contexts.html">Contexts</a></li><li><a href="/intro/dos.html">&quot;do&quot; expressions</a></li><li><a href="/intro/more-overloading.html">Advanced overloading</a></li><li><a href="/intro/misc.html">Miscellaneous</a></li><li><a href="/intro/end.html">Conclusion</a></li></ul></nav><main><h1>Options</h1><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Option types</h2><div><p>An <a href="/doc/keen/option.html#option"><code class="type">option</code></a> can be empty or contain a single value.
+<br>
+An option type is written as <code class="type">foo?</code> .</p><p><code>()</code> returns an empty option.</p><p>Any value can implicitly convert to a non-empty option containing it.
+So any <a href="/doc/keen/number.html#nat"><code class="type">nat</code></a> can implicitly convert to a <code class="type">nat?</code> .</p><keen-runnable>main void()
+	empty nat? = ()
+	log empty
+	non-empty nat? = 1
+	log non-empty</keen-runnable><aside><h4>Implicit conversion and calls</h4><div><p>Keen does implicit conversion only as necessary.
+When two overloaded functions could match the expected type,
+but only does so without implicit conversion, Keen prefers that one.</p><p>When the expected type is <code class="type">nat?</code>, <code>()</code> prefers the <code class="function">new</code> returning an option,
+not the <code class="function">new</code> returning a <a href="/doc/keen/number.html#nat"><code class="type">nat</code></a>.</p><p>If you do want a non-empty option containing a new <a href="/doc/keen/number.html#nat"><code class="type">nat</code></a>, you could write
+<code>()</code><code class="keyword">::</code><a href="/doc/keen/number.html#nat"><code class="type">nat</code></a>. (Though in the case of <a href="/doc/keen/number.html#nat"><code class="type">nat</code></a>, it could just be written as <code class="number">0</code>.)</p></div></aside><p>Options are useful for functions that might not have a result:</p><keen-runnable>main void()
+	log half 9
+	log half 10
+
+half nat?(a nat)
+	if is-even a
+		a / 2</keen-runnable><aside class="small">Remember that when the <code class="keyword">else</code> branch is omitted, it calls <code>()</code>.
+<br>
+In this case, it means that <code class="function">half</code> returns an empty option for odd numbers.</aside></div></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>&quot;if&quot; and options</h2><div><p>Options implicitly convert to <a href="/doc/keen/bool.html#bool"><code class="type">bool</code></a>.
+<br>
+If you test an option in an <code class="keyword">if</code> condition, then inside the <code class="keyword">if</code> body,
+it will implicitly convert to its (non-optional) inner value.</p><p>The below example uses <code class="function">first</code> from the standard library,
+which returns the first element in an array if one exists.</p><keen-runnable>main void()
+	log describe ()
+	log describe (1, 2, 3)
+
+describe string(a nat[])
+	x nat? = first a
+	if x
+		&quot;Array starting with {x}&quot;
+	else
+		&quot;Empty array&quot;</keen-runnable><p>The local can be introduced inside the <code class="keyword">if</code>.</p><keen-runnable>main void()
+	log describe ()
+	log describe (1, 2, 3)
+
+describe string(a nat[])
+	if x = first a
+		&quot;Array starting with {x}&quot;
+	else
+		&quot;Empty array&quot;</keen-runnable><p>As with <code class="keyword">if</code>, if the left side of an <code class="keyword">and</code> expression is an option,
+it is implicitly converted to a non-option on the right side.</p><keen-runnable>main void()
+	log exists-and-is-even ()
+	log exists-and-is-even 1
+	log exists-and-is-even 2
+
+exists-and-is-even bool(x nat?)
+	x and is-even x</keen-runnable><p>You can even introduce a local in the left side of an <code class="keyword">and</code> expression.</p><keen-runnable>main void()
+	log starts-the-same (), ()
+	log starts-the-same (1, 2), (2, 3)
+	log starts-the-same (1, 2), (1, 3)
+
+starts-the-same bool(a nat[], b nat[])
+	(x = first a) and (y = first b) and x == y</keen-runnable><p>You can also test record fields. This won&#39;t work on mutable fields.
+<br>
+It also works with any function with an immutable argument.</p><keen-runnable>main void()
+	a r = 10,
+	if a.x
+		# &#39;+&#39; doesn&#39;t work on &#39;nat?&#39;, but &#39;a.x&#39; is converted to &#39;nat&#39;
+		log a.x + 1
+	if a.half-x
+		log a.half-x + 1
+
+r record(x nat?)
+half-x nat?(a r) = if a.x then a.x / 2</keen-runnable></div></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Option operations</h2><div><p><code class="keyword">!</code> is a suffix operator that forces an option.
+This gets the inner value or throws an exception if the option is empty.
+<br>
+If the <code class="keyword">!</code> comes after a function name as in <code class="function">half</code><code class="keyword">!</code><code> </code><code class="number">4</code>,
+it forces the function&#39;s return value.</p><keen-runnable>main void()
+	log (half 4)!
+	# Equivalent to above:
+	log half! 4
+half nat?(a nat)
+	if is-even a then a / 2</keen-runnable><p><code class="variable">a</code><code> </code><code class="keyword">or</code><code> </code><code class="variable">b</code> is analogous to the boolean <code class="keyword">or</code>.
+<br>
+It first evaluates <code class="variable">a</code>. If that is a non-empty option, it is returned.
+Otherwise, it evaluates <code class="variable">b</code>.
+<br>
+In other words, <code class="variable">a</code><code> </code><code class="keyword">or</code><code> </code><code class="variable">b</code><code> </code><code class="keyword">or</code><code> </code><code>...</code> evaluates options in sequence
+and returns the first non-empty one.</p><keen-runnable>main void()
+	a nat? = ()
+	b nat? = 1
+	c nat? = 2
+	log (a or a)
+	log (a or b)
+	log (b or c)
+	log (a or a or a or a or c)</keen-runnable><aside class="small">If the expected type is <a href="/doc/keen/bool.html#bool"><code class="type">bool</code></a>, then <code class="variable">a</code><code> </code><code class="keyword">or</code><code> </code><code class="variable">b</code> will convert both arguments to booleans.</aside><p><code class="variable">a</code><code> </code><code class="keyword">else</code><code> </code><code class="variable">b</code> is like <code class="variable">a</code><code> </code><code class="keyword">or</code><code> </code><code class="variable">b</code>, but expects <code class="variable">b</code> to be non-optional.
+<br>
+While <code class="variable">a</code><code> </code><code class="keyword">or</code><code> </code><code class="variable">b</code> takes two options of the same type, <code class="variable">a</code><code> </code><code class="keyword">else</code><code> </code><code class="variable">b</code> only takes an option on the left.
+<br>
+So the <code class="keyword">else</code> expression is non-optional, since it always has <code class="variable">b</code> to fall back on.</p><keen-runnable>main void()
+	a nat? = ()
+	b nat? = 1
+	log (a else 1)
+	log (b else 2)</keen-runnable></div></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Optional calls</h2><div><p><code class="keyword">?</code><code class="function">foo</code> calls <code class="function">foo</code> if all of its arguments are non-empty options.
+<br>
+Otherwise it skips the call and returns an empty option.</p><keen-runnable>main void()
+	log ?foo 1.half, 4.half
+	log ?foo 2.half, 3.half
+	log ?foo 2.half, 4.half
+
+foo nat(a nat, b nat)
+	a + b
+
+half nat?(a nat)
+	if is-even a then a / 2</keen-runnable><p><code class="keyword">?</code><code class="function">foo</code> can also return <a href="/doc/keen/misc.html#void"><code class="type">void</code></a> if that is the expected type.</p><keen-runnable>main void()
+	?log 9.half # does nothing
+	?log 10.half
+
+half nat?(a nat)
+	if is-even a then a / 2</keen-runnable><p>This also works with dot-calls: <code class="variable">x</code><code class="keyword">.</code><code class="keyword">?</code><code class="function">foo</code></p><keen-runnable>main void()
+	9.half.?log # does nothing
+	10.half.?log
+
+half nat?(a nat)
+	if is-even a then a / 2</keen-runnable><p>It works for <code class="function">subscript</code> calls too:</p><keen-runnable>main void()
+	a nat[]? = ()
+	index nat? = 0
+	log a?[index]
+	b nat[]? = 1, 2, 3
+	log b?[index]</keen-runnable></div></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Useful option functions</h2><div><p><a href="/doc/keen/option.html#from-option"><code class="function">from-option</code></a> converts an option to any collection.</p><keen-runnable>main void()
+	log from-option::nat[] half 1
+	log from-option::nat[] half 2
+	# Works well with &#39;--&#39;
+	log
+		:: nat[]
+		-- from-option half 3 # adds nothing
+		-- from-option half 4 # adds &#39;2&#39;
+
+half nat?(a nat)
+	if is-even a then a / 2</keen-runnable></div></section><a href="/intro/matches.html" id="next">next: &quot;match&quot; expressions</a></main></div></body></html>

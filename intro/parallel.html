@@ -1,0 +1,84 @@
+<html><head><title>Keen programming language: Parallelism</title><link href="/icon.svg" rel="icon" type="image/x-icon"><link href="https://cdn.jsdelivr.net/npm/hack-font@3/build/web/hack-subset.css" rel="stylesheet"><link href="/style/index.css" rel="stylesheet"><link href="/worker.js" rel="modulepreload"><script src="/index.js" type="module"></script></head><body><header><nav><div id="home"><a href="/"><keen-icon icon="home"></keen-icon></a></div><ul class="grow"><li><a href="/download.html">download</a></li><li><a class="current" href="/intro">intro</a></li><li><a href="/doc">docs</a></li><li><a href="/faq.html">faq</a></li><li><a href="/play.html">play</a></li></ul><ul><li><a href="https://discord.com/channels/1505354381707579413/1505354409733787798">chat</a></li><li><a href="https://github.com/andy-hanson/keen/issues">bugs</a></li><li><a href="https://github.com/andy-hanson/keen">source</a></li><li><theme-switcher></theme-switcher></li></ul></nav></header><div id="side-nav-wrapper"><nav><ul><li><a href="/intro/index.html">Commands</a></li><li><a href="/intro/functions.html">Functions</a></li><li><a href="/intro/expressions.html">Basic expressions</a></li><li><a href="/intro/types.html">Basic types</a></li><li><a href="/intro/ifs.html">&quot;if&quot; expressions</a></li><li><a href="/intro/overloading.html">Overloading</a></li><li><a href="/intro/new_.html">&quot;new&quot; functions</a></li><li><a href="/intro/tuples.html">Tuples</a></li><li><a href="/intro/records.html">Records</a></li><li><a href="/intro/mutability.html">Mutability</a></li><li><a href="/intro/strings.html">String literals</a></li><li><a href="/intro/kid.html">Kid</a></li><li><a href="/intro/operators.html">Operators</a></li><li><a href="/intro/options.html">Options</a></li><li><a href="/intro/matches.html">&quot;match&quot; expressions</a></li><li><a href="/intro/enums.html">Enums and flags</a></li><li><a href="/intro/loops.html">Loops</a></li><li><a href="/intro/unions.html">Unions</a></li><li><a href="/intro/interfaces.html">Interfaces and variants</a></li><li><a href="/intro/type-parameters.html">Type parameters</a></li><li><a href="/intro/specs.html">Specs</a></li><li><a href="/intro/lambdas.html">Lambdas</a></li><li><a href="/intro/iteration.html">Iteration</a></li><li><a href="/intro/collections.html">Collections</a></li><li><a href="/intro/exceptions.html">Exceptions</a></li><li><a href="/intro/modules.html">Modules</a></li><li><a href="/intro/visibility.html">Visibility</a></li><li><a href="/intro/configs.html">&quot;config.kid&quot;</a></li><li><a href="/intro/unsafe.html">Unsafe code</a></li><li><a href="/intro/globals.html">Global side effects</a></li><li><a href="/intro/targets.html">Targets</a></li><li><a href="/intro/java.html">Java</a></li><li><a href="/intro/js.html">JavaScript</a></li><li><a href="/intro/tests.html">Tests</a></li><li><a class="current" href="/intro/parallel.html">Parallelism</a></li><li><a href="/intro/contexts.html">Contexts</a></li><li><a href="/intro/dos.html">&quot;do&quot; expressions</a></li><li><a href="/intro/more-overloading.html">Advanced overloading</a></li><li><a href="/intro/misc.html">Miscellaneous</a></li><li><a href="/intro/end.html">Conclusion</a></li></ul></nav><main><h1>Parallelism</h1><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Simple parallelism</h2><div><p>The simplest type of parallelism is a parallel <a href="/doc/keen/parallel.html#for-loop"><code class="function">for-loop</code></a>.
+<br>
+This returns results in the same order as the inputs.</p><keen-runnable>import
+	keen/parallel
+
+main void()
+	inputs nat[] = 1, 2, 3
+	results nat[] = for x in parallel inputs
+		x * 10
+	log results</keen-runnable><aside class="small">JavaScript is not truly parallel,
+so these examples will work but won&#39;t get any performance benefit.</aside></div></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Mutability</h2><div><p>The parallel <code class="keyword">for</code> loop takes a <code class="keyword">shared</code> lambda as its argument.
+<br>
+That means you can&#39;t access <code class="keyword">mut</code> values in the body of the loop.</p><keen-runnable>import
+	keen/parallel
+
+main void()
+	inputs nat[] = 1, 2, 3
+	res nat mut[] = ()
+	for x in parallel inputs
+		res ~= x # Not allowed
+	log res</keen-runnable><p>You can use a <code class="keyword">shared</code> type though:</p><keen-runnable>import
+	keen/col/shared-array
+	keen/parallel
+
+main void()
+	inputs nat[] = 1, 2, 3
+	res nat shared[] = ()
+	for x in parallel inputs
+		res ~= x
+	log res.move-to::nat[]</keen-runnable></div></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Shared collections</h2><div><p>A <code class="type">t</code><code> </code><a href="/doc/keen/col/shared-array.html#shared-array"><code class="type">shared-array</code></a> is written as <code class="type">t</code><code class="type"> shared[]</code>.
+<br>
+This supports a subset of the functions available for <a href="/doc/keen/col/mut-array.html#mut-array"><code class="type">mut-array</code></a>s.</p><p>Like all shared collections, it does not define <code class="function">iterate</code>.
+Access to a <code class="keyword">shared</code> collection needs to quickly do just one thing
+before releasing the collection for other users,
+so it can&#39;t do bulk operations that access every element.</p><p>You can, however, use <code class="function">move-to</code> to take the entire collection contents out to a new collection,
+leaving the original <a href="/doc/keen/col/shared-array.html#shared-array"><code class="type">shared-array</code></a> empty.</p><p>There is also <code>(</code><code class="type">key</code><code>, </code><code class="type">value</code><code>)</code><code> </code><a href="/doc/keen/col/shared-map.html#shared-map"><code class="type">shared-map</code></a>,
+written as <code class="type">value</code><code> </code><code class="keyword">shared</code><code>[</code><code class="type">key</code><code>]</code>.</p><keen-runnable>import
+	keen/col/shared-map
+	keen/parallel
+
+main void()
+	inputs nat[] = 1, 2, 3
+	res nat shared[nat] = ()
+	for x in parallel inputs
+		res[x] := x * 10
+	log res.move-to::nat[nat]</keen-runnable></div></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Shared lambdas and exclusions</h2><div><p>A <code class="keyword">shared</code> expression makes any lambda <code class="keyword">shared</code> even if it accesses mutable variables.
+<br>
+To do so, just prefix the lambda with the <code class="keyword">shared</code> keyword.</p><keen-runnable>import
+	keen/parallel
+
+main void()
+	accum mut nat = 0
+	f void shared(x nat) = shared of x
+		accum +:= x
+	for x in parallel 0 .. 100
+		f[x]
+	log accum</keen-runnable><aside class="small">Since there is a lock on <code class="variable">f</code>, there is no genuine parallelism in the above example,
+just 100 threads trying to acquire the same lock.</aside><p>This works by using an <em>exclusion</em>.
+All Keen code runs in some exclusion; <code class="function">main</code> starts with a default one.
+<br>
+The <em>exclusion</em> is a lock shared by all <code class="keyword">mut</code> variables in the same exclusion.
+So it&#39;s coarse-grained parallelism.
+<br>
+Each new thread launched by a parallel <code class="keyword">for</code> loop gets a new exclusion.</p><p>Exclusions ensure that <code class="keyword">mut</code> types are safe to use.
+<br>
+When you use <code class="keyword">shared</code> on a lambda, it creates a lambda that locks the exclusion before it can be entered.
+That way the lambda can have only one caller at a time,
+meaining <code class="variable">accum</code> will only be accessed by one thread at a time.</p><p>Below, <code class="variable">f</code> and <code class="variable">g</code> will never run at the same time, because they share the same exclusion.</p><keen-runnable>import
+	keen/parallel
+
+main void()
+	accum mut nat = 0
+	f void shared(x nat) = shared of x
+		accum +:= x
+	g void shared(x nat) = shared of x
+		accum -:= x
+	for x in parallel 0 .. 100
+		f[x]
+		g[x]
+	log accum</keen-runnable></div></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Safe parallelism</h2><div><p>When a safe function returns, any threads that it launched should have been waited on.
+<br>
+A parallel <code class="keyword">for</code> loop satisfies this.
+<br>
+When calling Java and JS functions, don&#39;t mark the call as <code class="keyword">trusted</code> unless it satisfies this property.</p></div></section><a href="/intro/contexts.html" id="next">next: Contexts</a></main></div></body></html>

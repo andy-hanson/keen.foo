@@ -1,0 +1,49 @@
+<html><head><title>Keen programming language: Type parameters</title><link href="/icon.svg" rel="icon" type="image/x-icon"><link href="https://cdn.jsdelivr.net/npm/hack-font@3/build/web/hack-subset.css" rel="stylesheet"><link href="/style/index.css" rel="stylesheet"><link href="/worker.js" rel="modulepreload"><script src="/index.js" type="module"></script></head><body><header><nav><div id="home"><a href="/"><keen-icon icon="home"></keen-icon></a></div><ul class="grow"><li><a href="/download.html">download</a></li><li><a class="current" href="/intro">intro</a></li><li><a href="/doc">docs</a></li><li><a href="/faq.html">faq</a></li><li><a href="/play.html">play</a></li></ul><ul><li><a href="https://discord.com/channels/1505354381707579413/1505354409733787798">chat</a></li><li><a href="https://github.com/andy-hanson/keen/issues">bugs</a></li><li><a href="https://github.com/andy-hanson/keen">source</a></li><li><theme-switcher></theme-switcher></li></ul></nav></header><div id="side-nav-wrapper"><nav><ul><li><a href="/intro/index.html">Commands</a></li><li><a href="/intro/functions.html">Functions</a></li><li><a href="/intro/expressions.html">Basic expressions</a></li><li><a href="/intro/types.html">Basic types</a></li><li><a href="/intro/ifs.html">&quot;if&quot; expressions</a></li><li><a href="/intro/overloading.html">Overloading</a></li><li><a href="/intro/new_.html">&quot;new&quot; functions</a></li><li><a href="/intro/tuples.html">Tuples</a></li><li><a href="/intro/records.html">Records</a></li><li><a href="/intro/mutability.html">Mutability</a></li><li><a href="/intro/strings.html">String literals</a></li><li><a href="/intro/kid.html">Kid</a></li><li><a href="/intro/operators.html">Operators</a></li><li><a href="/intro/options.html">Options</a></li><li><a href="/intro/matches.html">&quot;match&quot; expressions</a></li><li><a href="/intro/enums.html">Enums and flags</a></li><li><a href="/intro/loops.html">Loops</a></li><li><a href="/intro/unions.html">Unions</a></li><li><a href="/intro/interfaces.html">Interfaces and variants</a></li><li><a class="current" href="/intro/type-parameters.html">Type parameters</a></li><li><a href="/intro/specs.html">Specs</a></li><li><a href="/intro/lambdas.html">Lambdas</a></li><li><a href="/intro/iteration.html">Iteration</a></li><li><a href="/intro/collections.html">Collections</a></li><li><a href="/intro/exceptions.html">Exceptions</a></li><li><a href="/intro/modules.html">Modules</a></li><li><a href="/intro/visibility.html">Visibility</a></li><li><a href="/intro/configs.html">&quot;config.kid&quot;</a></li><li><a href="/intro/unsafe.html">Unsafe code</a></li><li><a href="/intro/globals.html">Global side effects</a></li><li><a href="/intro/targets.html">Targets</a></li><li><a href="/intro/java.html">Java</a></li><li><a href="/intro/js.html">JavaScript</a></li><li><a href="/intro/tests.html">Tests</a></li><li><a href="/intro/parallel.html">Parallelism</a></li><li><a href="/intro/contexts.html">Contexts</a></li><li><a href="/intro/dos.html">&quot;do&quot; expressions</a></li><li><a href="/intro/more-overloading.html">Advanced overloading</a></li><li><a href="/intro/misc.html">Miscellaneous</a></li><li><a href="/intro/end.html">Conclusion</a></li></ul></nav><main><h1>Type parameters</h1><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Type parameters for functions</h2><div><p>Functions can declare type parameters.
+Below, <code class="function">swap</code> can work on a pair of any type.</p><keen-runnable>main void()
+	a (nat, nat) = 1, 2
+	log swap a
+	b (string, string) = &quot;world&quot;, &quot;hello&quot;
+	log swap b
+
+swap[t] (t, t)(a (t, t))
+	a.b, a.a</keen-runnable><p>In <code class="function">swap</code><code> </code><code class="variable">a</code> , <a href="/doc/keen/number.html#nat"><code class="type">nat</code></a> is substituted for <code class="type">t</code>.
+<br>
+In <code class="function">swap</code><code> </code><code class="variable">b</code> , <a href="/doc/keen/string.html#string"><code class="type">string</code></a> is substituted for <code class="type">t</code>.</p><p>A type parameter must be consistent, so <code class="function">swap</code> would not work on a <code class="type">(nat, string)</code>.</p><p>Within the body of <code class="function">swap</code>, <code class="type">t</code> is treated as &quot;any type&quot;;
+it can&#39;t be passed to another function unless that function also takes it as a type parameter.
+(The tuple getters <code class="function">a</code> and <code class="function">b</code> do so.)
+<br>
+In the next section, <a href="/intro/specs.html">Specs</a>, we&#39;ll see how to add more useful operations on type parameters.</p><aside class="small">Type parameters are almost always named <code class="type">t</code> (then <code class="type">u</code>, etc.), but they can have any name.</aside></div></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Explicit type arguments</h2><div><p>An explicit type argument can be specified using <code class="keyword">@</code>.</p><keen-runnable>main void()
+	a (nat, nat) = 1, 2
+	log swap@nat a
+	b (string, string) = &quot;world&quot;, &quot;hello&quot;
+	log swap@string b
+
+swap[t] (t, t)(a (t, t))
+	a.b, a.a</keen-runnable><p>If there are multiple type arguments, put them in parentheses.</p><keen-runnable>main void()
+	a (nat, string) = 1, &quot;foo&quot;
+	log swap@(nat, string) a
+
+swap[t, u] (u, t)(a (t, u))
+	a.b, a.a</keen-runnable><p>You should almost never use explicit type arguments,
+but they can help diagnose errors if Keen doesn&#39;t know what function you&#39;re trying to call.
+Then remove the explicit type arguments once it&#39;s working.</p></div></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Type parameters for types</h2><div><p>A type can itself have type parameters.</p><keen-runnable>main void()
+	a nat ranker = best: 7, worst: 13
+	log worst invert a
+
+ranker[t] record
+	best t
+	worst t
+invert[t] t ranker(a t ranker)
+	a.worst, a.best</keen-runnable><p>Types with type parameters use a suffix syntax:
+<code class="type">t ranker</code> is a <code class="type">ranker</code> of <code class="type">t</code>, just like <code class="type">t[]</code> is an <a href="/doc/keen/col/array.html#array"><code class="type">array</code></a> of <code class="type">t</code>.
+<br>
+The suffixes can stack, so you can have a <code class="type">t ranker[]</code> (array of <code class="type">ranker</code>s) or
+a <code class="type">t[] ranker</code> (ranker arrays).</p><p>Type annotations such types may require parentheses, as in
+<code class="function">foo</code><code class="keyword">::</code><code>(</code><a href="/doc/keen/number.html#nat"><code class="type">nat</code></a><code> </code><code class="type">ranker</code><code>)</code> .</p><p>If there are multiple type parameters, write them like a tuple, as in
+<code>(</code><a href="/doc/keen/number.html#nat"><code class="type">nat</code></a><code>, </code><a href="/doc/keen/string.html#string"><code class="type">string</code></a><code>)</code><code> </code><code class="type">pair</code> .</p><keen-runnable>main void()
+	a (nat, string) pair = 1, &quot;foo&quot;
+	log a.a, a.b
+
+pair[t, u] record
+	a t
+	b u</keen-runnable></div></section><a href="/intro/specs.html" id="next">next: Specs</a></main></div></body></html>

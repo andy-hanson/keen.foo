@@ -1,0 +1,59 @@
+<html><head><title>Keen programming language: Visibility</title><link href="/icon.svg" rel="icon" type="image/x-icon"><link href="https://cdn.jsdelivr.net/npm/hack-font@3/build/web/hack-subset.css" rel="stylesheet"><link href="/style/index.css" rel="stylesheet"><link href="/worker.js" rel="modulepreload"><script src="/index.js" type="module"></script></head><body><header><nav><div id="home"><a href="/"><keen-icon icon="home"></keen-icon></a></div><ul class="grow"><li><a href="/download.html">download</a></li><li><a class="current" href="/intro">intro</a></li><li><a href="/doc">docs</a></li><li><a href="/faq.html">faq</a></li><li><a href="/play.html">play</a></li></ul><ul><li><a href="https://discord.com/channels/1505354381707579413/1505354409733787798">chat</a></li><li><a href="https://github.com/andy-hanson/keen/issues">bugs</a></li><li><a href="https://github.com/andy-hanson/keen">source</a></li><li><theme-switcher></theme-switcher></li></ul></nav></header><div id="side-nav-wrapper"><nav><ul><li><a href="/intro/index.html">Commands</a></li><li><a href="/intro/functions.html">Functions</a></li><li><a href="/intro/expressions.html">Basic expressions</a></li><li><a href="/intro/types.html">Basic types</a></li><li><a href="/intro/ifs.html">&quot;if&quot; expressions</a></li><li><a href="/intro/overloading.html">Overloading</a></li><li><a href="/intro/new_.html">&quot;new&quot; functions</a></li><li><a href="/intro/tuples.html">Tuples</a></li><li><a href="/intro/records.html">Records</a></li><li><a href="/intro/mutability.html">Mutability</a></li><li><a href="/intro/strings.html">String literals</a></li><li><a href="/intro/kid.html">Kid</a></li><li><a href="/intro/operators.html">Operators</a></li><li><a href="/intro/options.html">Options</a></li><li><a href="/intro/matches.html">&quot;match&quot; expressions</a></li><li><a href="/intro/enums.html">Enums and flags</a></li><li><a href="/intro/loops.html">Loops</a></li><li><a href="/intro/unions.html">Unions</a></li><li><a href="/intro/interfaces.html">Interfaces and variants</a></li><li><a href="/intro/type-parameters.html">Type parameters</a></li><li><a href="/intro/specs.html">Specs</a></li><li><a href="/intro/lambdas.html">Lambdas</a></li><li><a href="/intro/iteration.html">Iteration</a></li><li><a href="/intro/collections.html">Collections</a></li><li><a href="/intro/exceptions.html">Exceptions</a></li><li><a href="/intro/modules.html">Modules</a></li><li><a class="current" href="/intro/visibility.html">Visibility</a></li><li><a href="/intro/configs.html">&quot;config.kid&quot;</a></li><li><a href="/intro/unsafe.html">Unsafe code</a></li><li><a href="/intro/globals.html">Global side effects</a></li><li><a href="/intro/targets.html">Targets</a></li><li><a href="/intro/java.html">Java</a></li><li><a href="/intro/js.html">JavaScript</a></li><li><a href="/intro/tests.html">Tests</a></li><li><a href="/intro/parallel.html">Parallelism</a></li><li><a href="/intro/contexts.html">Contexts</a></li><li><a href="/intro/dos.html">&quot;do&quot; expressions</a></li><li><a href="/intro/more-overloading.html">Advanced overloading</a></li><li><a href="/intro/misc.html">Miscellaneous</a></li><li><a href="/intro/end.html">Conclusion</a></li></ul></nav><main><h1>Visibility</h1><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Private visibility</h2><div><p>A private declaration is visible within the same module and nowhere else.
+<br>
+To mark any declaration as private, put a <code class="keyword">-</code> in front of the name.
+(It is not a part of the name.)</p><keen-runnable name="user.keen">import
+	./foo-bar
+
+main void()
+	log foo-bar
+	log foo # Won&#39;t work</keen-runnable><keen-runnable name="foo-bar.keen" no-run="true">foo-bar string()
+	&quot;{foo}{bar}&quot;
+-foo string()
+	&quot;foo&quot;
+-bar string()
+	&quot;bar&quot;</keen-runnable><p>Functions, types, and specs can all be made private.
+<br>
+Even the individual fields of a record can be made private.</p><keen-runnable name="record-user.keen">import
+	./my-record
+
+main void()
+	a r = ()
+	log a.x
+	log a.y # Won&#39;t work</keen-runnable><keen-runnable name="my-record.keen" no-run="true">r record
+	x nat
+	-y nat
+new r()
+	0, 0</keen-runnable><p>By default, the implicit <code class="function">new</code> function for a record is as visible as the least-visible field.
+<br>
+That means that if there is a private field, <code class="function">new</code> defaults to private.
+If all fields are at the default visibility, so is <code class="function">new</code>.</p><p>It&#39;s possible to make <code class="function">new</code> private even when the fields are not:</p><keen-runnable name="record-user-2.keen">import
+	./private-new-record
+
+main void()
+	a r = ()
+	log a.x, a.y # fields are not private
+	_ r = 1, 2 # Won&#39;t work</keen-runnable><keen-runnable name="private-new-record.keen" no-run="true">r record -new
+	x nat
+	y nat
+new r()
+	0, 0</keen-runnable></div></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Internal visibility</h2><div><p>The default visibility is called <em>internal</em>.
+<br>
+An internal declaration is visible if imported using a relative import path like <code>./foo</code>,
+but not if imported using a non-relative import path like <code>foo/bar</code>.
+<br>
+(See <a href="/intro/configs.html">&quot;config.kid&quot;</a> for how to set up non-relative imports.)</p><p>The assumption is that relative imports indicate a closer relationship between modules.
+<br>
+Non-relative imports are intended for libraries, which may want to hide implementation details.</p></div></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Public visibility</h2><div><p>To make a declaration visible to all importers, make it public with <code class="keyword">+</code>.</p><keen-runnable no-run="true">+my-public-function void()
+	()</keen-runnable></div></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Explicit internal visibility</h2><div><p>A declaration may be marked explicitly internal using <code class="keyword">~</code>.
+<br>
+This is rarely needed, except in these cases:</p><ul class="bullets"><li>When defining a function named <code class="function">-</code>, <code class="function">~</code>, or <code class="function">+</code>,
+a visibility mark is mandatory, since otherwise the function name looks like the visibility mark.
+<br>
+So you might declare:
+<code class="keyword">~</code><code> </code><code class="function">-</code><code> </code><code class="type">my-type</code><code>(</code><code class="variable">a</code><code> </code><code class="type">my-type</code><code>)</code> .
+<br>
+This declares a function <code class="function">-</code> with internal (<code class="keyword">~</code>) visibility.</li><li>You may want an internal field on a public record:</li></ul><keen-runnable no-run="true">+public-record record
+	~internal-field bool</keen-runnable></div></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Ignoring visibility</h2><div><p>If you don&#39;t want to deal with visibility,
+you can just leave everything at the default internal visibility.
+<br>
+This won&#39;t be a problem so long as you import your own code using relative imports.</p><p>However, if you are writing a library for use by others, you should mark the public API with <code class="keyword">+</code>.</p></div></section><a href="/intro/configs.html" id="next">next: &quot;config.kid&quot;</a></main></div></body></html>

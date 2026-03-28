@@ -1,0 +1,82 @@
+<html><head><title>Keen programming language: Operators</title><link href="/icon.svg" rel="icon" type="image/x-icon"><link href="https://cdn.jsdelivr.net/npm/hack-font@3/build/web/hack-subset.css" rel="stylesheet"><link href="/style/index.css" rel="stylesheet"><link href="/worker.js" rel="modulepreload"><script src="/index.js" type="module"></script></head><body><header><nav><div id="home"><a href="/"><keen-icon icon="home"></keen-icon></a></div><ul class="grow"><li><a href="/download.html">download</a></li><li><a class="current" href="/intro">intro</a></li><li><a href="/doc">docs</a></li><li><a href="/faq.html">faq</a></li><li><a href="/play.html">play</a></li></ul><ul><li><a href="https://discord.com/channels/1505354381707579413/1505354409733787798">chat</a></li><li><a href="https://github.com/andy-hanson/keen/issues">bugs</a></li><li><a href="https://github.com/andy-hanson/keen">source</a></li><li><theme-switcher></theme-switcher></li></ul></nav></header><div id="side-nav-wrapper"><nav><ul><li><a href="/intro/index.html">Commands</a></li><li><a href="/intro/functions.html">Functions</a></li><li><a href="/intro/expressions.html">Basic expressions</a></li><li><a href="/intro/types.html">Basic types</a></li><li><a href="/intro/ifs.html">&quot;if&quot; expressions</a></li><li><a href="/intro/overloading.html">Overloading</a></li><li><a href="/intro/new_.html">&quot;new&quot; functions</a></li><li><a href="/intro/tuples.html">Tuples</a></li><li><a href="/intro/records.html">Records</a></li><li><a href="/intro/mutability.html">Mutability</a></li><li><a href="/intro/strings.html">String literals</a></li><li><a href="/intro/kid.html">Kid</a></li><li><a class="current" href="/intro/operators.html">Operators</a></li><li><a href="/intro/options.html">Options</a></li><li><a href="/intro/matches.html">&quot;match&quot; expressions</a></li><li><a href="/intro/enums.html">Enums and flags</a></li><li><a href="/intro/loops.html">Loops</a></li><li><a href="/intro/unions.html">Unions</a></li><li><a href="/intro/interfaces.html">Interfaces and variants</a></li><li><a href="/intro/type-parameters.html">Type parameters</a></li><li><a href="/intro/specs.html">Specs</a></li><li><a href="/intro/lambdas.html">Lambdas</a></li><li><a href="/intro/iteration.html">Iteration</a></li><li><a href="/intro/collections.html">Collections</a></li><li><a href="/intro/exceptions.html">Exceptions</a></li><li><a href="/intro/modules.html">Modules</a></li><li><a href="/intro/visibility.html">Visibility</a></li><li><a href="/intro/configs.html">&quot;config.kid&quot;</a></li><li><a href="/intro/unsafe.html">Unsafe code</a></li><li><a href="/intro/globals.html">Global side effects</a></li><li><a href="/intro/targets.html">Targets</a></li><li><a href="/intro/java.html">Java</a></li><li><a href="/intro/js.html">JavaScript</a></li><li><a href="/intro/tests.html">Tests</a></li><li><a href="/intro/parallel.html">Parallelism</a></li><li><a href="/intro/contexts.html">Contexts</a></li><li><a href="/intro/dos.html">&quot;do&quot; expressions</a></li><li><a href="/intro/more-overloading.html">Advanced overloading</a></li><li><a href="/intro/misc.html">Miscellaneous</a></li><li><a href="/intro/end.html">Conclusion</a></li></ul></nav><main><h1>Operators</h1><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Unary operators</h2><div><p><code class="function">-</code><code class="variable">a</code> negates a number.</p><p><code class="function">~</code><code class="variable">a</code> is bitwise negation.
+<br>
+Since this latter is an uncommon operation, it&#39;s defined in <code>keen/bits</code>.
+(Imports will be explained in <a href="/intro/modules.html">Modules</a>.)</p><keen-runnable>import
+	keen/bits
+
+main void()
+	i int = 1
+	log -i
+	n nat = 1
+	log ~n</keen-runnable><p>The <code class="function">-</code> operator doesn&#39;t work on <a href="/doc/keen/number.html#nat"><code class="type">nat</code></a> since that is an unsigned type.
+<br>
+The <code class="function">~</code> operator doesn&#39;t work on <a href="/doc/keen/number.html#int"><code class="type">int</code></a> since bitwise operations on signed numbers are confusing.</p><aside><h4>Prefix syntax</h4><div><p>There must not be any space after the <code class="function">-</code> sign, or it will look like a binary operator.
+<br>
+<code class="function">f</code><code class="function"> -</code><code class="variable">a</code> calls <code class="function">f</code> on <code class="function">-</code><code class="variable">a</code>;
+<code class="variable">f</code><code class="function"> - </code><code class="variable">a</code> subtracts <code class="variable">a</code> from <code class="variable">f</code>.
+<br>
+Also, <code class="keyword">- </code><code class="variable">a</code> on its own line is parsed as a <code class="function">list-new</code> call.</p></div></aside></div></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Defining operators</h2><div><p>Operators are just ordinary functions, so you can define them for any type.</p><keen-runnable>main void()
+	a point = 1, 2
+	log -a
+
+point record(x float, y float)
+~ - point(a point)
+	-a.x, -a.y</keen-runnable><aside><h4>Visibility and operators</h4><div><p>The symbols <code class="function">+</code>, <code class="function">~</code>, and <code class="function">-</code> are used for visibility
+(which will be explained in <a href="/intro/visibility.html">Visibility</a>).
+<br>
+Visibility is normally optional, but it is required for these functions;
+otherwise the function name looks like a visibility mark.
+<br>
+The above example uses <code class="function">~</code> which is the default visibility.</p></div></aside></div></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Binary operators</h2><div><p>Here are all binary operators and operator-like syntaxes, in order from lowest to highest precedence.
+<br>
+Operators with the same precedence, such as <code class="function">&lt;</code> and <code class="function">&gt;</code>, share a row in the table.</p><p>Lower precedence means being less tightly binding.
+<br>
+<code class="function">+</code> has lower precedence than <code class="function">*</code>,
+so <code class="number">1</code><code> </code><code class="function">+</code><code class="number">2</code><code> </code><code class="function">*</code><code class="number">3</code> is <code class="number">7</code>
+because <code class="number">2</code><code> </code><code class="function">*</code><code> </code><code class="number">3</code> binds more tightly than
+<code class="number">1</code><code> </code><code class="function">+</code><code> </code><code class="number">2</code>.</p><table><thead><th>Syntax</th><th>Use</th></thead><tbody><tr><td><code class="keyword">is</code></td><td>Asserts that two expressions have the same value.</td></tr><tr><td><code class="function">foo=</code></td><td>A function name may end in <code>=</code> , which makes it parse as infix.</td></tr><tr><td><code class="keyword">else</code></td><td>Provides a default value for an option. See <a href="/intro/options.html">Options</a>.</td></tr><tr><td><code class="keyword">or</code></td><td>True if either side is true.</td></tr><tr><td><code class="keyword">and</code></td><td>True if both sides are true.</td></tr><tr><td><code class="function">&#39;foo</code></td><td>Infix function calls.</td></tr><tr><td><code>foo</code></td><td>Normal function calls.</td></tr><tr><td><code class="function">..</code></td><td>Creates a range, e.g. <code class="number">0</code><code class="function"> .. </code><code class="number">10</code> .
+The low end is inclusive and the high end is exclusive.</td></tr><tr><td><code class="function">~</code>, <code class="function">~~</code></td><td>Adds one (<code class="function">~</code>) or many (<code class="function">~~</code>) elements to a collection.</td></tr><tr><td><code class="function">==</code>, <code class="function">!=</code>, <code class="function">&lt;</code>, <code class="function">&gt;</code>,
+<code class="function">&lt;=</code>, <code class="function">&gt;=</code>, <code class="function">&lt;=&gt;</code></td><td>Standard comparison operators.
+All return <a href="/doc/keen/bool.html#bool"><code class="type">bool</code></a> except <code class="function">&lt;=&gt;</code> returns <a href="/doc/keen/compare.html#comparison"><code class="type">comparison</code></a>.</td></tr><tr><td><code class="function">|</code></td><td>Union (of sets, flags, or bits in a <a href="/doc/keen/number.html#nat"><code class="type">nat</code></a>).</td></tr><tr><td><code class="function">&amp;</code></td><td>Union (of sets, flags, or bits in a <a href="/doc/keen/number.html#nat"><code class="type">nat</code></a>).</td></tr><tr><td><code class="function">&lt;&lt;</code>, <code class="function">&gt;&gt;</code></td><td>Bitshift left and right. These are only defined for <a href="/doc/keen/number.html#nat"><code class="type">nat</code></a>s.</td></tr><tr><td><code class="function">+</code>, <code class="function">-</code></td><td>Addition and subtraction.</td></tr><tr><td><code class="function">*</code>, <code class="function">/</code>, <code class="function">%</code></td><td>Multiplication, division, and modulo.</td></tr><tr><td><code class="function">**</code></td><td>Exponentiation: <code class="number">2</code><code> </code><code class="function">**</code><code> </code><code class="number">3</code> is <code class="number">8</code>.</td></tr></tbody></table><p>As shown above, infix function calls like <code class="function">&#39;contains</code> have lower precedence than any operator.</p><keen-runnable>main void()
+	log (10 .. 10 + 10 &#39;contains 15)</keen-runnable><p>The above parses like: <code>log ((10 .. (10 + 10)) &#39;contains 15)</code></p><p>The parentheses around the argument to <a href="/doc/keen/log.html#log"><code class="function">log</code></a> are needed
+because the call to <code class="function">&#39;contains</code> has lower precedence.</p></div></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Assignment functions</h2><div><p>Function names are allowed to end in an <code>=</code> sign.
+<br>
+If they do, they are always parsed as infix and with an especially low precedence.</p><keen-runnable>main void()
+	# This declares a mutable array.
+	xs nat mut[] = 1, 2, 3
+	xs ~= 4
+	xs ~~= 5, 6
+	xs filter= it.is-even
+	log xs</keen-runnable><aside class="small"><code class="keyword">it</code> will be explained in <a href="/intro/lambdas.html">Lambdas</a>.</aside></div></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Binary assignment</h2><div><p>Any binary function, including operators,
+can be combined with the assignment operator <code class="keyword">:=</code> to update a local.</p><keen-runnable>main void()
+	x mut = 3
+	# Same as `x := x + 2`
+	x +:= 2
+	log x
+	# Same as `x := x &#39;min 4`
+	x min:= 4
+	log x</keen-runnable><p>This works with <code class="function">set-x</code> functions too, such as record field setters.</p><keen-runnable>main void()
+	a mut-point = 1, 1
+	# Same as `set-x a, a.x * 2`
+	a.x *:= 2
+	log a.x
+
+mut-point record mut
+	x mut float
+	y mut float</keen-runnable><aside><h4>&quot;+=&quot; vs &quot;+:=&quot;</h4><div><p><code class="variable">a</code><code> </code><code class="function">+=</code><code> </code><code class="variable">b</code> is just a call to a function <code class="function">+=</code>
+which should mutate <code class="variable">a</code> in place.
+<br>
+<code class="variable">a</code><code> </code><code class="function"> +</code><code class="keyword">:= </code><code> </code><code class="variable">b</code> calls <code class="function">+</code>,
+then assigns to <code class="variable">a</code>, which should be a mutable local or setter function.</p><p><code class="function">+=</code> only gets <code class="variable">a</code> once.
+<br>
+<code class="function"> +</code><code class="keyword">:= </code> version gets <code class="variable">a</code>, calls <code class="function">+</code>, then sets <code class="variable">a</code>.</p></div></aside></div></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Logical &quot;operators&quot;</h2><div><p>The logical binary operators are <code class="keyword">and</code> and <code class="keyword">or</code>.
+These don&#39;t evaluate their right hand side if not necessary.
+<br>
+<a href="/doc/keen/bool.html#not"><code class="function">not</code></a> negates a boolean.</p><keen-runnable>main void()
+	x nat = 11
+	log not is-even x
+	# Parentheses are needed because &quot;and&quot; and &quot;or&quot;
+	# have lower precedence than normal functions like &quot;log&quot;
+	log (x &gt; 3 and x &lt; 6 or x &gt; 9 and x &lt; 12)</keen-runnable><aside class="small"><code class="keyword">and</code> has higher precedence than <code class="keyword">or</code>,
+so <code class="variable">a</code><code> </code><code class="keyword">or</code><code> </code><code class="variable">b</code><code> </code><code class="keyword">and</code><code> </code><code class="variable">c</code> is
+<code class="variable">a</code><code> </code><code class="keyword">or</code><code> </code><code>(</code><code class="variable">b</code><code> </code><code class="keyword">and</code><code> </code><code class="variable">c</code><code>)</code> .</aside></div></section><a href="/intro/options.html" id="next">next: Options</a></main></div></body></html>

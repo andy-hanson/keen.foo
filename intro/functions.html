@@ -1,0 +1,61 @@
+<html><head><title>Keen programming language: Functions</title><link href="/icon.svg" rel="icon" type="image/x-icon"><link href="https://cdn.jsdelivr.net/npm/hack-font@3/build/web/hack-subset.css" rel="stylesheet"><link href="/style/index.css" rel="stylesheet"><link href="/worker.js" rel="modulepreload"><script src="/index.js" type="module"></script></head><body><header><nav><div id="home"><a href="/"><keen-icon icon="home"></keen-icon></a></div><ul class="grow"><li><a href="/download.html">download</a></li><li><a class="current" href="/intro">intro</a></li><li><a href="/doc">docs</a></li><li><a href="/faq.html">faq</a></li><li><a href="/play.html">play</a></li></ul><ul><li><a href="https://discord.com/channels/1505354381707579413/1505354409733787798">chat</a></li><li><a href="https://github.com/andy-hanson/keen/issues">bugs</a></li><li><a href="https://github.com/andy-hanson/keen">source</a></li><li><theme-switcher></theme-switcher></li></ul></nav></header><div id="side-nav-wrapper"><nav><ul><li><a href="/intro/index.html">Commands</a></li><li><a class="current" href="/intro/functions.html">Functions</a></li><li><a href="/intro/expressions.html">Basic expressions</a></li><li><a href="/intro/types.html">Basic types</a></li><li><a href="/intro/ifs.html">&quot;if&quot; expressions</a></li><li><a href="/intro/overloading.html">Overloading</a></li><li><a href="/intro/new_.html">&quot;new&quot; functions</a></li><li><a href="/intro/tuples.html">Tuples</a></li><li><a href="/intro/records.html">Records</a></li><li><a href="/intro/mutability.html">Mutability</a></li><li><a href="/intro/strings.html">String literals</a></li><li><a href="/intro/kid.html">Kid</a></li><li><a href="/intro/operators.html">Operators</a></li><li><a href="/intro/options.html">Options</a></li><li><a href="/intro/matches.html">&quot;match&quot; expressions</a></li><li><a href="/intro/enums.html">Enums and flags</a></li><li><a href="/intro/loops.html">Loops</a></li><li><a href="/intro/unions.html">Unions</a></li><li><a href="/intro/interfaces.html">Interfaces and variants</a></li><li><a href="/intro/type-parameters.html">Type parameters</a></li><li><a href="/intro/specs.html">Specs</a></li><li><a href="/intro/lambdas.html">Lambdas</a></li><li><a href="/intro/iteration.html">Iteration</a></li><li><a href="/intro/collections.html">Collections</a></li><li><a href="/intro/exceptions.html">Exceptions</a></li><li><a href="/intro/modules.html">Modules</a></li><li><a href="/intro/visibility.html">Visibility</a></li><li><a href="/intro/configs.html">&quot;config.kid&quot;</a></li><li><a href="/intro/unsafe.html">Unsafe code</a></li><li><a href="/intro/globals.html">Global side effects</a></li><li><a href="/intro/targets.html">Targets</a></li><li><a href="/intro/java.html">Java</a></li><li><a href="/intro/js.html">JavaScript</a></li><li><a href="/intro/tests.html">Tests</a></li><li><a href="/intro/parallel.html">Parallelism</a></li><li><a href="/intro/contexts.html">Contexts</a></li><li><a href="/intro/dos.html">&quot;do&quot; expressions</a></li><li><a href="/intro/more-overloading.html">Advanced overloading</a></li><li><a href="/intro/misc.html">Miscellaneous</a></li><li><a href="/intro/end.html">Conclusion</a></li></ul></nav><main><h1>Functions</h1><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Identifiers</h2><div><p>An identifier is the name of a function, variable, type, record field, etc.
+<br>
+An identifier may contain letters, numbers, <code>_</code> and <code>-</code>,
+but it can&#39;t begin with a number, or begin or end with <code>-</code>.
+<br>
+Examples of valid identifiers: <code class="variable">a</code>, <code class="variable">is-empty</code>, <code class="variable">float32</code>,
+<code class="variable">BIG_WORDS</code>, <code class="variable">&#1506;&#1493;&#1512;&#1489;</code>, <code class="variable">&#50696;&#47532;&#54620;</code>.
+<br>
+Keen prefers <code class="variable">kebab-case</code>: lower-case words separated by <code>-</code>.
+<br>
+Keywords like <code class="keyword">if</code> may not be used as identifiers.</p></div></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Comments</h2><div><p>Comments begin with <code class="comment">#</code>.</p><keen-runnable>main void()
+	log &quot;I exist&quot;
+	# log &quot;I don&#39;t&quot;</keen-runnable><p>Long comments begin and end with <code class="comment">###</code>.</p><keen-runnable>main void()
+	###
+	A
+	long
+	comment
+	###
+	log &quot;Hello&quot;</keen-runnable></div></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Prefix function calls</h2><div><p>The most commont way to call functions in Keen is with a prefix syntax.</p><p>The first column below shows how to call a function <code class="function">f</code> in Keen.
+The other column shows an equivalent in C.</p><syntax-translate><syntax-translate-row>f</syntax-translate-row><syntax-translate-row>f a</syntax-translate-row><syntax-translate-row>f a, b</syntax-translate-row><syntax-translate-row>f a, b, c</syntax-translate-row></syntax-translate><aside class="small">You can edit any cell above to experiment.
+<br>
+This does not use a full parser; it only supports identifiers and calls.</aside><p><code class="function">f</code> alone calls a function with no arguments.
+Accessing a variable uses the same syntax.
+<br>
+Keen will access a variable if one is in scope, otherwise call a function.</p><p>Multiple function calls can nest without parentheses.
+<br>
+Each new function name is the final argument to the previous function.</p><syntax-translate><syntax-translate-row>f g a</syntax-translate-row><syntax-translate-row>f g a, b</syntax-translate-row><syntax-translate-row>f g a, h b</syntax-translate-row><syntax-translate-row>f g h a, b</syntax-translate-row></syntax-translate></div></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Dot function calls</h2><div><p><code class="variable">a</code><code class="keyword">.</code><code class="function">f</code> is equivalent to <code>(</code><code class="function">f</code><code> </code><code class="variable">a</code><code>)</code>.
+This only works for a function with a single argument.
+<br>
+This often helps avoid parentheses.</p><syntax-translate><syntax-translate-row>f a.g, b</syntax-translate-row><syntax-translate-row>f a.g.h, b</syntax-translate-row></syntax-translate></div></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Infix function calls</h2><div><p><code class="keyword">&#39;</code><code class="function">f</code> calls <code class="function">f</code> with infix syntax.
+This works with any number of arguments.</p><syntax-translate><syntax-translate-row>a &#39;f b, c</syntax-translate-row><syntax-translate-row>a.f &#39;g b.h</syntax-translate-row></syntax-translate></div></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Function definitions</h2><div><p>Now to define a function and call it:</p><keen-runnable>main void()
+	log hello-world
+
+hello-world string()
+	&quot;Hello, world!&quot;</keen-runnable><p><code class="function">log hello-world</code> calls the function <code class="function">log</code> with one argument
+<code class="function">hello-world</code>, which is a 0-argument function call.</p><p><code class="function">hello-world </code><a href="/doc/keen/string.html#string"><code class="type">string</code></a><code>()</code> is the function signature.
+It takes no parameters and returns a <a href="/doc/keen/string.html#string"><code class="type">string</code></a>.
+<br>
+The function body always goes beneath the signature and indented.</p><p>Here&#39;s a modified version that takes a single parameter.</p><keen-runnable>main void()
+	log hello-world 3
+
+hello-world string(times nat)
+	join &quot; &quot;, n-of times, &quot;Hello, world!&quot;</keen-runnable><p>This defines a function <code class="function">hello-world</code> that takes a <a href="/doc/keen/number.html#nat"><code class="type">nat</code></a> (natural number) and returns a <a href="/doc/keen/string.html#string"><code class="type">string</code></a>.
+<br>
+The argument <code class="number">3</code> becomes the value of the parameter
+<code class="parameter">times</code>, causing the string to repeat 3 times.</p><p>The below takes 2 parameters <code class="parameter">name</code> and <code class="parameter">times</code>
+and passes arguments <code class="string">&quot;keen&quot;</code> and <code class="number">3</code>, respectively.</p><keen-runnable>main void()
+	log hello &quot;Keen&quot;, 3
+
+hello string(name string, times nat)
+	join &quot; &quot;, n-of times, &quot;Hello, {name}!&quot;</keen-runnable><aside class="small"><code class="string">&quot;Hello, {name}!&quot;</code> is string interpolation.
+This will be explained in <a href="/intro/strings.html">String literals</a>.</aside><p>Functions with many parameters can be written on multiple lines using the below syntax.
+<br>
+<code class="keyword">do</code> is used to separate the parameters from the function body.</p><keen-runnable>main void()
+	log hello &quot;keen&quot;, 3
+
+hello string
+	name string
+	times nat
+do
+	join &quot; &quot;, n-of times, &quot;Hello, {name}!&quot;</keen-runnable></div></section><a href="/intro/expressions.html" id="next">next: Basic expressions</a></main></div></body></html>
