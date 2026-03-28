@@ -1,0 +1,81 @@
+<html><head><title>Keen programming language: Lenses</title><link href="/icon.svg" rel="icon" type="image/x-icon"><link href="https://cdn.jsdelivr.net/npm/hack-font@3/build/web/hack-subset.css" rel="stylesheet"><link href="/style/index.css" rel="stylesheet"><link href="/worker.js" rel="modulepreload"><script src="/index.js" type="module"></script></head><body><header><nav><div id="home"><a href="/"><keen-icon icon="home"></keen-icon></a></div><ul class="grow"><li><a href="/download.html">download</a></li><li><a class="current" href="/intro">intro</a></li><li><a href="/doc">docs</a></li><li><a href="/faq.html">faq</a></li><li><a href="/play.html">play</a></li></ul><ul><li><a href="https://discord.com/channels/1505354381707579413/1505354409733787798">chat</a></li><li><a href="https://github.com/andy-hanson/keen/issues">bugs</a></li><li><a href="https://github.com/andy-hanson/keen">source</a></li><li><theme-switcher></theme-switcher></li></ul></nav></header><div id="side-nav-wrapper"><nav><ul><li><a href="/intro/index.html">Commands</a></li><li><a href="/intro/functions.html">Functions</a></li><li><a href="/intro/expressions.html">Basic expressions</a></li><li><a href="/intro/types.html">Basic types</a></li><li><a href="/intro/ifs.html">&quot;if&quot; expressions</a></li><li><a href="/intro/overloading.html">Overloading</a></li><li><a href="/intro/new_.html">&quot;new&quot; functions</a></li><li><a href="/intro/tuples.html">Tuples</a></li><li><a href="/intro/records.html">Records</a></li><li><a href="/intro/mutability.html">Mutability</a></li><li><a href="/intro/strings.html">String literals</a></li><li><a href="/intro/kid.html">Kid</a></li><li><a href="/intro/operators.html">Operators</a></li><li><a href="/intro/options.html">Options</a></li><li><a href="/intro/matches.html">&quot;match&quot; expressions</a></li><li><a href="/intro/enums.html">Enums and flags</a></li><li><a href="/intro/loops.html">Loops</a></li><li><a href="/intro/unions.html">Unions</a></li><li><a href="/intro/interfaces.html">Interfaces and variants</a></li><li><a href="/intro/type-parameters.html">Type parameters</a></li><li><a href="/intro/specs.html">Specs</a></li><li><a href="/intro/lambdas.html">Lambdas</a></li><li><a href="/intro/iteration.html">Iteration</a></li><li><a href="/intro/collections.html">Collections</a></li><li><a class="current" href="/intro/lenses.html">Lenses</a></li><li><a href="/intro/exceptions.html">Exceptions</a></li><li><a href="/intro/modules.html">Modules</a></li><li><a href="/intro/visibility.html">Visibility</a></li><li><a href="/intro/configs.html">&quot;config.kid&quot;</a></li><li><a href="/intro/unsafe.html">Unsafe code</a></li><li><a href="/intro/globals.html">Global side effects</a></li><li><a href="/intro/targets.html">Targets</a></li><li><a href="/intro/java.html">Java</a></li><li><a href="/intro/js.html">JavaScript</a></li><li><a href="/intro/tests.html">Tests</a></li><li><a href="/intro/parallel.html">Parallelism</a></li><li><a href="/intro/contexts.html">Contexts</a></li><li><a href="/intro/dos.html">&quot;do&quot; expressions</a></li><li><a href="/intro/more-overloading.html">Advanced overloading</a></li><li><a href="/intro/misc.html">Miscellaneous</a></li><li><a href="/intro/end.html">Conclusion</a></li></ul></nav><main><h1>Lenses</h1><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Lenses</h2><div><p>When dealing with an immutable record, you may want to update just one field and leave others alone.</p><keen-runnable>main void()
+	a thing = name: &quot;alice&quot;, size: 1
+	log change-size a, 2
+
+thing record(name string, size nat)
+
+change-size thing(a thing, new-size nat)
+	name: a.name
+	size: new-size</keen-runnable><p>Writing functions like <code class="function">change-size</code> is tedious,
+so Keen will automatically generate a <a href="/doc/keen/lens.html#lens"><code class="type">lens</code></a> for every record field.</p><keen-runnable>main void()
+	a thing = name: &quot;alice&quot;, size: 1
+	log set a, size, 2
+
+thing record(name string, size float)</keen-runnable><p><a href="/doc/keen/lens.html#set"><code class="function">set</code></a> is a function that takes a record, a lens, and the new value.
+<br>
+In this case, it uses the <code class="function">size</code> lens and sets the new size to 2.</p><aside class="small">Despite the name <a href="/doc/keen/lens.html#set"><code class="function">set</code></a>, this returns a new record without mutating the original.</aside><p>If the new value depends on the old value, use <a href="/doc/keen/lens.html#modify"><code class="function">modify</code></a>.</p><keen-runnable>main void()
+	a thing = name: &quot;alice&quot;, size: 1
+	log modify a, size, it + 1
+
+thing record(name string, size float)</keen-runnable><p><a href="/doc/keen/lens.html#modify"><code class="function">modify</code></a> works like <a href="/doc/keen/lens.html#set"><code class="function">set</code></a> but takes a lambda to compute the new value from the old.</p></div></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Combining lenses</h2><div><p><code class="variable">a</code><code> </code><a href="/doc/keen/lens.html#+"><code class="function">+</code></a><code> </code><code class="variable">b</code> is a lens that gets / sets both <code class="variable">a</code> and <code class="variable">b</code> as a tuple.</p><keen-runnable>main void()
+	a r = x: 1, y: 2, z: 3
+	log modify a, x + z, it.swap
+
+r record(x nat, y nat, z nat)</keen-runnable><p><code class="variable">a</code><code> </code><a href="/doc/keen/lens.html#*"><code class="function">*</code></a><code> </code><code class="variable">b</code> is a lens that delves into <code class="variable">a</code> then <code class="variable">b</code>.</p><keen-runnable>main void()
+	a hands =
+		left: thumb: true, fingers: 4
+		right: thumb: true, fingers: 5
+	log set a, left * thumb, false
+
+hands record(left hand, right hand)
+hand record(thumb bool, fingers nat)</keen-runnable></div></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>Defining lenses</h2><div><p><a href="/doc/keen/lens.html#lens"><code class="type">lens</code></a> is an interface (see <a href="/intro/interfaces.html">Interfaces and variants</a>) and you can define your own.</p><keen-runnable>main void()
+	a hands = is-left-handed: true, left: &quot;a&quot;, right: &quot;b&quot;
+	log modify a, dominant-hand, &quot;{it}!&quot;
+
+hands record(is-left-handed bool, left string, right string)
+
+dominant-hand (hands, string) lens()
+	get: of x
+		if is-left-handed x then x.left else x.right
+	set: of x, value
+		set x, (if is-left-handed x then left else right), value</keen-runnable><p>The above example is simpler using <a href="/doc/keen/lens.html#computed-lens"><code class="function">computed-lens</code></a>.</p><keen-runnable>main void()
+	a hands = is-left-handed: true, left: &quot;a&quot;, right: &quot;b&quot;
+	log modify a, dominant-hand, &quot;{it}!&quot;
+
+hands record(is-left-handed bool, left string, right string)
+
+dominant-hand (hands, string) lens()
+	computed-lens {if is-left-handed it then left else right}</keen-runnable></div></section><section class="collapsible"><button type="button"><keen-icon icon="up"></keen-icon></button><h2>&quot;then&quot;</h2><div><p>The <code class="keyword">then</code> keyword provides a syntax for chaining several updates.</p><keen-runnable>main void()
+	log
+		0 .. 10
+		then to::nat[]
+		then filter::nat[] it.is-even
+		then map::nat[] it + 100</keen-runnable><p>Each <code class="keyword">then</code> must start on a new line.
+<br>
+It is followed by a function name, whose first argument is the previous line,
+then the rest of the arguments (if any).
+<br>
+This is equivalent to:</p><keen-runnable>main void()
+	log
+		v0 = 0 .. 10
+		v1 = to::nat[] v0
+		v2 = filter::nat[] v1, it.is-even
+		map::nat[] v2, it + 100</keen-runnable><p><code class="keyword">then</code> can be used with any function, but it&#39;s particularly suited to <a href="/doc/keen/lens.html#set"><code class="function">set</code></a> and <a href="/doc/keen/lens.html#modify"><code class="function">modify</code></a>.</p><keen-runnable>import
+	keen/math/geom2d/aa-rect
+
+main void()
+	a aa-rect32 = left: 0, right: 10, bottom: 0, top: 10
+	log
+		a
+		then set left, 3
+		then modify right, it - 3</keen-runnable><p>Using <code class="keyword">then</code><code> </code><code class="keyword">if</code>, the change can be conditional.</p><keen-runnable>main void()
+	log foo 10, false, false
+	log foo 10, false, true
+	log foo 10, true, false
+	log foo 10, true, true
+
+foo nat(a nat, incr bool, double bool)
+	a
+	then if incr then + 1
+	then if double then * 2</keen-runnable><aside class="small">The two <code class="keyword">then</code> keywords in <code class="keyword">then</code><code> </code><code class="keyword">if</code><code> </code><code class="variable">incr</code><code> </code><code class="keyword">then</code> have different meaning.
+The first introduces a <code class="keyword">then</code> chain, the second separates the <code class="keyword">if</code> condition from the consequence.</aside></div></section><a href="/intro/exceptions.html" id="next">next: Exceptions</a></main></div></body></html>

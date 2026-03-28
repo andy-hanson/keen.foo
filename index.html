@@ -1,0 +1,21 @@
+<html><head><title>Keen programming language: Keen programming language</title><link href="/icon.svg" rel="icon" type="image/x-icon"><link href="https://cdn.jsdelivr.net/npm/hack-font@3/build/web/hack-subset.css" rel="stylesheet"><link href="/style/index.css" rel="stylesheet"><link href="/worker.js" rel="modulepreload"><script src="/index.js" type="module"></script></head><body><header><nav><div id="home"><a href="/"><keen-icon icon="home"></keen-icon></a></div><ul class="grow"><li><a href="/download.html">download</a></li><li><a href="/intro">intro</a></li><li><a href="/doc">docs</a></li><li><a href="/faq.html">faq</a></li><li><a href="/play.html">play</a></li></ul><ul><li><a href="https://discord.com/channels/1505354381707579413/1505354409733787798">chat</a></li><li><a href="https://github.com/andy-hanson/keen/issues">bugs</a></li><li><a href="https://github.com/andy-hanson/keen">source</a></li><li><theme-switcher></theme-switcher></li></ul></nav></header><div id="side-nav-wrapper"><main><keen-runnable># I&#39;m editable!
+main void()
+	for x in 1 .. 21
+		m3 = is-multiple-of x, 3
+		m5 = is-multiple-of x, 5
+		log if m3 and m5
+			&quot;FizzBuzz&quot;
+		elif m3
+			&quot;Fizz&quot;
+		elif m5
+			&quot;Buzz&quot;
+		else
+			&quot;{x}&quot;</keen-runnable><aside class="small">Hover over things above for an explanation.</aside><p><strong>Keen</strong> is a general-purpose programming language.</p><p>Some interesting features:</p><ul class="bullets"><li>Keen programs can be run directly with no build step, or built to a JAR or JS file.</li><li>Everything is an expression, including <code class="keyword">if</code> and <code class="keyword">for</code>.
+Expressions are nested using indentation.</li><li>The meaning of an expression depends on the expected type.
+<br>
+The same syntax <code class="number">1</code><code>, </code><code class="number">2</code>
+could be an array, tuple, vector, etc., based on where it is used.</li><li>Everything goes in modules; there are no globally visible declarations.</li><li>Keen is strongly typed, with no subtypes or <code>null</code>s.
+<br>
+It does have some safe implicit conversions (such as <a href="/doc/keen/number.html#nat32"><code class="type">nat32</code></a> to <a href="/doc/keen/number.html#nat64"><code class="type">nat64</code></a>), but no user-defined ones.</li><li>Global state is restricted. Usually side effects are done through interfaces.</li><li>The type system tracks mutability and prevents sharing non-thread-safe mutable data across threads.
+<br>
+But if you just want to write a single-threaded program with mutable data, it won&#39;t get in your way.</li><li><a href="/intro/specs.html">Specs</a> allow you to call functions provided by the caller&#39;s context.</li><li><a href="/intro/contexts.html">Contexts</a> provide an alternative for repetitive parameters.</li></ul><p style="font-size: 125%">To get started, read the <a href="/intro">intro</a>.</p></main></div></body></html>
