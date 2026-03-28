@@ -1,0 +1,55 @@
+import
+	../../html
+
+intro-tests html[]()
+	- section "Writing tests",
+		- p quote
+			{test_} blocks can go anywhere (but not nested inside of something else).
+		- keen-testable quote
+			test
+				1 + 1 is 2
+			test
+				2 * 2 is 5 # fails
+
+	- section "Running tests",
+		- p "When running or building a program normally, {test_}s are ignored."
+		- p "The following commands run tests:"
+		- bullets
+			- "{code "keen test foo.keen"} runs all tests in a file."
+			- "{code "keen test foo.keen --line 123"} runs the test at a specific line number."
+			- "{code "keen test dir-name"} runs all tests in all files in a directory and subdirectories."
+			- "{code "keen test foo.keen bar.keen dir1 dir2"} runs all tests in selected files and directories."
+
+	- section "Test modifiers",
+		- p quote
+			Tests can be marked {global_} or {unsafe} if necessary.
+		- keen-testable quote
+			test global, unsafe
+				x is 0
+				# Make sure to reset global state at the end of the test
+				finally x := 0
+				x +:= 1
+				x is 1
+
+			x global(nat)
+
+		- p "A {spec-java} or {spec-js} test will only run on that target."
+		- keen-testable quote
+			import
+				keen/js
+				keen/js/util
+				java/util/ArrayList
+
+			test java, global, unsafe
+				log "Running Java test"
+				a ArrayList = ()
+				a.size is 0
+
+			test js, global, unsafe
+				log "Running JS test"
+				a js-any = x: 1
+				a["x"].to::nat is 1
+
+		- p quote
+			{code "keen test foo.keen"} won't run {spec-js} tests,
+			and {code "keen test foo.keen --node-js"} won't run {spec-java} tests.

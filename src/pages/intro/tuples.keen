@@ -1,0 +1,48 @@
+import
+	../../html
+
+intro-tuples html[]()
+	- p quote
+		A tuple type is written as {parenthesized "{t}{comma}{u}"} (or {parenthesized "{t}{comma}{u}{comma}{v}"}, etc.)
+		{br}
+		The functions {fn-a}, {fn-b}, {fn-c}, etc., access elements of the tuple.
+		{br}
+		A tuple is created by calling {fn-new}. See {intro-link new_} for info about its syntax.
+	- keen-runnable quote
+		main void()
+			tuple (nat, string) = 1, "foo"
+			log tuple.a
+			log tuple.b
+
+	- p "You can destructure a tuple by writing multiple local names separated by commas."
+	- keen-runnable quote
+		main void()
+			tuple (nat, string) = 1, "foo"
+			n, s = tuple
+			log n, s
+
+	- p "All features of locals work inside destructuring, such as type annotations, {mut_}, or {keyword "_"}."
+	- keen-runnable quote
+		main void()
+			n nat, s mut string, _ bool = 1, "foo", true
+			s := "bar"
+			log n, s
+
+	- p "Even destructuring works inside destructuring."
+	- keen-runnable quote
+		main void()
+			tuple (nat, (string, string)) = 1, ("foo", "bar")
+			a, (b, c) = tuple
+			log a, b, c
+
+	- p quote
+		Parameters can destructure tuples too.
+		Since parameter types are required, each part of the destructure needs a type.
+	- keen-runnable quote
+		main void()
+			tuple (nat, string) = 1, "foo"
+			foo tuple
+
+		# The parameter type is (nat, string)
+		foo void((n nat, s string))
+			log n, s

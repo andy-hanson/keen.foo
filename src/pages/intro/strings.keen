@@ -1,0 +1,115 @@
+import
+	../../html
+
+intro-strings html[]()
+	- section "Simple literals",
+		- p quote
+			String literals are bounded by double quotes ({string "\""}).
+			{br}
+			They support the same escape sequences as JSON.
+		- keen-runnable quote
+			main void()
+				log "a\\n\\t\\u20bf"
+
+		- aside-small quote
+			Logging strings also uses JSON escapes,
+			so {string "\\n"} and {string "\\t"} will still appear escaped in the output.
+
+	- section "\"quote\" strings",
+		- p quote
+			The {quote_} keyword introduces an indented multi-line string.
+			{br}
+			These support escape sequences and interpolation too.
+		- keen-runnable quote
+			main void()
+				log quote
+					Bereft of quote marks,
+					Using an indented block
+					I wrote a haiku
+
+		- aside-small "Notice how Keen removes indentation from the string, leaving only the newlines."
+
+	- section "Interpolation",
+		- p quote
+			String interpolation works with any type that defines a {fn-show} function.
+			{br}
+			Interpolated values go in braces ({braces}).
+
+		- keen-runnable quote
+			main void()
+				log "\{foo 1, 2\}"
+				log show foo 1, 2 # equivalent
+
+			foo record(x nat, y nat)
+			show string(a foo)
+				"<\{a.x\}, \{a.y\}>"
+
+	- section "Interpolating other types",
+		- p "Other string-like types support interpolation too."
+		- keen-runnable quote
+			main void()
+				s symbol = "1 + 1 is \{1 + 1\}"
+				log show s
+				j json = "2 * 2 is \{2 * 2\}"
+				log show j
+
+		- aside-small quote
+			The {json} ends up quoted twice, because {fn-show} for a {json} string renders it as a quoted JSON string.
+			Then {fn-log} quotes it again.
+			{br}
+			{fn-show} for {symbol} just converts it to a string without quoting.
+
+	- section "Interpolating custom types",
+		- p quote
+			For {json} and {symbol}, interpolation just creates a string and converts it to the appropriate type.
+			{br}
+			But custom interpolation can also be used to have different behavior for interpolated values.
+		- p quote
+			Defining custom interpolation involves 3 parts:
+		- bullets
+			- quote
+				An {function "interpolate-string"} function that prepares a literal part.
+				(This means a part not inside {braces}.)
+				{br}
+				This can return any type.
+			- quote
+				An {function "interpolate-value"} function that prepares an interpolated part.
+				(This means a part inside {braces}.)
+				{br}
+				This must return the same type as {function "interpolate-string"}.
+			- quote
+				An {function "interpolate"} function that combines all parts into a result.
+
+		- keen-runnable quote
+			import
+				keen/string/util
+
+			main void()
+				id string = "1; drop table precious_data;"
+				a sql = "select * where id = \{id\}"
+				log a.query
+
+			sql record(query string)
+			sql-part record(value string)
+			interpolate sql(parts sql-part[])
+				query: join map parts, it.value
+			interpolate-string sql-part(a string)
+				value: a
+			interpolate-value sql-part(a string)
+				value: quoted a
+
+		- aside-small "{it_}{dot}{function "value"} is a lambda; this will be explained in {intro-link lambdas}."
+
+		- p quote
+			{string "\"a"}{lbrace}{var-b}{rbrace}{string "c\""} is equivalent to:
+			{br}
+			{function "interpolate"}{sp}{lparen}
+			{string "\"a\""}{dot}{function "interpolate-string"}{comma}
+			{var-b}{dot}{function "interpolate-value"}{comma}
+			{string "\"c\""}{dot}{function "interpolate-string"}{rparen}
+
+		- p quote
+			For strings, {function "interpolate-string"} is the identity function, while
+			{function "interpolate-value"} calls {fn-show}.
+
+		- p "Notice how {variable "id"} got quoted by {function "interpolate-value"}."

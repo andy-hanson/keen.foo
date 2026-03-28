@@ -1,0 +1,387 @@
+import
+	keen/io/print
+	../../keen/app/frontend/check/funs-for-type
+	../../keen/app/frontend/get-diagnostic-severity
+	../../keen/app/frontend/show-diag
+	../../keen/app/frontend/show-model
+	../../keen/app/main
+	../../keen/app/model/ast
+	../../keen/app/model/model
+	../../keen/app/model/source-range
+	../../keen/app/model/uri
+	../../keen/app/server
+	../../keen/app/util/by-key
+	../../keen/app/util/file-system
+	./html
+	./page-template
+	./parse-doc
+
+doc-pages path-and-content[]() global
+	keen-dir = cwd.parent! / "keen"
+	keen-executable = keen-dir / "bin" / "keen"
+	info = with reader in file-reader keen-executable, false
+		get-modules reader, keen-dir / "lib"
+	the file-content-getters = info.program.file-content-getters
+	the ctx = canonical-uris: info.canonical-uris
+	modules = info.public-modules
+	the common-types = info.program.common-types
+	std-modules uri set = map info.std-module.imports-and-re-exports, it.uri
+	- document-index modules
+	-- for module in modules
+		document-module module, modules, module.uri == info.std-module.uri, std-modules[module.uri]
+
+-module-info record
+	program program
+	public-modules keen-module[]
+	std-module keen-module
+	canonical-uris uri[any-decl]
+
+-get-modules module-info(reader file-reader, keen-lib file-path) global
+	the main-ctx =
+		server: trusted settings:
+			keen-lib: keen-lib.to
+			builtin-java-paths: get-builtin-java-paths
+			cwd: keen-lib.to
+			show-options: color: false
+		reader: reader
+		print-error: it.log-error
+	load-all-files (keen-lib.to,)
+	program = get-program server, (keen-lib.to,)
+	if some program.diagnostics, it.diagnostic.kind.get-diagnostic-severity >= check-error
+		print-error quote
+			Got diagnostics while processing keen lib for documentation:
+			{show-diagnostics server, program, min-diag-severity: check-error}
+	get-modules-from-program program
+
+-get-modules-from-program module-info(program program)
+	the common-types = program.common-types
+	std mut keen-module? = ()
+	unsorted-modules keen-module[] = for* _, module in program.keen-modules
+		do if show-module module
+		do unless is-empty module.public-exports
+		uri = module.uri.to::string
+		do unless some ("/experimental/", "/private/")::string[], {contains-seq uri, it}
+		if is-std module
+			std := module
+		- module
+	program: program
+	public-modules: sort unsorted-modules, it.uri
+	std-module: std!
+	canonical-uris: get-re-exporters unsorted-modules
+
+-show-module bool(a keen-module)
+	match a.uri.base-name
+	as "tuple.keen"
+		# This just declares the types backing tuples, not very useful
+		false
+	else
+		true
+
+-get-re-exporters uri[any-decl](modules keen-module[]) common-types
+	do with out in build
+	do for module in modules
+	do unless is-std module
+	do for export_ in all-decls-unsorted module
+	do if export_.module-uri != module.uri
+	out ~= export_, module.uri
+
+-is-std bool(module keen-module)
+	module.uri.base-name == "std.keen"
+
+-document-index path-and-content(modules keen-module[])
+	template "doc/index.html", "Standard library documentation",
+		nav-items: doc-nav modules, ()
+		main:
+			- p "The menu to the left contains every public module in the standard library."
+			- p "For language documentation, see the {link "/intro", "intro"}."
+			- p "Some notes on reading documentation:"
+			- bullets
+				- quote
+					Doc comments avoid beginning with "Returns ...".
+					{br}
+					If the doc comment is a noun phrase, it's what the function returns.
+				- quote
+					Doc comments for functions on immutable types still use verbs.
+					{br}
+					For example, an immutable sort function "sorts from least to greatest".
+				- quote
+					Common functions like {fn-equal}, {fn-compare}, {fn-hash}, {fn-to}{colon-colon}{json} are omitted.
+					You can assume these to be defined for any {data_} type.
+
+-document-module path-and-content
+	module keen-module
+	modules keen-module[]
+	is-std bool
+	is-in-std bool
+do ctx, file-content-getters, common-types
+	template "doc/{module-path module}.html", module.name,
+		nav-items: doc-nav modules, module
+		main:
+			path = module-path module
+			- header
+				- h1 path
+				- link "https://github.com/andy-hanson/keen/blob/keen/lib/{path}.keen", "Source"
+			-- if is-std or is-in-std
+				- div
+					- strong quote
+						This is {if is-std then "the" else "a"} standard module
+						and does not need to be explicitly imported.
+			-- show-doc-comment module.uri, module.doc-comment
+			-- if is-std
+				document-std module
+			else
+				all-decls = sort module.all-decls-unsorted, of::range-sort-key decl
+					is-same-module: decl.module-uri == module.uri
+					pos: decl.range.range.start
+				map all-decls, it.document-any-decl
+
+-document-std html[](module keen-module)
+	- p "Re-exports from:"
+	- bullets for m in module.imports-and-re-exports
+		"{std-module module-path m.keen-module!}"
+
+-range-sort-key record
+	is-same-module bool
+	pos pos
+
+-all-decls-unsorted any-decl[](module keen-module) common-types
+	exports = module.public-exports
+	-- map exports.types-and-specs, it.to
+	-- for* fun in exports.funs
+		if show-fun fun
+			- fun
+
+-show-fun bool(fun fun-decl) common-types
+	fun.body.ast and not is-common-fun fun
+
+-is-common-fun bool(a fun-decl) common-types
+	as-auto-fun-override a
+
+-to any-decl(a spec-or-type)
+	match a
+	as spec-decl then a
+	as type-alias then a
+	as type-decl then a
+
+-module-path string(module keen-module)
+	import-path-for-uri! module.uri
+-href-for-decl string?(decl any-decl) ctx
+	if link = href-for-uri uri-for-decl decl
+		"{link}#{decl.name}"
+-link-for-decl html-node(a any-decl) ctx
+	link-if a.href-for-decl, type a.name.to
+-link-if html-node(href string?, inner html-node)
+	if href
+		link href, (inner,)
+	else
+		inner
+-href-for-uri string?(uri uri)
+	?path-to-link import-path-for-uri uri
+-import-path-for-uri string?(uri uri)
+	do unless as-jar-and-class-uri uri
+	file-path = as-file-path! uri
+	assert _, rest = try-split-once file-path.to::string, "/keen/lib/"
+	"keen/{try-remove-end! rest.to::string, ".keen"}"
+-path-to-link string(path string)
+	"/doc/{path}.html"
+
+-doc-nav nav-link[](modules keen-module[], cur keen-module?)
+	for module in modules
+		name: module-path module
+		href: "/doc/{module-path module}.html"
+		is-current: cur and cur.uri ==  module.uri
+
+-ctx record
+	canonical-uris uri[any-decl]
+-uri-for-decl uri(a any-decl) ctx
+	the::ctx.canonical-uris[a] else a.module-uri
+
+-document-any-decl html-node(a any-decl) ctx, file-content-getters
+	div (class: "doc-entry", id: a.name.to),
+		--
+			match a
+			as fun-decl
+				document-fun a
+			as spec-decl
+				document-spec a
+			as type-alias
+				document-alias a
+			as type-decl
+				document-type a
+			as test_
+				throw unreachable
+			as var-decl
+				throw todo
+		-- show-doc-comment a.module-uri, a.doc-comment
+
+-show-doc-comment html[](uri uri, doc-comment doc-comment) ctx, file-content-getters
+	doc = doc-comment-string uri, doc-comment
+	unless is-empty doc
+		- div (class: "doc-comment"), parse-doc-comment doc, doc-comment.references, it.link-for-decl
+
+-document-spec html[](a spec-decl) ctx
+	the type-container = a
+	body = a.body
+	- header
+		- type a.name.to
+		-- show-type-params a.type-params
+		- sp
+		- spec_
+		-- show-modifiers a, a.ast.modifiers, a.parents
+		-- if body.builtin_
+			- sp
+			- builtin_
+	-- map body.sigs, it.show-signature
+
+-show-spec-or-type html[](a spec-or-type-inst) ctx, type-container
+	match a
+	as spec-inst
+		show-spec-inst a
+	as type-inst
+		show-type-inst a
+
+-document-alias html[](a type-alias) ctx
+	the type-container = a
+	"{type a.name.to}{sp}{alias_}{sp}{show-type a.target}"
+
+-document-type html[](a type-decl) ctx
+	modifiers = show-modifiers a, a.source.type-decl-ast!.modifiers, a.specs
+	match body = a.body
+	as type-body-bogus
+		throw todo
+	as builtin-type
+		"{type a.name.to}{show-type-params a.type-params}{sp}{builtin_}"
+	as enum_
+		document-enum-or-flags a, body.members
+	as flags_
+		document-enum-or-flags a, body.members
+	as java-class
+		throw unreachable
+	as record_
+		document-record a, modifiers, body
+	as sum-type
+		document-sum-type a, modifiers, body
+
+-document-enum-or-flags html[](a type-decl, members enum-or-flags-member[])
+	- header "{type a.name.to}{sp}{enum_}"
+	-- for member in members
+		div (class: "member"), "{variable member.name.to}"
+
+-document-record html[](a type-decl, modifiers html[], body record_) ctx
+	the type-container = a
+	private = if not some body.fields, it.is-public
+		" (has private fields)"
+	- header "{type a.name.to}{show-type-params a.type-params}{sp}{record_}{modifiers}{private}"
+	-- for field in body.fields
+		if is-public field
+			div (class: "member"), "{variable field.name.to}{sp}{show-type field.type}"
+
+-is-public bool(a record-field)
+	a.visibility == public
+
+-document-sum-type html[](a type-decl, modifiers html[], body sum-type) ctx
+	the type-container = a
+	- header "{type a.name.to}{show-type-params a.type-params}{sp}{keyword body.kind.to::symbol.to}{modifiers}"
+	-- map body.methods, it.show-signature
+
+-member html-node(content html[])
+	div (class: "member"), content
+
+-document-fun html[](a fun-decl) ctx
+	the type-container = a
+	type-params = show-type-params a.type-params
+	modifiers = show-modifiers a, a.body.ast!.modifiers, a.specs
+	"{function a.name.to}{type-params}{sp}{show-type a.return-type}{show-params a.params}{modifiers}"
+
+-show-modifiers html[](container type-container, modifiers modifier-ast[], specs specs) ctx
+	the type-container = container
+	do unless is-empty modifiers
+	spec-index mut nat = 0
+	- sp
+	-- interleave-commas for modifier in modifiers
+		match modifier
+		as modifier-keyword-ast
+			- keyword modifier.keyword.to::symbol.to
+		as spec-use-ast
+			res = show-spec-or-type specs.inner[spec-index]
+			spec-index +:= 1
+			res
+
+-show-signature html-node(a signature) ctx, type-container
+	member "{function a.name.to}{sp}{show-type a.return-type}{show-params a.params}"
+
+-show-type-params html[](type-params name-and-range[])
+	unless is-empty type-params
+		bracketed interleave comma, map type-params, of x then x.name.to.type,
+
+-show-params html[](params destructure[]) ctx, type-container
+	parens-and-commas map params, it.show-param
+
+-parens-and-commas html[](sections html[][])
+	parenthesized interleave-commas sections
+
+-interleave-commas html[](sections html[][])
+	interleave comma, sections
+
+-interleave[t] t[](separator t, sections t[][])
+	for* i, section in with-index sections
+		-- unless i == 0
+			- separator
+		-- section
+
+-show-type html[](type type) ctx, type-container
+	match type
+	as bogus-type
+		throw unreachable
+	as type-param-index
+		- type the::type-container.type-params[type.index].name.to
+	as type-inst
+		show-type-inst type
+
+-show-spec-inst html[](a spec-inst) ctx, type-container
+	show-inst a.decl, a.type-args
+
+-show-type-inst html[](type type-inst) ctx, type-container
+	match type.decl.name
+	as array
+		"{show-type only! type.type-args}{keyword "[]"}"
+	as lambda-data
+		r, p = only2! type.type-args
+		"{show-type r}{sp}{data_}{parenthesized show-type p}"
+	as lambda-mut
+		r, p = only2! type.type-args
+		"{show-type r}{sp}{mut_}{parenthesized show-type p}"
+	as lambda-shared
+		r, p = only2! type.type-args
+		"{show-type r}{sp}{shared_}{parenthesized show-type p}"
+	as mut-array
+		"{show-type only! type.type-args}{keyword " mut[]"}"
+	as map
+		k, v = only2! type.type-args
+		"{show-type v}{bracketed show-type k}"
+	as mut-map
+		k, v = only2! type.type-args
+		"{show-type v}{sp}{mut_}{bracketed show-type k}"
+	as tuple2
+		a, b = only2! type.type-args
+		parenthesized "{show-type a}{comma}{show-type b}"
+	else
+		show-inst type.decl, type.type-args
+
+-show-inst html[](decl any-decl, type-args type-args) ctx, type-container
+	-- show-type-args type-args
+	- link-for-decl decl
+
+-show-type-args html[](type-args type-args) ctx, type-container
+	unless is-empty type-args
+		args = interleave-commas map type-args, it.show-type
+		"{if type-args.size == 1 then args else parenthesized args}{sp}"
+
+-show-param html[](param destructure) ctx, type-container
+	match param
+	as destructure-ignore
+		"{keyword "_"}{sp}{show-type param.type}"
+	as local
+		"{variable param.name.to}{sp}{show-type param.type}"
+	as destructure-split
+		parens-and-commas map param.parts, it.show-param

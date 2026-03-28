@@ -1,0 +1,229 @@
+import
+	../../html
+
+intro-operators html[]()
+	- section "Unary operators",
+		- p "{function "-"}{var-a} negates a number."
+		- p quote
+			{function "~"}{var-a} is bitwise negation.
+			{br}
+			Since this latter is an uncommon operation, it's defined in {code "keen/bits"}.
+			(Imports will be explained in {intro-link modules}.)
+
+		- keen-runnable quote
+			import
+				keen/bits
+
+			main void()
+				i int = 1
+				log -i
+				n nat = 1
+				log ~n
+
+		- p quote
+			The {function "-"} operator doesn't work on {nat} since that is an unsigned type.
+			{br}
+			The {function "~"} operator doesn't work on {int} since bitwise operations on signed numbers are confusing.
+
+		- aside "Prefix syntax",
+			- p quote
+				There must not be any space after the {function "-"} sign, or it will look like a binary operator.
+				{br}
+				{fn-f}{function " -"}{var-a} calls {fn-f} on {function "-"}{var-a};
+				{var-f}{function " - "}{var-a} subtracts {var-a} from {var-f}.
+				{br}
+				Also, {keyword "- "}{var-a} on its own line is parsed as a {fn-list-new} call.
+
+	- section "Defining operators",
+		- p "Operators are just ordinary functions, so you can define them for any type."
+
+		- keen-runnable quote
+			main void()
+				a point = 1, 2
+				log -a
+
+			point record(x float, y float)
+			~ - point(a point)
+				-a.x, -a.y
+
+		- aside "Visibility and operators",
+			- p quote
+				The symbols {plus}, {function "~"}, and {function "-"} are used for visibility
+				(which will be explained in {intro-link visibility}).
+				{br}
+				Visibility is normally optional, but it is required for these functions;
+				otherwise the function name looks like a visibility mark.
+				{br}
+				The above example uses {function "~"} which is the default visibility.
+
+	- section "Binary operators",
+		- p quote
+			Here are all binary operators and operator-like syntaxes, in order from lowest to highest precedence.
+			{br}
+			Operators with the same precedence, such as {function "<"} and {function ">"}, share a row in the table.
+		- p quote
+			Lower precedence means being less tightly binding.
+			{br}
+			{plus} has lower precedence than {times},
+			so {num-1}{sp}{plus}{num-2}{sp}{times}{num-3} is {num-7}
+			because {num-2}{sp}{times}{sp}{num-3} binds more tightly than
+			{num-1}{sp}{plus}{sp}{num-2}.
+
+		- table
+			- thead
+				- th "Syntax"
+				- th "Use"
+			- tbody
+				- tr
+					- td "{is_}"
+					- td "Asserts that two expressions have the same value."
+				- tr
+					- td "{function "foo="}"
+					- td "A function name may end in {code "="} , which makes it parse as infix."
+				- tr
+					- td "{else_}"
+					- td "Provides a default value for an option. See {intro-link options}."
+				- tr
+					- td "{or_}"
+					- td "True if either side is true."
+				- tr
+					- td "{and_}"
+					- td "True if both sides are true."
+				- tr
+					- td "{function "'foo"}"
+					- td "Infix function calls."
+				- tr
+					- td "{code "foo"}"
+					- td "Normal function calls."
+				- tr
+					- td "{function ".."}"
+					- td quote
+						Creates a range, e.g. {num-0}{function " .. "}{num-10} .
+						The low end is inclusive and the high end is exclusive.
+				- tr
+					- td "{function "~"}, {function "~~"}"
+					- td "Adds one ({function "~"}) or many ({function "~~"}) elements to a collection."
+				- tr
+					- td quote
+						{fn-equal}, {fn-not-equal}, {function "<"}, {function ">"},
+						{function "<="}, {function ">="}, {fn-compare}
+					- td quote
+						Standard comparison operators.
+						All return {bool} except {fn-compare} returns {comparison}.
+				- tr
+					- td "{function "|"}"
+					- td "Union (of sets, flags, or bits in a {nat})."
+				- tr
+					- td "{function "&"}"
+					- td "Union (of sets, flags, or bits in a {nat})."
+				- tr
+					- td "{function "<<"}, {function ">>"}"
+					- td "Bitshift left and right. These are only defined for {nat}s."
+				- tr
+					- td "{plus}, {function "-"}"
+					- td "Addition and subtraction."
+				- tr
+					- td "{times}, {function "/"}, {function "%"}"
+					- td "Multiplication, division, and modulo."
+				- tr
+					- td "{function "**"}"
+					- td "Exponentiation: {num-2}{sp}{function "**"}{sp}{num-3} is {num-8}."
+
+		- p "As shown above, infix function calls like {function "'contains"} have lower precedence than any operator."
+
+		- keen-runnable quote
+			main void()
+				log (10 .. 10 + 10 'contains 15)
+
+		- p"The above parses like: {code "log ((10 .. (10 + 10)) 'contains 15)"}"
+		- p quote
+			The parentheses around the argument to {fn-log} are needed
+			because the call to {function "'contains"} has lower precedence.
+
+	- section "Assignment functions",
+		- p quote
+			Function names are allowed to end in an {code "="} sign.
+			{br}
+			If they do, they are always parsed as infix and with an especially low precedence.
+
+		- keen-runnable quote
+			main void()
+				# This declares a mutable array.
+				xs nat mut[] = 1, 2, 3
+				xs ~= 4
+				xs ~~= 5, 6
+				xs filter= it.is-even
+				log xs
+
+		- aside-small "{keyword "it"} will be explained in {intro-link lambdas}."
+
+	- section "Binary assignment",
+		- p quote
+			Any binary function, including operators,
+			can be combined with the assignment operator {keyword ":="} to update a local.
+
+		- keen-runnable quote
+			main void()
+				x mut = 3
+				# Same as `x := x + 2`
+				x +:= 2
+				log x
+				# Same as `x := x 'min 4`
+				x min:= 4
+				log x
+
+		- p "This works with {fn-set-x} functions too, such as record field setters."
+
+		- keen-runnable quote
+			main void()
+				a mut-point = 1, 1
+				# Same as `set-x a, a.x * 2`
+				a.x *:= 2
+				log a.x
+
+			mut-point record mut
+				x mut float
+				y mut float
+
+		- aside "\"+=\" vs \"+:=\"",
+			- p quote
+				{var-a}{sp}{plus-equals}{sp}{var-b} is just a call to a function {plus-equals}
+				which should mutate {var-a} in place.
+				{br}
+				{var-a}{sp}{plus-colon-equals}{sp}{var-b} calls {plus},
+				then assigns to {var-a}, which should be a mutable local or setter function.
+			- p quote
+				{plus-equals} only gets {var-a} once.
+				{br}
+				{plus-colon-equals} version gets {var-a}, calls {plus}, then sets {var-a}.
+
+	- section "Logical \"operators\"",
+		- p quote
+			The logical binary operators are {and_} and {or_}.
+			These don't evaluate their right hand side if not necessary.
+			{br}
+			{fn-not} negates a boolean.
+
+		- keen-runnable quote
+			main void()
+				x nat = 11
+				log not is-even x
+				# Parentheses are needed because "and" and "or"
+				# have lower precedence than normal functions like "log"
+				log (x > 3 and x < 6 or x > 9 and x < 12)
+
+		- aside-small quote
+			{and_} has higher precedence than {or_},
+			so {var-a}{sp}{or_}{sp}{var-b}{sp}{and_}{sp}{var-c} is
+			{var-a}{sp}{or_}{sp}{lparen}{var-b}{sp}{and_}{sp}{var-c}{rparen} .
+
+-plus html-node()
+	function "+"
+-times html-node()
+	function "*"
+-fn-not html-node()
+	std-function "keen/bool", "not"
+-plus-equals html-node()
+	function "+="
+-plus-colon-equals html[]()
+	"{function " +"}{keyword ":= "}"

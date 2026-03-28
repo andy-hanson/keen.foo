@@ -1,0 +1,327 @@
+import
+	../../html
+
+intro-java html[]()
+	- section "Calling Java functions",
+		- p quote
+			Consider a typical Java "Hello, world" program:
+		- code-block quote
+			import java.lang.System;
+
+			class Main \{
+				public static void main(String[] args) \{
+					System.out.println("Hello, world!");
+				\}
+			\}
+
+		- p "To translate it directly to Keen:"
+		- keen-not-runnable quote
+			import
+				java/io/PrintStream
+				java/lang/System
+
+			main void() java, global
+				trusted println out, "Hello, world!"
+
+		- aside-small "These examples can't run in the browser, so you'll have to test them on the command line."
+
+		- p quote
+			An import beginning with {keyword "java/"} imports a class from the Java standard library.
+			{br}
+			(Replace {keyword "."} with {keyword "/"}.
+			So {code "java/io/PrintStream"} imports {code "java.io.PrintStream"} .)
+		- p quote
+			Keen is not Java and doesn't have many of Java's features, such as classes and methods.
+			{br}
+			When Keen imports a Java class,
+			the class' public properties and methods are translated to functions.
+		- bullets
+			- quote
+				A {static} field becomes a function with no arguments. The class name is omitted.
+				{br}
+				For example, Java's {code "System.out"} becomes {fn-out} in Keen.
+			- quote
+				A {static} method can be called directly. The class name is omitted.
+				{br}
+				For example, Java's {code "Math.sqrt"} becomes {function "sqrt"} in Keen.
+			- quote
+				An instance field becomes a function taking the class as an argument.
+				{br}
+				For example, Java's {code "Point.x"} instance field becomes a function {fn-x} in Keen.
+			- quote
+				For an instance method, a {this} argument of the class' type is prepended to the arguments.
+				{br}
+				For example, the instance method {function "println"} takes a {code "java/io/PrintStream"}
+				(such as {fn-out}) as its first argument.
+			- quote
+				A class constructor becomes a function named {fn-new}, and a function named the same as the class.
+				(Use whichever you prefer.)
+
+		- p "All functions that come from Java have the {spec-java}, {global_}, and {unsafe} specs."
+
+		- p quote
+			In Java, methods on a class can be called anywhere without importing the class.
+			Keen doesn't work like that; if you want to call a method, you need to import the class.
+			{br}
+			The Java program above only needed {code "import java.lang.System;"},
+			while the Keen version needs to import both {code "java/io/PrintStream"} and {code "java/lang/System"}.
+
+	- section "Null values",
+		- p quote
+			In Java, all reference types have a {null} value.
+			{br}
+			Keen considers {null} values to be {unsafe},
+			so don't don't mark a call to a function that comes from Java as {trusted_}
+			unless you are sure it won't return {null}.
+
+		- p quote
+			{fn-java-null} is an {unsafe} function returning a Java null value for a type.
+			{br}
+			As a convenience, {std-function "keen/java", "is-null"}{sp}{var-a} is equivalent to
+			{fn-reference-equal}{sp}{var-a}{comma}{fn-java-null}.
+		- p "The below example reads a directory, handling the case where it does not exist."
+		- keen-not-runnable quote
+			import
+				keen/java
+				java/lang/String
+				java/io/File
+
+			main void() java, global
+				log get-files "some-dir"
+
+			get-files string[](dir-name string) java, global
+				trusted
+					dir File = dir-name.to::String,
+					files String buffer = list dir
+					forbid is-null files else error "Directory does not exist"
+					for file in files
+						to::string file
+
+	- section "Casting",
+		- p quote
+			Java subclasses implicitly convert to their superclasses (and interfaces).
+		- p quote
+			For reference types, {fn-reinterpret-cast} corresponds to a Java cast.
+			{br}
+			This can be used to convert a Java class to a subclass.
+		- keen-not-runnable quote
+			import
+				keen/unsafe
+				java/lang/Object
+				java/lang/String
+
+			main void() java, global, unsafe
+				a String = "hello"
+				b Object = a
+				c String = reinterpret-cast b
+				log c.to
+
+	- section "Generics",
+		- p "Keen supports Java generic types such as {code "List"}."
+		- keen-not-runnable quote
+			import
+				java/lang/Iterable
+				java/lang/String
+				java/util/Iterator
+				java/util/Arrays
+				java/util/List
+				keen/java
+
+			main void() java, global, unsafe
+				buf String buffer = "hello", "world"
+				list String List = asList buf
+				iterable String Iterable = list
+				iterator String Iterator = iterator iterable
+				log to::string next iterator
+				log to::string next iterator
+				log hasNext iterator
+
+	- section "Type translation",
+		- p "Java types translate to the following Keen types:"
+		- table
+			- thead
+				- th "Java"
+				- th "Keen"
+			- tbody
+				- tr
+					- td "{code "void"}"
+					- td "{void}"
+				- tr
+					- td "{code "bool"}"
+					- td "{bool}"
+				- tr
+					- td "{code "byte"}"
+					- td "{int8}"
+				- tr
+					- td "{code "short"}"
+					- td "{int16}"
+				- tr
+					- td "{code "int"}"
+					- td "{int32}"
+				- tr
+					- td "{code "long"}"
+					- td "{int}"
+				- tr
+					- td "{code "float"}"
+					- td "{float32}"
+				- tr
+					- td "{code "double"}"
+					- td "{float64}"
+				- tr
+					- td "{code "t[]"}"
+					- td "{t}{sp}{buffer}"
+
+		- p quote
+			Since Java {Array}s are mutable, they are translated as {buffer} instead of {array}.
+			{br}
+			If a Java method treats an {Array} argument as read-only.
+			you could use {std-function "keen/col/buffer", "cast-mutable"} to pass in a Keen {array}.
+			{br}
+			If a Java method returns an {Array} that will never be mutated,
+			you could use {std-function "keen/col/buffer", "cast-immutable"} to get it as a Keen {array}.
+
+		- keen-not-runnable quote
+			import
+				java/io/PrintStream
+				java/lang/String
+				java/lang/System
+
+			main void() java, global, unsafe
+				bytes int8[] = 104, 101, 108, 108, 111
+				# cast-mutable because 'new String()' does not mutate its argument
+				s String = bytes.cast-mutable,
+				println out, s
+		- p quote
+			There are additional functions in {std-module "keen/unsafe"} for converting between types
+			that have the same runtime representation, such as {type "char8 buffer"} and {type "nat8[]"}.
+			(These work in any target, not just Java.)
+
+		- aside "Strings",
+			- p quote
+				Keen's {string} and {code "java/lang/String"} are two different types.
+				{br}
+				There are {std-function "keen/java", "to"} functions for converting.
+				{br}
+				A string literal can directly create a {code "java/lang/String"}.
+
+	- section "Implementing Java interfaces",
+		- p quote
+			Keen record types can implement Java interfaces directly.
+			It works just like implementing a Keen interface.
+		- keen-not-runnable quote
+			import
+				java/lang/Object
+				java/util/Arrays
+				java/util/Comparator
+
+			main void() global, java, unsafe
+				a point buffer =
+					- 1, 2
+					- 2, 0
+					- 1, 1
+				# sort is from 'java/lang/Arrays'
+				sort a, point-comparator
+				log a
+
+			point record
+				x nat
+				y nat
+
+			point-comparator record() point Comparator case
+			equals bool(_ point-comparator, _ Object)
+				# Comparator requires this, but it won't actually be used
+				throw unreachable
+			compare int32(_ point-comparator, a point, b point)
+				match a <=> b
+				as less then -1
+				as equal then 0
+				as greater then 1
+
+		- aside-small quote
+			This is just an example; in a real program you would use the standard
+			{std-function "keen/col/sort", "sort"}.
+
+		- p quote
+			Keen doesn't make use of Java generics, so:
+		- bullets
+			- "Java's {function "sort"} function acts on an {type "Object buffer"} ."
+			- "The interface is just {type "Comparator"} with no type parameter."
+			- "The comparator accepts {type "Object"} parameters and downcasts them using {fn-reinterpret-cast}."
+
+		- aside "Extending Java classes",
+			- p quote
+				Keen does not have a way to subclass a Java class.
+				{br}
+				If you need to use a Java API that requires you to subclass its class,
+				write the subclass in Java.
+			- p quote
+				Maybe define an interface yourself and have the subclass delegate to it,
+				allowing you to write the actual implementation in Keen by implementing that interface.
+
+	- section "Nested classes",
+		- p quote
+			A nested class like {code "Map.Entry"} is imported as {namespace "Map$Entry"}.
+			The name of the type is just {type "Entry"}.
+		- keen-not-runnable quote
+			import
+				java/util/Iterator
+				java/util/Map
+				java/util/Map$Entry
+				java/util/Set
+
+			main void() global, java, unsafe
+				map (nat, string) Map = ofEntries
+					- entry 1, "one"
+					- entry 2, "two"
+				iterator (nat, string) Entry Iterator = iterator entrySet map
+				entry = next iterator
+				log entry.getKey, entry.getValue
+
+
+	- section "Keen types",
+		- p quote
+			There are no guarantees about how Keen translates to Java.
+			{br}
+			A Keen {interface_} isn't always a Java {interface_}.
+			{br}
+			A Keen {record_} isn't always a Java {record_}.
+			{br}
+			So don't expect to use Java reflection.
+
+	- section "JARs",
+		- p quote
+			To use Java classes from outside the standard library, they must be in a JAR file.
+			{br}
+			The {code "imports"} section of {code "config.kid"} supports JAR files.
+			(See {intro-link configs}.)
+			{br}
+			For example:
+		- keen-not-runnable "config.kid", quote
+			imports:
+				"org/foo": "./libs/foo.jar"
+		- p quote
+			With the above configuration,
+			all imports starting with {code "org/foo"} will resolve to classes from {code "libs/foo.jar"}.
+		- keen-not-runnable quote
+			import
+				# Gets 'org/foo/Foo.class' from 'libs/foo.jar'
+				org/foo/Foo
+
+			main void() global, java, unsafe
+				someStaticMethod
+
+		- aside-small "Keen doesn't use Java's {code "CLASSPATH"} for anything."
+		- p quote
+			When you build the program, all classes (even ones not directly referenced)
+			from configured JAR files will be copied to the output, so it builds to a standalone executable JAR.
+
+-Array html-node()
+	code "Array"
+-fn-java-null html-node()
+	std-function "keen/java", "java-null"
+-fn-out html-node()
+	function "out"
+-this html-node()
+	code "this"
+-static html-node()
+	code "static"

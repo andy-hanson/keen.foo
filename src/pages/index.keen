@@ -1,0 +1,51 @@
+import
+	../html
+	../page-template
+
+index html()
+	page-template "index", "Keen programming language",
+		main: index-main
+-index-main html[]()
+	- keen-runnable quote
+		# I'm editable!
+		main void()
+			for x in 1 .. 21
+				m3 = is-multiple-of x, 3
+				m5 = is-multiple-of x, 5
+				log if m3 and m5
+					"FizzBuzz"
+				elif m3
+					"Fizz"
+				elif m5
+					"Buzz"
+				else
+					"\{x\}"
+	- aside-small "Hover over things above for an explanation."
+	- p "{strong "Keen"} is a general-purpose programming language."
+	- p "Some interesting features:"
+	- bullets
+		- "Keen programs can be run directly with no build step, or built to a JAR or JS file."
+		- quote
+			Everything is an expression, including {if_} and {for_}.
+			Expressions are nested using indentation.
+		- quote
+			The meaning of an expression depends on the expected type.
+			{br}
+			The same syntax {num-1-2}
+			could be an array, tuple, vector, etc., based on where it is used.
+		- "Everything goes in modules; there are no globally visible declarations."
+		- quote
+			Keen is strongly typed, with no subtypes or {null}s.
+			{br}
+			It does have some safe implicit conversions (such as {nat32} to {nat64}), but no user-defined ones.
+		- "Global state is restricted. Usually side effects are done through interfaces."
+		- quote
+			The type system tracks mutability and prevents sharing non-thread-safe mutable data across threads.
+			{br}
+			But if you just want to write a single-threaded program with mutable data, it won't get in your way.
+		- "{intro-link specs} allow you to call functions provided by the caller's context."
+		- "{intro-link contexts} provide an alternative for repetitive parameters."
+	- p (style: "font-size: 125%"), "To get started, read the {intro-link}."
+
+-intro-link html-node()
+	link "/intro", ("intro",)

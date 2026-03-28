@@ -1,0 +1,144 @@
+import
+	../../html
+
+intro-types html[]()
+	- section "Type annotations",
+
+		- p quote
+			Types come after the name of the thing they are the type of.
+			{br}
+			Function return types and parameter types are required.
+			Local variable types are optional.
+
+		- keen-runnable quote
+			main void()
+				log foo 1
+
+			foo string(n nat)
+				s string = "\{n\}"
+				s
+
+		- p quote
+			Above, {fn-main} is {void}, {fn-foo} is {string},
+			{variable "n"} is {nat}, and {variable "s"} is {string}.
+
+	- section "Anonymous type annotations",
+		- p quote
+			An anonymous type annotation that attaches to an expression instead of to a name.
+			{br}
+			{variable "expr"}{colon-colon}{type "type"} specifies the type of an expression.
+			{br}
+			In a function call like {fn-to}{colon-colon}{int}{sp}{number "1.5"},
+			the type is the return type of the function.
+			{br}
+			You can also write {colon-colon}{type " type"} at the start of an indented block to type the block.
+
+		- keen-runnable quote
+			main void()
+				n = 1::nat
+				m = to::int 1.5
+				log
+					# This applies to the expression below it, not to 'log'
+					:: string
+					"\{n\} \{m\}"
+
+		- aside-small "If {colon-colon} were an operator it would be the most tightly binding one."
+
+	- section "Expected types",
+		- p quote
+			When Keen type-checks an expression, it may have an {em "expected type"}.
+		- bullets
+			- "A function body's expected type is the function's return type."
+			- quote
+				A function argument's expected type is the function's declared argument type.
+				{br}
+				(Overloading complicates this; this will be explained in {intro-link overloading}.)
+			- "A local's expected type is the declared type (if any)."
+			- "Any expression with an anonymous type annotation has that as an expected type."
+			- quote
+				Certain expressions have an expected type;
+				for example, in a sequence expression, any subexpression but the last must be {void}.
+		- p quote
+			The below example uses {parens} which can take on many types.
+			This will be fully explained in {intro-link new_}.
+
+		- keen-runnable quote
+			main void()
+				() # is void
+				# '()' is a bool
+				_ bool = ()
+				# '()' is a nat
+				_ = foo ()
+
+			foo string(_ nat)
+				() # is a string
+
+		- p quote
+			Many expressions do not need an expected type.
+			{br}
+			For example, the call to {fn-foo} does not need an expected type,
+			since there is only one {fn-foo} and it returns a {string}.
+
+	- section "Literal expressions",
+		- p quote
+			Literal expressions have favorite types that they will use automatically if there is no expected type.
+		- p quote
+			A number literal prefers to be a {nat}, but a negative number will be an {int}
+			and a number with a decimal point (even if {number ".0"}) will be a {float}.
+		- p "A string literal prefers to be a {string}."
+
+		- keen-runnable quote
+			main void()
+				n = 1 # nat
+				i = -1 # int
+				f = 1.1 # float
+				s = "hello" # string
+				log n, i, f, s
+
+		- p quote
+			If there is an expected type, a literal expression will use that instead of its default type.
+			{br}
+			(More on expected types in {intro-link overloading}.)
+
+		- keen-runnable quote
+			main void()
+				f float = 1
+				s symbol = "hello"
+				j json = 4
+				log f, s, j
+
+		- p "The possible number literal types are:"
+		- bullets
+			- "{nat8}, {nat16}, {nat32}, {nat64} ({nat} is an alias for {nat64})"
+			- "{int8}, {int16}, {int32}, {int64} ({int} is an alias for {int64})"
+			- "{float32}, {float64} ({float} is an alias for {type "float64"})"
+			- "{json}"
+		- p "The possible string literal types are:"
+		- bullets
+			- "{string}"
+			- "{symbol}"
+			- "{char8}, {type "char8[]"}"
+			- "{char32}, {type "char32[]"}"
+			- "{json}"
+		- p quote
+			For {char8} or {char32}, the string literal must contain a single character.
+			{br}
+			String literals can even be a user-defined type; see {intro-link strings}.
+
+	- section "Implicit conversion of numbers",
+		- p quote
+			Number types implicitly convert to larger number types of the same kind.
+			{br}
+			Keen will not implicitly convert between {nat}s, {int}s, and {float}s, just within each category.
+
+		- keen-runnable quote
+			main void()
+				n8 nat8 = 1
+				n nat = n8
+				i8 int8 = n.to
+				i int = i8
+				f32 float32 = i.to
+				f float = f32
+				log f
+
+		- aside-small "When you do need a conversion function, it is usually named {fn-to}."

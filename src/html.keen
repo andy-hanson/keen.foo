@@ -1,0 +1,693 @@
+import
+	keen/string/unicode
+
+html union(html-node, string)
+html-node record
+	tag symbol
+	attributes string[symbol]
+	children html[]
+node html-node(tag symbol)
+	tag, (), ()
+node html-node(tag symbol, attributes string[symbol])
+	tag, attributes, ()
+node html-node(tag symbol, attributes string[symbol], children html[])
+	tag, attributes, children
+
+div html-node(children html[])
+	div (), children
+div html-node(attributes string[symbol], children html[])
+	node "div", attributes, children
+main html-node(attributes string[symbol], children html[])
+	node "main", attributes, children
+keen-runnable-base html-node(attributes string[symbol], text string)
+	node "keen-runnable", attributes, (text,)
+keen-runnable html-node(text string)
+	keen-runnable-base (), text
+keen-not-runnable html-node(text string)
+	keen-runnable-base (no-run: "true"), text
+keen-runnable html-node(name string, text string)
+	keen-runnable-base (name: name), text
+keen-not-runnable html-node(name string, text string)
+	keen-runnable-base (name: name, no-run: "true"), text
+keen-testable html-node(text string)
+	keen-runnable-base (test: "true"), text
+p html-node(attributes string[symbol], children html[])
+	node "p", attributes, children
+p html-node(children html[])
+	node "p", (), children
+br html-node()
+	node "br"
+bullets html-node(elements html[][])
+	node "ul", (class: "bullets"), for element in elements
+		node "li", (), element
+strong html-node(text string)
+	"strong", (), (text,)
+em html-node(text string)
+	"em", (), (text,)
+
+table html-node(children html[])
+	"table", (), children
+thead html-node(children html[])
+	"thead", (), children
+th html-node(children html[])
+	"th", (), children
+tbody html-node(children html[])
+	"tbody", (), children
+tr html-node(children html[])
+	"tr", (), children
+td html-node(children html[])
+	"td", (), children
+
+render string(a html)
+	with out in build
+		render out, a
+-render void(out char8 builder, a html)
+	match a
+	as html-node
+		out ~= "<"
+		out ~~= a.tag.to
+		for name, value in attributes a
+			out ~= " "
+			out ~~= name.to
+			out ~= "="
+			out ~= "\""
+			html-escape-attribute-value out, value
+			out ~= "\""
+		out ~= ">"
+		if is-self-closing-tag tag a
+			assert is-empty children a
+		else
+			for child in children a
+				render out, child
+			out ~~= "</"
+			out ~~= a.tag.to
+			out ~= ">"
+	as string
+		html-escape-text-content out, a
+
+-is-self-closing-tag bool(tag symbol)
+	match tag
+	as area
+		true
+	as base
+		true
+	as br
+		true
+	as col
+		true
+	as embed
+		true
+	as hr
+		true
+	as img
+		true
+	as input
+		true
+	as link
+		true
+	as meta
+		true
+	as param
+		true
+	as source
+		true
+	as track
+		true
+	as wbr
+		true
+	else
+		false
+
+test
+	foo html = "▶"
+	foo.render is "&#9654;"
+
+-html-escape-text-content void(out char8 builder, a string)
+	for x in a.to::char32[]
+		out ~~= if esc = html-escape-character-in-text x
+			esc.to::char8[]
+		elif x.to::nat32 > 0xff
+			"&#{x.to::nat32};"
+		else
+			x.to::char8[]
+
+-interpolate char8[](parts string[])
+	join parts 'to
+
+-html-escape-character-in-text string?(a char32)
+	match a
+	as "&"
+		"&amp;"
+	as "<"
+		"&lt;"
+	as ">"
+		"&gt;"
+	as "\""
+		"&quot;"
+	as "'"
+		"&#39;"
+	else
+		()
+
+-html-escape-attribute-value void(out char8 builder, a string)
+	for x in a.to::char32[]
+		out ~~= (html-escape-character-in-attribute-value x else x.to)
+-html-escape-character-in-attribute-value char8[]?(a char32)
+	match a
+	as "\""
+		"&quot;"
+	as "\n"
+		throw todo
+	else
+		()
+
+interpolate html[](parts html[][])
+	for* x in parts then x
+interpolate-string html[](a string)
+	- a
+interpolate-value html[](a html-node)
+	- a
+interpolate-value html[](a string)
+	- a
+interpolate-value html[](a html[])
+	a
+
+code-block html(content string)
+	div (class: "code-block"),
+		- pre content
+pre html-node(attributes string[symbol], text string)
+	node "pre", attributes, (text,)
+pre html-node(text string)
+	pre (), text
+
+code html-node(text string)
+	node "code", (), (text,)
+code html-node(text string, class_ string)
+	node "code", (class: class_), (text,)
+comment html-node(text string)
+	code text, "comment"
+function html-node(text string)
+	code text, "function"
+keyword html-node(text string)
+	code text, "keyword"
+namespace html-node(text string)
+	code text, "namespace"
+number html-node(text string)
+	code text, "number"
+parameter html-node(text string)
+	code text, "parameter"
+string html-node(text string)
+	code text, "string"
+type html-node(text string)
+	code text, "type"
+variable html-node(text string)
+	code text, "variable"
+
+link html-node(target string, attributes string[symbol], children html[])
+	"a", (href: target) ~~ attributes, children
+link html-node(target string, children html[])
+	"a", (href: target), children
+intro-link html-node(page intro-page)
+	link "/{path page}", "{page.title}"
+
+header html-node(content html[])
+	"header", (), content
+h1 html-node(text string)
+	"h1", (), (text,)
+-h2 html-node(text html[])
+	"h2", (), text
+-h3 html-node(text string)
+	"h3", (), (text,)
+-h4 html-node(text string)
+	"h4", (), (text,)
+
+section html-node(children html[])
+	"section", (), children
+
+section html-node(title html[], children html[])
+	"section", (class: "collapsible"),
+		- node "button", (type: "button"),
+			- keen-icon "up"
+		- h2 title
+		- div (), children
+
+subsection html-node(title string, children html[])
+	"section", (),
+		- h3 title
+		-- children
+
+keen-icon html-node(icon string)
+	node "keen-icon", icon: icon
+
+aside html-node(title string, content html[])
+	node "aside", (),
+		- h4 title
+		- div content
+aside-small html-node(content html[])
+	node "aside", (class: "small"), content
+
+fn-a html-node()
+	function "a"
+fn-b html-node()
+	function "b"
+fn-bar html-node()
+	function "bar"
+fn-build html-node()
+	std-function "keen/col/util", "build"
+fn-c html-node()
+	function "c"
+fn-compare html-node()
+	function "<=>"
+fn-equal html-node()
+	function "=="
+fn-f html-node()
+	function "f"
+fn-false html-node()
+	std-function "keen/bool", "false"
+fn-foo html-node()
+	function "foo"
+fn-gc-safe-value html-node()
+	std-function "keen/unsafe", "gc-safe-value"
+fn-hash html-node()
+	function "hash"
+fn-java html-node()
+	std-function "keen/misc", "java"
+fn-js html-node()
+	std-function "keen/misc", "js"
+fn-list-new html-node()
+	function "list-new"
+fn-log html-node()
+	std-function "keen/log", "log"
+fn-main html-node()
+	function "main"
+fn-named-new html-node()
+	function "named-new"
+fn-new html-node()
+	function "new"
+fn-not-equal html-node()
+	function "!="
+fn-print html-node()
+	std-function "keen/io/print", "print"
+fn-reference-equal html-node()
+	std-function "keen/unsafe", "reference-equal"
+fn-reinterpret-cast html-node()
+	std-function "keen/unsafe", "reinterpret-cast"
+fn-set-x html-node()
+	function "set-x"
+fn-set-y html-node()
+	function "set-y"
+fn-show html-node()
+	function "show"
+fn-size html-node()
+	function "size"
+fn-subscript html-node()
+	function "subscript"
+fn-move-to html-node()
+	function "move-to"
+fn-to html-node()
+	function "to"
+fn-true html-node()
+	std-function "keen/bool", "true"
+to-json html[]()
+	"{fn-to}{sp}{json}"
+fn-with-block html-node()
+	function "with-block"
+fn-x html-node()
+	function "x"
+fn-y html-node()
+	function "y"
+
+alias_ html-node()
+	keyword "alias"
+and_ html-node()
+	keyword "and"
+as_ html-node()
+	keyword "as"
+assert_ html-node()
+	keyword "assert"
+bang html-node()
+	keyword "!"
+builtin_ html-node()
+	keyword "builtin"
+case_ html-node()
+	keyword "case"
+catch_ html-node()
+	keyword "catch"
+colon-colon html-node()
+	keyword "::"
+data_ html-node()
+	keyword "data"
+do_ html-node()
+	keyword "do"
+dot html-node()
+	keyword "."
+elif_ html-node()
+	keyword "elif"
+else_ html-node()
+	keyword "else"
+enum_ html-node()
+	keyword "enum"
+export_ html-node()
+	keyword "export"
+finally_ html-node()
+	keyword "finally"
+flags_ html-node()
+	keyword "flags"
+for_ html-node()
+	keyword "for"
+for-star html-node()
+	keyword "for*"
+forbid_ html-node()
+	keyword "forbid"
+if_ html-node()
+	keyword "if"
+import_ html-node()
+	keyword "import"
+in_ html-node()
+	keyword "in"
+it_ html-node()
+	keyword "it"
+interface_ html-node()
+	keyword "interface"
+is_ html-node()
+	keyword "is"
+isnt_ html-node()
+	keyword "isnt"
+match_ html-node()
+	keyword "match"
+mut_ html-node()
+	keyword "mut"
+null html-node()
+	code "null"
+of_ html-node()
+	keyword "of"
+or_ html-node()
+	keyword "or"
+quote_ html-node()
+	keyword "quote"
+record_ html-node()
+	keyword "record"
+region_ html-node()
+	keyword "region"
+shared_ html-node()
+	keyword "shared"
+spec_ html-node()
+	keyword "spec"
+the_ html-node()
+	keyword "the"
+then_ html-node()
+	keyword "then"
+throw_ html-node()
+	keyword "throw"
+trusted_ html-node()
+	keyword "trusted"
+test_ html-node()
+	keyword "test"
+try_ html-node()
+	keyword "try"
+union_ html-node()
+	keyword "union"
+unless_ html-node()
+	keyword "unless"
+until_ html-node()
+	keyword "until"
+variant_ html-node()
+	keyword "variant"
+while_ html-node()
+	keyword "while"
+with_ html-node()
+	keyword "with"
+
+std-module html-node(module-path string)
+	link "/doc/{module-path}.html", "{module-path}"
+std-function html-node(module-path string, function-name string)
+	link (module-export-path module-path, function-name), "{function function-name}"
+std-type html-node(module-path string, type-name string)
+	link (module-export-path module-path, type-name), "{type type-name}"
+std-spec html-node(module-path string, spec-name string)
+	std-type module-path, spec-name
+-module-export-path string(module-path string, export-name string)
+	"/doc/{module-path}.html#{export-name}"
+
+col-type html-node(type-name string)
+	std-type "keen/col/{type-name}", type-name
+
+num-0 html-node()
+	number "0"
+num-1 html-node()
+	number "1"
+num-2 html-node()
+	number "2"
+num-3 html-node()
+	number "3"
+num-4 html-node()
+	number "4"
+num-5 html-node()
+	number "5"
+num-7 html-node()
+	number "7"
+num-8 html-node()
+	number "8"
+num-10 html-node()
+	number "10"
+num-1-2 html[]()
+	"{num-1}{comma}{num-2}"
+num-1-2-3 html[]()
+	"{num-1}{comma}{num-2}{comma}{num-3}"
+
+var-a html-node()
+	variable "a"
+var-b html-node()
+	variable "b"
+var-c html-node()
+	variable "c"
+var-f html-node()
+	variable "f"
+var-g html-node()
+	variable "g"
+var-x html-node()
+	variable "x"
+var-y html-node()
+	variable "y"
+
+array html-node()
+	col-type "array"
+array-view html-node()
+	std-type "keen/col/array", "array-view"
+bool html-node()
+	std-type "keen/bool", "bool"
+buffer html-node()
+	col-type "buffer"
+buffer-view html-node()
+	std-type "keen/col/buffer", "buffer-view"
+char8 html-node()
+	std-type "keen/string", "char8"
+char32 html-node()
+	std-type "keen/string", "char32"
+comparison html-node()
+	std-type "keen/compare", "comparison"
+exception html-node()
+	std-type "keen/exception", "exception"
+float32 html-node()
+	std-type "keen/number", "float32"
+float64 html-node()
+	std-type "keen/number", "float64"
+float html-node()
+	std-type "keen/number", "float"
+hash-state html-node()
+	std-type "keen/hash", "hash-state"
+int8 html-node()
+	std-type "keen/number", "int8"
+int16 html-node()
+	std-type "keen/number", "int16"
+int32 html-node()
+	std-type "keen/number", "int32"
+int64 html-node()
+	std-type "keen/number", "int64"
+int html-node()
+	std-type "keen/number", "int"
+js-any html-node()
+	std-type "keen/js", "js-any"
+json html-node()
+	std-type "keen/json", "json"
+key html-node()
+	type "key"
+map html-node()
+	col-type "map"
+mut-array html-node()
+	col-type "mut-array"
+nat8 html-node()
+	std-type "keen/number", "nat8"
+nat16 html-node()
+	std-type "keen/number", "nat16"
+nat32 html-node()
+	std-type "keen/number", "nat32"
+nat64 html-node()
+	std-type "keen/number", "nat64"
+nat html-node()
+	std-type "keen/number", "nat"
+option html-node()
+	std-type "keen/option", "option"
+string html-node()
+	std-type "keen/string", "string"
+shared-array html-node()
+	col-type "shared-array"
+shared-map html-node()
+	col-type "shared-map"
+symbol html-node()
+	std-type "keen/symbol", "symbol"
+t html-node()
+	type "t"
+u html-node()
+	type "u"
+v html-node()
+	type "v"
+value html-node()
+	type "value"
+void html-node()
+	std-type "keen/misc", "void"
+
+global_ html-node()
+	std-spec "keen/misc", "global"
+spec-data html-node()
+	std-spec "keen/misc", "data"
+spec-java html-node()
+	std-spec "keen/misc", "java"
+spec-js html-node()
+	std-spec "keen/misc", "js"
+spec-shared html-node()
+	std-spec "keen/misc", "shared"
+unsafe html-node()
+	std-spec "keen/misc", "unsafe"
+spec-key html-node()
+	std-spec "keen/hash", "key"
+
+colon html-node()
+	code ": "
+comma html-node()
+	code ", "
+parens html-node()
+	code "()"
+braces html-node()
+	keyword "\{\}"
+lparen html-node()
+	code "("
+rparen html-node()
+	code ")"
+parenthesized html[](a html[])
+	- lparen
+	-- a
+	- rparen
+lbracket html-node()
+	code "["
+rbracket html-node()
+	code "]"
+bracketed html[](a html[])
+	- lbracket
+	-- a
+	- rbracket
+lbrace html-node()
+	code "\{"
+rbrace html-node()
+	code "\}"
+sp html-node()
+	code " "
+
+key-value html[]()
+	"{lparen}{key}{comma}{value}{rparen}"
+value-subscript-key html[]()
+	"{value}{lbracket}{key}{rbracket}"
+
+| Use an enum to ensure intro links are valid.
+| The enum order is the intro order.
+intro-page enum
+	index
+	functions
+	expressions
+	types
+	ifs
+	overloading
+	new_
+	tuples
+	records
+	mutability
+	strings
+	kid
+	operators
+	options
+	matches
+	enums
+	loops
+	unions
+	interfaces
+	type-parameters
+	specs
+	lambdas
+	iteration
+	collections
+	exceptions
+	modules
+	visibility
+	configs
+	unsafe
+	globals
+	targets
+	java
+	js
+	tests
+	parallel
+	contexts
+	dos
+	more-overloading
+	misc
+	end
+show string(a intro-page)
+	show to::symbol a
+next intro-page?(a intro-page)
+	to a.to::nat + 1
+
+title string(a intro-page)
+	match a
+	as collections then "Collections"
+	as configs then "\"config.kid\""
+	as contexts then "Contexts"
+	as dos then "\"do\" expressions"
+	as end then "Conclusion"
+	as enums then "Enums and flags"
+	as exceptions then "Exceptions"
+	as expressions then "Basic expressions"
+	as functions then "Functions"
+	as globals then "Global side effects"
+	as ifs then "\"if\" expressions"
+	as index then "Commands"
+	as interfaces then "Interfaces and variants"
+	as iteration then "Iteration"
+	as java then "Java"
+	as js then "JavaScript"
+	as kid then "Kid"
+	as lambdas then "Lambdas"
+	as loops then "Loops"
+	as matches then "\"match\" expressions"
+	as misc then "Miscellaneous"
+	as modules then  "Modules"
+	as more-overloading then "Advanced overloading"
+	as mutability then "Mutability"
+	as new_ then "\"new\" functions"
+	as operators then "Operators"
+	as options then "Options"
+	as overloading then "Overloading"
+	as parallel then "Parallelism"
+	as records then "Records"
+	as specs then "Specs"
+	as strings then "String literals"
+	as targets then "Targets"
+	as tests then "Tests"
+	as tuples then "Tuples"
+	as type-parameters then "Type parameters"
+	as types then "Basic types"
+	as unions then "Unions"
+	as unsafe then "Unsafe code"
+	as visibility then "Visibility"
+
+path string(a intro-page)
+	"intro/{a}.html"

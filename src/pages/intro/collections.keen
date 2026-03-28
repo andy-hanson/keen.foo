@@ -1,0 +1,294 @@
+import
+	../../html
+
+intro-collections html[]()
+	- section "Building immutable collections",
+		- p quote
+			Mutable collections can start out empty and be built up.
+			This doesn't work for immutable collections.
+			{br}
+			Below are the ways to initialize immutable collections, starting with the simplest:
+		- bullets
+			- "Using {fn-new} or {fn-list-new}. See {intro-link new_}."
+			- "Using {for_} or {for-star} loop. See {intro-link iteration}."
+			- quote
+				Using {fn-build}. This exposes a {builder} which is used to add elements one at a time.
+				{br}
+				There is no way to inspect the elements in a {builder} until it's finished.
+			- quote
+				Using a {mut-array}, then calling {fn-move-to} at the end. This is the most flexible approach.
+
+		- p "To demonstrate each method:"
+
+		- keen-runnable quote
+			main void()
+				log (1, 2, 3)::nat[]
+				log
+					:: nat[]
+					- 1
+					-- 2, 3
+				log for::nat[] x in 0 .. 3
+					x + 1
+				log for*::nat[] x in 0 .. 3
+					- x + 1
+				log with::nat[] out in build
+					out ~= 1
+					out ~~= 2, 3
+				log
+					out nat mut[] = ()
+					out ~= 1
+					out ~~= 2, 3
+					move-to::nat[] out
+
+		- p "All of these methods can also be used to initialize mutable collections."
+
+	- section "Arrays",
+		- p quote
+			The basic {array} operations are {fn-size} and {fn-subscript}.
+
+		- keen-runnable quote
+			main void()
+				a nat[] = 1, 2, 3
+				log size a
+				log a[0]
+
+		- p quote
+			{std-function "keen/col/array", "~~"} concatenates two arrays.
+			{std-function "keen/col/array", "~"} prepends or appends an element to an array.
+
+	- section "Array views",
+		- p quote
+			An {array-view} is a slice of an original {array}.
+			It has similar functionality to an array, but with different performance.
+			{br}
+			Using an {array-view} avoids copying the array elements,
+			but holds onto the entire original array even if only viewing a small part.
+			{br}
+			It also adds a level of indirection.
+			{br}
+			You should usually use arrays and only use a view when there is a clear advantage.
+		- p "There are two ways to get an {array-view}:"
+		- bullets
+			- "An {array} can implicitly convert to an {array-view}."
+			- quote
+				Slicing an array returns an {array-view}:
+				{var-a}{lbracket}{num-2}{sp}{function ".."}{sp}{num-5}{rbracket}"
+
+		- p quote
+			Slicing can also index relative to the array size, such as
+			{var-a}{lbracket}{num-1}{sp}{function ".."}{sp}{function "end"}{rbracket}
+			which is equivalent to
+			{var-a}{lbracket}{num-1}{sp}{function ".."}{sp}{var-a}{dot}{fn-size}{rbracket} .
+
+		- keen-runnable quote
+			main void()
+				a nat[] = 0, 1, 2, 3, 4
+				b nat array-view = a
+				log b
+				c nat array-view = a[1 .. 3]
+				log c
+				d nat array-view = a[1 .. end - 1]
+				log d
+
+		- p "To slice an {array} and get another {array}, use {fn-to}."
+
+		- keen-runnable quote
+			main void()
+				a nat[] = 0, 1, 2, 3, 4
+				log to::nat[] a[1 .. 3]
+
+	- section "Collection conversion",
+		- p quote
+			Most collections define at least two {fn-to} functions:
+			one converting to an array and one converting from an array.
+			This makes it possible to convert between any two collections by going through an array.
+		- p quote
+			To convert to another collection while emptying the original collection,
+			there is often a {fn-move-to} function.
+
+		- keen-runnable quote
+			main void()
+				a nat mut[] = 1, 2, 3
+				b = a.move-to::nat[]
+				log a, b
+
+	- section "Mutable arrays",
+		- p quote
+			A mutable array is written {type "t mut[]"}, equivalent to {t}{sp}{mut-array} .
+
+		- keen-runnable quote
+			main void()
+				a nat mut[] = ()
+				a ~= 1
+				log a
+
+		- p "To prevent bugs, a {mut-array} can't be mutated during iteration."
+
+		- keen-runnable quote
+			main void()
+				a nat mut[] = 1, 2, 3
+				for x in a
+					# This will fail
+					a ~= x
+				log a
+
+		- aside-small "You can still manually iterate the indices and mutate it during that."
+
+	- section "Buffers",
+		- p quote
+			A {buffer} is like an {array} with mutable elements, but unlike a {mut-array}, it is fixed in size.
+
+		- keen-runnable quote
+			main void()
+				a nat buffer = for x in 0 .. 10 then x
+				a[5] := 55
+				log a
+
+		- p quote
+			{buffer}s aren't common, but are useful for low-level code.
+			For example, {mut-array} is implemented using a {buffer}.
+			{br}
+			Low-level {buffer} use typically uses {std-function "keen/col/buffer", "uninitialized-buffer"},
+			which is {unsafe}. (See {intro-link unsafe}.)
+
+		- keen-runnable quote
+			main void()
+				a nat buffer = trusted uninitialized-buffer 10
+				a[5] := 55
+				# It's only safe to access elements that have been initialized
+				log a[5]
+
+		- p quote
+			A {buffer-view} works like an {array-view}.
+			{br}
+			Writing to a {buffer-view} affects the original buffer.
+
+		- keen-runnable quote
+			main void()
+				a nat buffer = n-of 10, 0
+				view = a[5 .. 10]
+				view[1] := 6
+				log a
+
+	- section "Maps",
+		- p quote
+			A map is a collection of (key, value) pairs with unique keys
+			that supports efficiently getting a value from the key.
+			{br}
+			The key must satisfy the {spec-key} spec, which means
+			{fn-equal}, {fn-compare}, and {fn-hash} must be defined for it.
+
+		- p quote
+			A map type is written as {value-subscript-key},
+			equivalent to {key-value}{sp}{type "map"}.
+
+		- p quote
+			Map lookup uses the same {fn-subscript} syntax as for arrays.
+			Unlike for an array, it returns an option instead of throwing an exception on a missing key.
+		- p "A map is constructed from a collection of tuples and iterates as tuples too."
+		- keen-runnable quote
+			main void()
+				a string[nat] =
+					- 1, "one"
+					- 2, "two"
+				for x in a
+					log x
+				log "a[1]", a[1]
+				log "a[3]", a[3]
+
+		- p "If the map key is {symbol}, it can be created with {fn-named-new} syntax."
+		- keen-runnable quote
+			main void()
+				a string[symbol] =
+					one: "uno"
+					two: "dos"
+				log a["two"]
+
+	- section "Map iteration",
+		- p quote
+			Maps are designed for efficient lookups. To accomplish this, they internally use hashing.
+			{br}
+			Hashing depends on a random seed.
+			This makes it unsafe to expose to safe code (which should not behave randomly).
+		- p quote
+			To keep it safe, map iteration sorts the map first.
+			{br}
+			If you will need to iterate a map frequently, consider using a {sorted-map}.
+			This has the same functions as {map} but is always kept sorted, making iteration fast.
+			The cost is that {sorted-map} is slower to look up keys than {map}.
+		- p quote
+			If you need both fast iteration and the fastest possible lookups,
+			you could call {fn-map-unsorted} before iterating the map.
+			This is {unsafe}. (That will be explained in {intro-link unsafe}.)
+
+		- keen-runnable quote
+			main void()
+				a nat[symbol] = beta: 2, alpha: 1
+				for x in a
+					log x
+				log "unsorted:"
+				trusted for x in unsorted a
+					log x
+
+		- aside-small quote
+			You should only use {fn-map-unsorted} iteration when you are certain iteration order doesn't matter.
+
+	- section "Mutable maps",
+		- p quote
+			A mutable map is written as {type "value"}{sp}{mut_}{keyword "["}{type "key"}{keyword "]"},
+			equivalent to {key-value}{sp}{col-type "mut-map"}.
+
+		- keen-runnable quote
+			main void()
+				a nat mut[symbol] = ()
+				a["alpha"] := 1
+				a["beta"] := 2
+				log a["alpha"]
+				log remove a, "beta"
+				log a["beta"]
+
+		- p "Like with {map}, there is a {mut-sorted-map} that iterates faster at the expense of slower lookups."
+
+	- section "Other collections",
+		- p quote
+			There are other collections in the standard library.
+			Each has immutable and mutable versions.
+			{br}
+			There are also {shared_} collections, which will be explained in {intro-link parallel}.
+		- table
+			- thead
+				- th "Name"
+				- th "Use"
+			- tbody
+				- tr
+					- td "{col-type "counter"}, {col-type "mut-counter"}"
+					- td "Tracks how many of each value it contains."
+				- tr
+					- td "{col-type "deque"}, {col-type "mut-deque"}"
+					- td "Fast to push or pop to/from either end."
+				- tr
+					- td "{col-type "priority-queue"}, {col-type "mut-priority-queue"}"
+					- td "(key, value) pairs sorted by key, with fast removal of the least key."
+				- tr
+					- td "{col-type "set"}, {col-type "mut-set"}"
+					- td "Stores only unique values, with fast test for inclusion."
+				- tr
+					- td "{col-type "sorted-set"}, {col-type "mut-sorted-set"}"
+					- td "{col-type "set"} with slower lookups but fast iteration."
+				- tr
+					- td "{col-type "stack"}, {col-type "mut-stack"}"
+					- td "Fast to push or pop to/from the right."
+				- tr
+					- td "{col-type "queue"}, {col-type "mut-queue"}"
+					- td "Fast to push to the right or pop from the left."
+
+-builder html-node()
+	std-type "keen/col/util", "builder"
+
+-fn-map-unsorted html-node()
+	std-function "keen/col/map", "unsorted"
+
+-sorted-map html-node()
+	col-type "sorted-map"
+-mut-sorted-map html-node()
+	col-type "mut-sorted-map"

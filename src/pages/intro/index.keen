@@ -1,0 +1,59 @@
+import
+	../../html
+
+intro-index html[]()
+	- keen-runnable quote
+		#! /usr/bin/env keen
+		main void()
+			log "Hello, world!"
+
+	- section "Run in the browser",
+		- p quote
+			Click the {keen-icon "play"} button at the bottom of the code block above to run it in the browser.
+		- p "All code blocks are editable."
+
+	- section "Run from the command line",
+		- p quote
+			This assumes you have {link "/download.html", "downloaded"} and installed {keyword "keen"}.
+			{br}
+			Copy the example above and save to a file {code "hello.keen"}.
+			{br}
+			Then run: {code "keen hello.keen"}
+			{br}
+			Since the file includes a shebang, you can also run
+			{code "chmod +x hello.keen"} , then {code "./hello.keen"} .
+		- p quote
+			If a file is named {code "main.keen"},
+			you can use {code "keen run dirname"} as shorthand for {code "keen run dirname/main.keen"} .
+			{br}
+			(You can't use just {code "keen dirname"} since that looks like a builtin command.)
+
+	- section "Build to a JAR",
+		- p quote
+			{code "keen build hello.keen"} generates an executable JAR file named {code "hello"} .
+			{br}
+			You can then run it using {code "./hello"} .
+			(On some systems you must run {code "java -jar hello"} .)
+
+	- section "Build to JavaScript",
+		- p quote
+			{code "keen build hello.keen --out hello.js"} generates a standalone JavaScript module.
+			{br}
+			The result can be loaded in a browser using: {code "<script type=\"module\" src=\"/hello.js\"></script>"}
+		- p quote
+			It can also be run with {code "node hello.js"} (assuming you didn't use any browser-only APIs).
+
+	- section "Ahead-of-time errors",
+		- p quote
+			Keen is a statically typed language and logs errors ahead-of-time as much as possible.
+		- p quote
+			For convenience, most ahead-of-time errors don't prevent the program from starting.
+			{br}
+			Instead, they throw an exception at runtime if the code is reached.
+		- keen-runnable quote
+			main void()
+				log "this will be logged"
+				function-that-does-not-exist
+				log "this will not be logged"
+
+		- p "To see all ahead-of-time errors without running the program, use {code "keen check hello.keen"}."

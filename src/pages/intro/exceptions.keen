@@ -1,0 +1,234 @@
+import
+	../../html
+
+intro-exceptions html[]()
+	- section "Throwing",
+		- p quote
+			{throw_} takes an {exception} and throws it.
+			{br}
+			{error} is a generic kind of exception used for program logic errors.
+
+		- keen-runnable quote
+			main void()
+				throw error "boo"
+
+		- p quote
+			Since a {throw_} expression won't actually return normally, it can be any type.
+		- keen-runnable quote
+			main void()
+				s string = throw error "boo"
+				log s
+
+	- section "Custom exception types",
+		- p quote
+			{exception} is a {variant_} type, so you can add new case types.
+			{exception} has a single method {fn-show}.
+			{br}
+			(See {intro-link interfaces}.)
+		- keen-runnable quote
+			main void()
+				throw my-exception
+
+			my-exception record exception case
+			show string(_ my-exception) = "custom error message"
+
+	- section "Assert and forbid",
+		- p quote
+			{assert_} throws an {error} if its argument is {function "false"}.
+			{forbid_} throws an {error} if its argument is {function "true"}.
+
+		- keen-runnable quote
+			main void()
+				assert 1 + 1 == 2
+				forbid 2 * 2 == 4 # throws
+
+		- p "An optional {else_} clause specifies the exception to throw."
+		- keen-runnable quote
+			main void()
+				assert 1 + 1 == 3 else error "Not enough?"
+
+		- p quote
+			{assert_} and {forbid_} work with option conditions.
+			{br}
+			The option from an {assert_} will be available as a non-option after it.
+			{br}
+			The option from a {forbid_} will be available as a non-option in its {else_} clause.
+		- keen-runnable quote
+			main void()
+				assert x = half 4
+				log x
+				# Will throw
+				forbid y = half 4 else error "Did not expect \{y\}"
+
+			half nat?(a nat)
+				if is-even a then a / 2
+
+		- p "{is_} is also a kind of assertion. Prefer this over {code "assert x == y"}."
+		- keen-runnable quote
+			main void()
+				1 is 2 # fails
+
+	- section "Finally",
+		- p quote
+			A {finally_} expression has {em "right"} and {em "below"} subexpressions.
+			{br}
+			If first runs the {em "below"} expression.
+			{br}
+			It then runs the {em "right"} expression, whether or not the {em "below"} expression threw an exception.
+		- p quote
+			Below, the {em "right"} expression is {fn-log}{sp}{string "\"right\""}
+			and the {em "below"} expression is the sequence
+			{fn-log}{sp}{string "\"below\""} and {log-1-over-0} .
+		- keen-runnable quote
+			main void()
+				finally log "right"
+				log "below"
+				log 1 / 0
+
+		- aside-small quote
+			Above, the division by 0 actually happens {em "before"} {fn-log}{sp}{string "\"right\""},
+			but the exception is caught and rethrown after it runs.
+
+		- p quote
+			The value of a {finally_} expression is the value of the {em "below"} expression.
+			The {em "right"} expression must be {void}.
+		- keen-runnable quote
+			main void()
+				result =
+					finally log "end"
+					"value"
+				log "result", result
+
+		- p quote
+			The {em "right"} expression can be an indented block.
+			{br}
+			Below, the {em "right"} expression is on lines 3 and 4
+			and the {em "below"} expression is just {log-1-over-0} .
+		- keen-runnable quote
+			main void()
+				finally
+					log "a"
+					log "b"
+				log 1 / 0
+
+	- section "Catching exceptions",
+		- p quote
+			A {try_} expression first evaluates the {try_} block.
+			If that threw the caught type, it evaluates the {catch_} block instead.
+		- keen-runnable quote
+			main void()
+				log try
+					1 / 0
+				catch as arithmetic-error
+					7
+		- aside-small quote
+			The {try_} and {catch_} blocks must have the same type.
+
+		- p "The {catch_} has no effect if some other kind of exception is thrown."
+		- keen-runnable quote
+			main void()
+				log try
+					# Underflows 'nat'
+					1 - 2
+				catch as index-too-big
+					7
+
+		- p "A local name between {catch_} and {as_} will have the exception value."
+		- keen-runnable quote
+			main void()
+				log try
+					to::nat8 256
+				catch e as arithmetic-error
+					log "\{nat64! only! e.inputs\} won't fit in a nat8"
+					7
+
+		- aside-small "See {arithmetic-error} for details."
+
+		- p "There can be multiple {catch_} blocks for different exception types."
+		- keen-runnable quote
+			main void()
+				xs nat[] = ()
+				log try
+					xs[1 / 0]
+				catch as arithmetic-error
+					7
+				catch as index-too-big
+					8
+
+		- p "If there is no {as_} clause, it catches every exception."
+		- keen-runnable quote
+			main void()
+				log try
+					1 / 0
+				catch e
+					log "Something happened: \{e\}"
+					7
+		- aside-small quote
+			You should almost always include an {as_} clause.
+			You don't want to ignore an out of memory error
+			based on an assumption that {arithmetic-error} was the only possible exception.
+
+	- section "Common exceptions",
+		- p quote
+			Throw {std-function "keen/exception", "not-implemented"} if something is intentionally not implemented.
+			{br}
+			Throw {std-function "keen/exception", "todo"} if something hasn't been implemented, but should be.
+			{br}
+			Throw {std-function "keen/exception", "unreachable"}
+			if it should not be possible to get to the {throw_} expression.
+
+		- keen-runnable quote
+			main void()
+				log describe 1
+				log describe 2
+
+			describe string(a nat)
+				match a % 2
+				as 0
+					"even"
+				as 1
+					"odd"
+				else
+					throw unreachable
+
+	- section "Testing exceptions",
+		- p "Use this pattern to test functions that should throw exceptions:"
+		- keen-testable quote
+			test
+				try
+					_ = to::string 1::json
+					should-throw
+				catch e as deserialize-error
+					e is expected: "string", value: 1
+		- aside-small quote
+			Tests will be explained in {intro-link tests} .
+			{code "<<no output>>"} means the test passed.
+
+	- section "\"is\"",
+		- p quote
+			{is_} parses as a binary operator with the lowest precedence.
+			{br}
+			It asserts that the left side is equal to the right side.
+		- keen-runnable quote
+			main void()
+				round 1.5 is 2
+				# is equivalent to:
+				assert (round 1.5) == 2
+
+		- p "Like {assert_}, {is_} can throw a custom exception with an {else_} clause."
+		- keen-runnable quote
+			main void()
+				1 is 2 else error "custom exception"
+
+		- p "There's also {isnt_}."
+		- keen-runnable quote
+			main void()
+				1 isnt 2
+
+-arithmetic-error html-node()
+	std-type "keen/number", "arithmetic-error"
+-error html-node()
+	std-type "keen/exception", "error"
+
+-log-1-over-0 html[]()
+	"{fn-log}{sp}{num-1}{sp}{function "/"}{sp}{num-0}"

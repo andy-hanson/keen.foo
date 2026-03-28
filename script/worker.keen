@@ -1,0 +1,69 @@
+import
+	keen/js
+	../../keen/app/server
+	../../keen/app/frontend/show-model
+	../../keen/app/model/lsp
+	../../keen/app/model/uri
+	../../keen/app/util/file-system
+	../../keen/app/util/perf
+	../../keen/app/util/tar
+	../../keen/lib/parse: parse-json
+	./syntax-translate-protocol
+	./worker-syntax-translate
+	../bin/keen-lib.tar as keen-lib-tar nat8[]
+	../bin/java-classes.tar as java-classes-tar nat8[]
+	../bin/Foo.class.bytes as foo-class nat8[]
+
+main void() global, unsafe, js
+	# We need to assign `onmessage` immediately, so don't await this yet
+	server server =
+		settings:
+			keen-lib: parse-uri "file:///usr/local/bin/keen/lib"
+			builtin-java-paths: get-builtin-java-paths
+			cwd: parse-uri "file:///home/me/demo"
+			show-options: color: false
+	files = read-files
+	on-message void mut(x js-any) = of event
+		:: void
+		data_ string = event["data"].to
+		json = parse-json data_
+		if json["method"] == "custom/syntax-translate"
+			params syntax-translate-params = json["params"].to
+			result syntax-translate-result = syntax-translate params
+			response json = id: json["id"], result: result.to
+			_ = call js-global["postMessage"], response.to-json.to
+		else
+			input lsp-in-message = json.to
+			exit = handle-one-lsp-message server, input, {read-file-locally files, it}, of x
+				_ = call js-global["postMessage"], x.to-json.to
+			forbid exit else todo
+	js-global["onmessage"] := on-message.to
+
+-files record
+	keen-lib nat8 array-view[symbol]
+	java-classes nat8 array-view[symbol]
+-read-files files() global, js
+	start = perf-now
+	finally end-read-file start
+	keen-lib: read-entire-tar keen-lib-tar
+	java-classes: read-entire-tar java-classes-tar
+
+-read-file-locally read-file-result-params(files files, uri uri)
+	start = perf-now
+	finally end-read-file start
+	s = show uri
+	content nat8 array-view? = if path = try-remove-start s, "file:///usr/local/bin/keen/lib/"
+		files.keen-lib[path.to]
+	elif path = try-remove-start s, "jar:file:///usr/lib/jvm/java-25-openjdk-amd64/jmods/java.base.jmod!/"
+		files.java-classes[path.to]
+	elif s == "jar:file:///libs/foo.jar!/org/foo/Foo.class"
+		foo-class
+	# This is used in one of the examples in the modules intro
+	elif s == "file:///hello.txt"
+		to::nat8[] "Hello from a file"::string
+	if content
+		uri, ok, content
+	else
+		unless ends-with s, "/config.kid"
+			log-error "not found: {uri}"
+		uri, not-found, ()

@@ -1,0 +1,3 @@
+syntax-translate-params record(source string, from-language language, to-language language)
+language enum(c, keen)
+syntax-translate-result record(output string, diagnostics nat32[])

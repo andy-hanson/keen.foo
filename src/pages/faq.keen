@@ -1,0 +1,121 @@
+import
+	../html
+	../page-template
+
+faq html()
+	page-template "faq.html", "FAQ",
+		main: faq-main
+
+-faq-main html[]()
+	- section "How do I disable overflow checking?",
+		- p quote
+			Functions like {std-function "keen/numbers", "+"} will always check for overflow
+			(except for {float} inputs). There's no way to globally disable this.
+			{br}
+			To allow overflow in a specific case, use functions like {std-function "keen/bits", "wrap-add"}.
+		- keen-runnable quote
+			import
+				keen/bits
+
+			main void()
+				log wrap-add::nat8 255, 1
+
+	- section "How do I disable {assert_}s?",
+		- p quote
+			Asserts can't be globally disabled.
+			{br}
+			If there are certain expensive asserts in your program that you might want to turn off,
+			you will have to come up with a way to make them conditional.
+		- keen-runnable quote
+			main void()
+				if expensive-asserts
+					assert every 1 .. 100, it < 100
+
+			expensive-asserts bool() = true
+
+	- section "How do I do nothing?",
+		- p "{parens} is the empty {void} value."
+		- keen-runnable quote
+			main void()
+				()
+
+	- section "How do I parse JSON or Kid files?",
+		- p "Parsing functions are in {std-module "keen/parse"}."
+		- keen-runnable quote
+			import
+				keen/parse
+
+			main void()
+				log parse json, "[1, 2]"
+
+	- section "How do I test if a string is a substring of another?",
+		- p quote
+			There are often not string-specific functions when a generic collection function will work.
+			In this case, you can use {std-function "keen/col", "contains-seq"} to test for a substring.
+		- keen-runnable quote
+			main void()
+				log contains-seq "coworker", "cow"
+
+	- section "Why are {fn-log} and {fn-print} different?",
+		- p quote
+			{fn-log} is allowed anywhere.
+			This only writes to stderr and is not considered the program's output,
+			so it isn't considered a true side effect.
+			{fn-print} is the program's actual output and so is considered a true side effect.
+
+	- section "Why does the standard library not use interfaces or contexts?",
+		- p quote
+			The standard library is used by all Keen programs,
+			but the best interfaces to use depends on specific circumstances.
+			{br}
+			So instead, the standard library just defines {global_} functions and leaves abstraction to the programmer.
+
+	- section "Why can't I compare mutable values with {fn-equal}?",
+		- p quote
+			To avoid confusion.
+			It's unclear whether {fn-equal} on mutable values should compare the contents or the identity.
+			{br}
+			To compare the identity, use {fn-reference-equal}.
+			(This is {unsafe} in general, but can be {trusted_} for mutable values.)
+			{br}
+			To compare the contents, convert to immutable values and compare those.
+		- keen-runnable quote
+			import
+				keen/unsafe
+
+			main void()
+				a nat mut[] = 1, 2
+				b nat mut[] = 1, 2
+				log trusted reference-equal a, b
+				log a.to::nat[] == b.to::nat[]
+
+	- section "Why are {enum_} and {flags_} types different?",
+		- p quote
+			In Keen, an {enum_} type is guaranteed to have one of the listed values.
+			A {flags_} type can have any combination of values.
+
+	- section "Why can't I use a mutable type as a map key?",
+		- p quote
+			If you mutated the object, its hash could change, making it unretrievable.
+			{br}
+			If you need to associate some data with mutable values (and can't just add it as a field),
+			you could give the values an identity property and key the map by the identity.
+		- keen-runnable quote
+			main void()
+				the identity-provider = 0,
+				values my-type[] = (64,), (151,)
+				map string[nat] = (values[0].id, "a"), (values[1].id, "b")
+				for v in values
+					log v.value, map[v.id]
+
+			identity-provider record mut
+				-last-id mut nat
+			get-next-id nat() identity-provider
+				the::identity-provider.last-id +:= 1
+				the::identity-provider.last-id
+
+			my-type record mut
+				id nat
+				value mut nat
+			new my-type(value nat) identity-provider
+				get-next-id, value

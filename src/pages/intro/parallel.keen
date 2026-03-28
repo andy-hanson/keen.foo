@@ -1,0 +1,145 @@
+import
+	../../html
+
+intro-parallel html[]()
+	- section "Simple parallelism",
+		- p quote
+			The simplest type of parallelism is a parallel {std-function "keen/parallel", "for-loop"}.
+			{br}
+			This returns results in the same order as the inputs.
+
+		- keen-runnable quote
+			import
+				keen/parallel
+
+			main void()
+				inputs nat[] = 1, 2, 3
+				results nat[] = for x in parallel inputs
+					x * 10
+				log results
+
+		- aside-small quote
+			JavaScript is not truly parallel,
+			so these examples will work but won't get any performance benefit.
+
+	- section "Mutability",
+		- p quote
+			The parallel {for_} loop takes a {shared_} lambda as its argument.
+			{br}
+			That means you can't access {mut_} values in the body of the loop.
+
+		- keen-runnable quote
+			import
+				keen/parallel
+
+			main void()
+				inputs nat[] = 1, 2, 3
+				res nat mut[] = ()
+				for x in parallel inputs
+					res ~= x # Not allowed
+				log res
+
+		- p quote
+			You can use a {shared_} type though:
+
+		- keen-runnable quote
+			import
+				keen/col/shared-array
+				keen/parallel
+
+			main void()
+				inputs nat[] = 1, 2, 3
+				res nat shared[] = ()
+				for x in parallel inputs
+					res ~= x
+				log res.move-to::nat[]
+
+	- section "Shared collections",
+		- p quote
+			A {t}{sp}{shared-array} is written as {t}{type " shared[]"}.
+			{br}
+			This supports a subset of the functions available for {mut-array}s.
+		- p quote
+			Like all shared collections, it does not define {function "iterate"}.
+			Access to a {shared_} collection needs to quickly do just one thing
+			before releasing the collection for other users,
+			so it can't do bulk operations that access every element.
+		- p quote
+			You can, however, use {fn-move-to} to take the entire collection contents out to a new collection,
+			leaving the original {shared-array} empty.
+
+		- p quote
+			There is also {key-value}{sp}{shared-map},
+			written as {value}{sp}{shared_}{lbracket}{key}{rbracket}.
+		- keen-runnable quote
+			import
+				keen/col/shared-map
+				keen/parallel
+
+			main void()
+				inputs nat[] = 1, 2, 3
+				res nat shared[nat] = ()
+				for x in parallel inputs
+					res[x] := x * 10
+				log res.move-to::nat[nat]
+
+	- section "Shared lambdas and exclusions",
+		- p quote
+			A {shared_} expression makes any lambda {shared_} even if it accesses mutable variables.
+			{br}
+			To do so, just prefix the lambda with the {shared_} keyword.
+
+		- keen-runnable quote
+			import
+				keen/parallel
+
+			main void()
+				accum mut nat = 0
+				f void shared(x nat) = shared of x
+					accum +:= x
+				for x in parallel 0 .. 100
+					f[x]
+				log accum
+
+		- aside-small quote
+			Since there is a lock on {var-f}, there is no genuine parallelism in the above example,
+			just 100 threads trying to acquire the same lock.
+
+		- p quote
+			This works by using an {em "exclusion"}.
+			All Keen code runs in some exclusion; {fn-main} starts with a default one.
+			{br}
+			The {em "exclusion"} is a lock shared by all {mut_} variables in the same exclusion.
+			So it's coarse-grained parallelism.
+			{br}
+			Each new thread launched by a parallel {for_} loop gets a new exclusion.
+		- p quote
+			Exclusions ensure that {mut_} types are safe to use.
+			{br}
+			When you use {shared_} on a lambda, it creates a lambda that locks the exclusion before it can be entered.
+			That way the lambda can have only one caller at a time,
+			meaining {variable "accum"} will only be accessed by one thread at a time.
+
+		- p "Below, {var-f} and {var-g} will never run at the same time, because they share the same exclusion."
+		- keen-runnable quote
+			import
+				keen/parallel
+
+			main void()
+				accum mut nat = 0
+				f void shared(x nat) = shared of x
+					accum +:= x
+				g void shared(x nat) = shared of x
+					accum -:= x
+				for x in parallel 0 .. 100
+					f[x]
+					g[x]
+				log accum
+
+	- section "Safe parallelism",
+		- p quote
+			When a safe function returns, any threads that it launched should have been waited on.
+			{br}
+			A parallel {for_} loop satisfies this.
+			{br}
+			When calling Java and JS functions, don't mark the call as {trusted_} unless it satisfies this property.

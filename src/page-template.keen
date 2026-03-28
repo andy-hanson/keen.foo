@@ -1,0 +1,74 @@
+import
+	./html
+
+path-and-content record
+	path string
+	content nat8[]
+
+nav-link record
+	name string
+	href string
+	is-current bool
+-render html-node(a nav-link)
+	node "li", (),
+		- link a.href, (if a.is-current then class: "current"), "{a.name}"
+-nav-template html-node(links nav-link[])
+	node "nav", (),
+		- nav-ul (), links
+-nav-ul html-node(attributes string[symbol], links nav-link[])
+	node "ul", attributes, map links, it.render
+
+template path-and-content(path string, title string, options page-template-options)
+	path: path
+	content: (page-template path, title, options).render.to
+
+page-template-options record
+	nav-items nav-link[]
+	main html[]
+new page-template-options(main html[])
+	(), main
+page-template html-node(path string, title string, options page-template-options)
+	page-template-without-side-nav path, title,
+		- div (id: "side-nav-wrapper"),
+			-- unless is-empty options.nav-items
+				- nav-template options.nav-items
+			- main (), main options
+
+page-template-without-side-nav html-node(path string, title string, inner html[])
+	node "html", (),
+		- node "head", (),
+			- node "title", (), "Keen programming language: {title}"
+			- node "link", rel: "icon", href: "/icon.svg", type: "image/x-icon"
+			- node "link", rel: "stylesheet", href: "https://cdn.jsdelivr.net/npm/hack-font@3/build/web/hack-subset.css"
+			- node "link", rel: "stylesheet", href: "/style/index.css"
+			- node "link", rel: "modulepreload", href: "/worker.js"
+			- node "script", type:"module", src: "/index.js"
+		- node "body", (),
+			- node "header", (),
+				- node "nav", (),
+					- div (id: "home"),
+						- link "/",
+							- keen-icon "home"
+					- nav-ul (class: "grow"), top-nav-links path
+					- node "ul", (),
+						- node "li", (),
+							- link "https://discord.com/channels/1505354381707579413/1505354409733787798", "chat"
+						- node "li", (),
+							- link "https://github.com/andy-hanson/keen/issues", "bugs"
+						- node "li", (),
+							- link "https://github.com/andy-hanson/keen", "source"
+						- node "li", (),
+							- node "theme-switcher"
+			-- inner
+
+-top-nav-links nav-link[](path string)
+	parts (string, string)[] =
+		- "download", "/download.html"
+		- "intro", "/intro"
+		- "docs", "/doc"
+		- "faq", "/faq.html"
+		- "play", "/play.html"
+	for name, href in parts
+		name: name
+		href: href
+		is-current: starts-with "/{path}", href

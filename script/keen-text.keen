@@ -1,0 +1,294 @@
+import
+	keen/io/duration
+	keen/js
+	keen/js/dom
+	keen/unsafe
+	keen/math/vec
+	../../keen/app/ide/get-tokens
+	../../keen/app/model/lsp
+	../../keen/app/model/source-range
+	../../keen/app/model/uri
+	../style/colors.css as colors-css string
+	../style/keen-text.css as keen-text-css string
+	./highlight-tokens
+	./keen
+	./util/util
+
+-line-height-px float()
+	20
+-tab-size nat()
+	4
+
+keen-text-props record mut
+	keen keen-server
+	uri uri
+	initial-text string
+
+define-keen-text-custom-element void() global, js
+	define-custom-element "keen-text", (styles: colors-css, keen-text-css), it.connected
+
+keen-text record mut
+	node node
+	-props keen-text-props
+	-nodes mut keen-text-nodes?
+	-diag-debounce debouncer
+	-tokens mut token[]
+-keen keen-server(a keen-text) = a.props.keen
+-uri uri(a keen-text) = a.props.uri
+-keen-text-nodes record mut
+	text node
+	highlight node
+	line-numbers node
+
+create-keen-text keen-text(props keen-text-props) js
+	do trusted
+	node = create-node "keen-text"
+	node["props"] := reinterpret-cast props
+	res keen-text =
+		node: node
+		props: props
+		nodes: ()
+		diag-debounce: 100.milliseconds,
+		tokens: ()
+	node["keen-text"] := reinterpret-cast res
+	res
+
+text string(a keen-text) js
+	value a.nodes!.text
+
+-do-highlight void(a keen-text, diagnostics lsp-diagnostic[]) js
+	diags lsp-diagnostic[] = filter diagnostics, it.severity != Hint
+	highlight a.tokens, diags, a.nodes!.highlight, a.text
+
+-text-changed void(a keen-text) global, js
+	value = text a
+	a.nodes!.line-numbers.text-content := join "\n", for i nat in 0 .. a.text.count-lines
+		"{i + 1}"
+	open-file a.keen, a.uri, value
+	a.tokens := get-tokens a.keen, a.uri
+	do-highlight a, ()
+
+-connected void(root custom-element-node) global, js
+	do trusted
+	a keen-text = reinterpret-cast root.as-js["keen-text"]
+	highlight-div = create-div "highlight"
+	ta = create-node "textarea"
+	ta.value := a.props.initial-text
+	ta.attributes["spellcheck"] := "false"
+	add-event-listener ta, "keydown", of event
+		if (handle-keydown ta, event) == inserted-text
+			text-changed a
+	add-event-listener ta, "input", {text-changed a}
+
+	measurer-span = create-span ("a".create-text-node,)
+	line-numbers = create-div "line-numbers"
+	text-container = create-div "code",
+		- create-div "measurer", (measurer-span,)
+		- highlight-div
+		- ta
+
+	a.nodes := text: ta, highlight: highlight-div, line-numbers: line-numbers
+
+	interrupter interrupter = ()
+
+	tooltip-element node? reference = (),
+	add-event-listener ta, "mousemove", of e
+		mouse-move a, ta, measurer-span, e, interrupter, tooltip-element
+	add-event-listener ta, "mouseout", of _
+		_ = get interrupter
+		rm-tooltip tooltip-element
+
+	subscribe-to-diagnostics a.keen, a.uri, of diagnostics
+		with in a.diag-debounce
+			do-highlight a, diagnostics
+
+	root.shadow-root ~~= line-numbers, text-container
+	# First render with no tokens, just in case it's taking a while to load the keen-server.
+	do-highlight a, ()
+	# Then request tokens and highlight properly.
+	text-changed a
+-interrupter record mut
+	current mut nat
+-new interrupter()
+	0,
+-get nat(a interrupter)
+	res = a.current
+	a.current +:= 1
+	res
+-is-still-current bool(a interrupter, was nat)
+	was == a.current - 1
+
+-keydown-kind enum(inserted-text, navigated)
+-handle-keydown keydown-kind?(ta node, event js-any) js
+	do trusted
+	insert = of to-insert string
+		insert-text-area-text ta, to-insert
+		inserted-text
+	res keydown-kind? = match event["key"].to::string
+	# 'End' works without modification
+	# Modify 'Home' to go after the indentation instead of to the full start of the line
+	as Home
+		if on-pressed-home-key ta then navigated
+	as Enter
+		insert["\n{indentation-at-selection ta}"]
+	as Tab
+		insert["\t"]
+	as PageUp
+		_ = call-property ta, "setSelectionRange", 0, 0
+		navigated
+	as PageDown
+		# Get this using JS so it is the length in UTF-16 characters.
+		text-size = ta["value"]["length"]
+		_ = call-property ta, "setSelectionRange", text-size, text-size
+		navigated
+	else
+		()
+	if res
+		_ = call-property event, "preventDefault"
+	res
+
+-count-lines nat(a string)
+	size split a, "\n"
+
+-mouse-move void
+	a keen-text
+	text-area node
+	measurer node
+	event js-any
+	interrupter interrupter
+	cur-tooltip node? reference
+do global, unsafe, js
+	offset = offset event
+	state = get interrupter
+	hover = get-hover a, text-area, measurer, offset
+	# If the mouse has moved again, do nothing, since we are already getting hover at the new position
+	do if is-still-current interrupter, state
+	if hover
+		do if cur-tooltip.get.?text-content != hover.text
+		rm-tooltip cur-tooltip
+		tooltip = make-tooltip hover.text, client-pos event
+		cur-tooltip set= tooltip
+		document["body"] ~= tooltip
+		_ = call-property tooltip, "showPopover"
+	else
+		rm-tooltip cur-tooltip
+
+-make-tooltip node(text string, pos vec2) js
+	res = create-div
+	res.classes ~= "hover-tooltip"
+	res.attributes ~~=
+		popover: "manual"
+		role: "tooltip"
+	res.text-content := text
+	res.style ~~=
+		# Adjust the position a bit to not be right under the mouse
+		left: "{pos.x + 5}px"
+		top: "{pos.y + 5}px"
+	res
+
+-rm-tooltip void(tooltip node? reference) js, unsafe
+	do if a = get tooltip
+	_ = call-property a, "hidePopover"
+	remove-self a
+	tooltip set= ()
+
+-client-pos vec2(event js-any) unsafe, js
+	event["clientX"].to, event["clientY"].to
+
+-offset vec2(event js-any) unsafe, js
+	event["offsetX"].to, event["offsetY"].to
+
+-got-hover record(text string, is-diagnostic bool)
+-get-hover got-hover?(a keen-text, text-area node, measurer node, offset vec2) unsafe, js
+	do if position = get-position text-area, measurer, offset
+	diagnostics = get-diagnostics a.keen, a.uri
+	if diagnostic = find diagnostics, {diag-has-pos it, position}
+		diagnostic.message, true
+	else
+		res = get-hover a.props.keen, a.props.uri, position
+		unless is-empty res
+			res, false
+
+-diag-has-pos bool(diag lsp-diagnostic, position line-and-character)
+	range = diag.range
+	if is-empty diag.range
+		range.start == position
+	else
+		has-pos range, position
+
+-is-empty bool(a line-and-character-range)
+	a.start == a.end
+
+-get-position line-and-character?(text-area node, measurer node, offset vec2) js
+	lines = split text-area.value, "\n"
+	column-width float = trusted measurer["offsetWidth"].to
+	line = clamp-to round-down offset.y / line-height-px
+	column-pre = clamp-to round-down offset.x / column-width
+	do if line < lines.size
+	line-text = lines[line]
+	leading-tabs = count-leading-tabs line-text
+	tabs-fix = leading-tabs * (tab-size - 1)
+	character = unless line-text == ""
+		clamp-sub column-pre, tabs-fix
+	# Allow character to be one to the right. This helps with diagnostics that are at the end of the line.
+	do if character <= line-text.size
+	line.to, character.to
+
+-clamp-sub nat(a nat, b nat)
+	if a > b
+		a - b
+
+-insert-text-area-text void(text-area js-any, inserted string) unsafe, js
+	inserted-js-string js-any = inserted.to
+	value = text-area["value"]
+	selection-start = text-area["selectionStart"]
+	selection-end = text-area["selectionEnd"]
+	# Selection is UTF-16 indices.
+	# The easiest way to handle that is to use JS slicing instead of Keen slicing.
+	before = call-property value, "slice", 0, selection-start
+	after = call-property value, "slice", selection-end
+	text-area["value"] := before + inserted-js-string + after
+	# Similarly, get the string length in JS instead of in Keen.
+	new-cursor = selection-start + inserted-js-string["length"]
+	_ = call-property text-area, "setSelectionRange", new-cursor, new-cursor
+
+# If false, do not override default behavior
+-on-pressed-home-key bool(text-area js-any) unsafe, js
+	str = text-area["value"]
+	pos mut float = text-area["selectionStart"].to
+	do unless pos == 0
+	do unless str[pos - 1 'to] == "\t"
+	if str[pos - 1 'to] == "\n"
+		until pos == str["length"].to or str[pos.to] != "\t"
+			pos +:= 1
+	else
+		# Walk backwards to a "\t" or "\n"
+		until pos == 0 or is-newline-or-tab str[pos - 1 'to]
+			pos -:= 1
+	_ = call-property text-area, "setSelectionRange", pos.to, pos.to
+	true
+
+-is-newline-or-tab bool(a js-any) unsafe, js
+	a == "\n" or a == "\t"
+
+-indentation-at-selection string(text-area js-any) unsafe, js
+	str char8[] = text-area["value"].to::string.to
+	pos mut = min str.size - 1, text-area["selectionStart"].to
+	first-non-space mut = pos
+	do until
+	char char8 = str[pos]
+	if char != " " and char != "\t"
+		first-non-space := pos
+	if pos == 0
+		str[pos .. first-non-space].to
+	else
+		pos -:= 1
+		unless pos >= 0 and str[pos] != "\n"
+			str[pos + 1 .. first-non-space].to
+
+-count-leading-tabs nat(a string-view)
+	size take-while a, it == "\t"
+
+-highlight void(tokens token[], diagnostics lsp-diagnostic[], highlight-div node, text string) js
+	remove-all-children highlight-div
+	highlight-div ~~= tokens-and-diags-to-nodes tokens, diagnostics, text

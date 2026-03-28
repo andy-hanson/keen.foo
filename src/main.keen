@@ -1,0 +1,52 @@
+import
+	keen/io/file
+	keen/io/path
+	../../keen/bin/keen.tar.xz as keen-tar-xz nat8[]
+	../../keen/bin/keen.vsix as keen-vsix nat8[]
+	../../keen/bin/java-classes.tar as java-classes nat8[]
+	../font/Alkatra.ttf as alkatra nat8[]
+	../font/Murecho-ExtraBold.woff2 as murecho-bold nat8[]
+	../font/Murecho-Regular.woff2 as murecho-regular nat8[]
+	../style/colors.css as colors nat8[]
+	../style/index.css as style-index nat8[]
+	./pages
+	./page-template
+
+main void() global
+	for content in pages ~~ to-copy
+		ensure-up-to-date content
+	log "done"
+
+-ensure-up-to-date void(a path-and-content) global
+	full-out-path = child-path "site", a.path
+	unless is-up-to-date full-out-path, a.content
+		ensure-directory-recursive parent-path full-out-path
+		log "write to {full-out-path}"
+		write-file full-out-path, a.content
+
+-is-up-to-date bool(path string, content nat8[]) global
+	try
+		old = path.read-file::nat8[]
+		res = old == content
+		if res == false
+			if ends-with path, "bits.html"
+				log "OLD", old.as-string
+				log "NEW", content.as-string
+		res
+	catch as path-not-found
+		false
+
+-ensure-directory-recursive void(path string) global
+	unless path == "" or path-exists path
+		ensure-directory-recursive parent-path path
+		ensure-directory path
+
+-to-copy path-and-content[]()
+	- "bin/keen.tar.xz", keen-tar-xz
+	- "bin/keen.vsix", keen-vsix
+	- "bin/java-classes.tar", java-classes
+	- "font/Alkatra.ttf", alkatra
+	- "font/Murecho-ExtraBold.woff2", murecho-bold
+	- "font/Murecho-Regular.woff2", murecho-regular
+	- "style/colors.css", colors
+	- "style/index.css", style-index

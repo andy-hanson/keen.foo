@@ -1,0 +1,154 @@
+import
+	../../html
+
+intro-misc html[]()
+	- section "Short function definitions",
+		- p "Very short functions can be written on one line using {keyword "="}."
+		- keen-runnable quote
+			main void() = log twice 3
+			twice nat(a nat) = a * 2
+
+
+	- section "Command-line arguments",
+		- p quote
+			The signature of {fn-main} is always {void} with no arguments.
+			{br}
+			To take command line arguments, call {std-function "keen/io/process", "command-line-args"}.
+			{br}
+			To set a process exit code, call {std-function "keen/io/process", "exit-process"}.
+		- keen-not-runnable quote
+			import
+				keen/io/process
+
+			main void() global
+				log command-line-args
+				exit-process 7
+
+	- section "Type aliases",
+		- p quote
+			{alias_} introduces a new name for a type.
+			{br}
+			{float}, {int}, and {nat} are aliases for {float64}, {int64}, and {nat64}.
+		- keen-runnable quote
+			main void()
+				xs nats = 1, 2, 3
+				log xs
+
+			nats alias
+				nat[]
+
+		- p "Currently, an alias can't be a template."
+
+	- section "Doc comments",
+		- p quote
+			Regular comments begin with {keyword "#"}. Doc comments begin with {keyword "|"}.
+			{br}
+			When referring to another declaration, or a function parameter, wrap its name in {braces}.
+			{br}
+			Keen will check that it really refers to something.
+
+		- keen-runnable quote
+			main void()
+				log double triple "o"
+
+			| Makes two of \{a\}
+			| Use \{triple\} if you need just a bit more
+			double string(a string)
+				repeat a, 2
+
+			| Makes three of \{a\}
+			| Use \{double\} if this is too much
+			# This comment will not appear on hover
+			triple string(a string)
+				repeat a, 3
+
+		- aside-small quote
+			If you hover over {function "double"} in {function "double triple "}{string "\"o\""},
+			it shows the doc comment.
+
+	- section "Region comments",
+		- p quote
+			{region_} marks the start of a section of a module.
+			{br} The text to the right of the {region_} keyword is a comment.
+			{br}
+			This may provide a folding range in your editor. (So far only in VSCode.)
+			{br}
+			This has no effect on the meaning of the code;
+			for example, private declarations are still visible in the whole file.
+		- keen-runnable quote
+			main void()
+				log one + two
+				log "\{hello\} \{goodbye\}"
+
+			region numbers
+
+			-one nat()
+				1
+			-two nat()
+				2
+
+			region words
+
+			-hello string()
+				"hello"
+			-goodbye string()
+				"goodbye"
+
+	- section "Unused internals",
+		- p quote
+			If you run {code "keen check foo"} (where {code "foo"} is a directory) and {code "foo/config.kid"} exists,
+			it is assumed that this is a complete library.
+			{br}
+			In that case, Keen will log a diagnostic for any unused internal declarations.
+
+	- section "Floats",
+		- p quote
+			In Keen, {float} functions (except for {unsafe} ones) that would return {fn-nan} instead throw an exception.
+
+		- keen-runnable quote
+			import
+				keen/math/math
+
+			main void()
+				# Every one of these throws
+				log square-root -1
+				log 1::float / 0
+				log log::float 0
+				log sin infinity
+
+		- p quote
+			In Keen, a value must always equal itself, so {fn-nan}{sp}{fn-equal}{sp}{fn-nan}.
+			{br}
+			Also, two values must only be equal if they are indistinguishable,
+			so {negative-0}{sp}{fn-not-equal}{sp}{num-0}.
+			{br}
+			For comparison, Keen uses this ordering:
+		- bullets
+			- "{fn-nan}"
+			- "-{fn-infinity}"
+			- "... negative numbers ..."
+			- "{negative-0}"
+			- "{num-0}"
+			- " ... positive numbers ..."
+			- "{fn-infinity}"
+		- p quote
+			To get the looser IEEE float comparison, use {std-function "keen/number", "float-equal"}
+			and {std-function "keen/number", "float-less"}.
+
+		- keen-runnable quote
+			main void() unsafe
+				log nan == nan
+				log float-equal nan, nan
+
+				log nan < -infinity
+				log float-less nan, -infinity
+
+				log -0.0 < 0
+				log float-less -0, 0
+
+-fn-infinity html-node()
+	std-function "keen/number", "infinity"
+-fn-nan html-node()
+	std-function "keen/number", "nan"
+-negative-0 html-node()
+	number "-0"

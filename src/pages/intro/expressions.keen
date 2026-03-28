@@ -1,0 +1,130 @@
+import
+	../../html
+
+intro-expressions html[]()
+	- section "Block expressions",
+		- p quote
+			An indented block is a kind of expression. Every function body is a block expression.
+			{br}
+			Block expressions can nest inside of other expressions.
+		- keen-runnable quote
+			main void()
+				log
+					"hello"
+
+		- aside-small "A block expression must be the {em "last"} argument to a function call."
+
+		- p "The beginning and ending of an indented block act like like parentheses."
+		- keen-runnable quote
+			main void()
+				# Same as log 2 * (3 + 4)
+				log 2 *
+					3 + 4
+
+		- p "Like any expression, you need a comma before an indented block to separate it from other arguments."
+		- keen-runnable quote
+			main void()
+				# Same as log abs -1
+				log abs
+					-1
+				# Same as log 2, 3
+				log 2,
+					3
+
+	- section "Sequence expressions",
+		- p quote
+			A sequence expression evaluates each subexpression in sequence.
+			{br}
+			Subexpressions are separated by newlines (at the same indent level).
+		- keen-runnable quote
+			main void()
+				log 1
+				log 2
+
+		- p quote
+			The value of a sequence expression is the value of the last line.
+			{br}
+			All other lines must be {void}.
+		- keen-runnable quote
+			main void()
+				log foo
+
+			foo string()
+				log "side effect"
+				"foo"
+
+		- p "A sequence expression can go inside a block expression."
+		- keen-runnable quote
+			main void()
+				x =
+					log "in a local"
+					1
+				log
+					log "in an argument"
+					x
+
+	- section "Locals",
+		- p quote
+			Creating a new local variable is simple: {code "name = ..."}
+			{br}
+			A type after the name is optional.
+		- keen-runnable quote
+			main void()
+				x = "hello"
+				y string = "world"
+				log x, y
+
+		- p quote
+			{mut_} makes the local mutable.
+			{keyword ":="} mutates the local.
+		- keen-runnable quote
+			main void()
+				x mut = 1
+				x := 2
+				log x
+
+		- p "If present, the type goes after {mut_}."
+		- keen-runnable quote
+			main void()
+				x mut nat = 1
+				x := 2
+				log x
+
+	- section "Ignoring things",
+		- p quote
+			A sequence expression requires {void} subexpressions (except the last),
+			but sometimes you want to ignore a non-{void} value.
+			{br}
+			To do so, assign it to {keyword "_"}.
+			You can even give it a type annotation if necessary.
+		- keen-runnable quote
+			main void()
+				_ = 1
+				_ string = "foo"
+				log "done"
+
+		- aside-small "{keyword "_"} is not the name of a local. It's special syntax for dropping a value."
+
+		- p "{keyword "_"} works in parameters too."
+		- keen-runnable quote
+			main void()
+				log foo 1
+
+			foo string(_ nat)
+				"hello"
+
+	- section "Scope",
+		- p quote
+			Locals can be nested inside other expressions.
+			{br}
+			The local is only in scope within its own expression.
+		- keen-runnable quote
+			main void()
+				log
+					x = 1
+					x
+				log
+					# This is a different 'x'
+					x = "hello"
+					x
+				# log x # Won't work, 'x' is not in scope here

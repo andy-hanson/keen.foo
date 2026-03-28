@@ -1,0 +1,95 @@
+import
+	../../html
+
+intro-iteration html[]()
+	- section "\"for\" loops",
+		- p "The usual way to iterate a collection is with a {for_} loop."
+		- keen-runnable quote
+			main void()
+				a nat[] = 1, 2, 3
+				for x in a
+					log x
+
+		- p "A {for_} loop is an expression. It can be {void}, or return an output collection."
+		- keen-runnable quote
+			main void()
+				a nat[] = 1, 2, 3
+				b nat[] = for x in a
+					x * 10
+				log b
+
+		- p "A type annotation after the {for_} keyword types the entire {for_} expression."
+		- keen-runnable quote
+			main void()
+				a nat[] = 1, 2, 3
+				log for::nat[] x in a
+					x * 10
+
+		- aside-small "A {for_} loop usually needs an expected type, since it can produce any kind of collection."
+
+		- p "A {for_} loop can be squeezed onto one line using {then_}."
+		- keen-runnable quote
+			main void()
+				a nat[] = 1, 2, 3
+				log for::nat[] x in a then x * 10
+
+		- p "{for_} loops are a convenient syntax for calling a function named {function "for-loop"} with a lambda."
+		- keen-runnable quote
+			main void()
+				a nat[] = 1, 2, 3
+				log for-loop::nat[] a, of x then x * 10
+
+		- p quote
+			There are also {for-star} loops, which work like {for_} loops,
+			but the body returns a collection that is flattened into the result.
+			{br}
+			These call a function named {function "for-star"}.
+		- keen-runnable quote
+			main void()
+				a nat[] = 1, 2, 3
+				log for*::nat[] x in a
+					x, x
+
+	- section "Iteration with early return",
+		- p quote
+			There is no early return from a {for_} loop; it always iterates every element of the collection.
+		- p quote
+			The most primitive iteration function is {function "some"} which stops when the lambda returns {fn-true}.
+
+		- keen-runnable quote
+			main void()
+				a nat[] = 1, 2, 3
+				log some a, of x
+					log "checking \{x\}"
+					is-even x
+
+		- aside-small quote
+			Most generic collection functions take the collection and element types as type parameters,
+			and use the spec {lparen}{type "col"}{comma}{type "elem"}{rparen}{sp}{spec-some}
+			to iterate the collection.
+			{br}
+			This is how {std-function "keen/col/util", "for-loop"} is implemented.
+
+		- p quote
+			A more general function is {fn-first}.
+			Here, the callback returns an option, and the first non-empty result is returned.
+
+		- keen-runnable quote
+			main void()
+				a nat[] = 1, 2, 3
+				log first a, of x
+					log "checking \{x\}"
+					if is-even x
+						x * 10
+
+		- p quote
+			{fn-first} works a lot like an {until_} loop with a condition-body (see {intro-link loops});
+			it keeps running the body until it gets a result.
+			{br}
+			Unlike an {until_} loop, it can also stop running if it reaches the end of the collection,
+			so it returns an option.
+
+-spec-some html-node()
+	std-type "keen/col/collection", "some"
+-fn-first html-node()
+	std-function "keen/col/util", "first"

@@ -1,0 +1,101 @@
+import
+	../../html
+
+intro-interfaces html[]()
+	- section "Interfaces",
+		- p quote
+			An {interface_} type is like a union, but does not declare its case types.
+			{br}
+			Instead, each case type declares itself a {case_} of the interface.
+
+		- keen-runnable quote
+			import
+				keen/math/math
+
+			main void()
+				a shape = circle 1
+				b shape = square 2
+				log area a
+				log area b
+
+			shape interface
+				area float()
+
+			circle record(radius float) shape case
+			area float(a circle)
+				pi * a.radius ** 2
+
+			square record(width float) shape case
+			area float(a square)
+				a.width ** 2
+
+	- section "Strong interfaces",
+		- p quote
+			There's no way to retrieve the case type given a reference to an interface.
+			{br}
+			The only thing you can do with an {interface_} value is call its methods.
+			{br}
+			This is usually a good thing as it makes an interface a meaningful specification
+			of what a value is actually used for.
+			{br}
+			If you want to {match_} on an interface, use a {variant_} instead.
+
+	- section "Interface mutability",
+		- p quote
+			As with a {union_}, {case_} types of an {interface_} can have at most the interface's mutability.
+
+		- keen-runnable quote
+			main void()
+				a i = r 0
+				log update a
+				log update a
+
+			i interface mut
+				update nat()
+			r record mut, i case
+				count mut nat
+			update nat(a r)
+				a.count +:= 1
+				a.count
+
+		- aside-small "Try removing {mut_} from the interface above to see the error."
+
+	- section "Variants",
+		- p quote
+			{variant_}s are like interfaces, but support {match_} expressions.
+			{br}
+			Or to put it another way, a {variant_} is like a {union_}
+			where the case types do not have to be known up-front.
+			{br}
+			These aren't often needed, but the {exception} type is an example variant type.
+			It's a good example where it would be impractical to declare all case types up-front.
+
+		- keen-runnable quote
+			main void()
+				a shape = circle 1
+				log match a
+				as circle
+					"circle \{a.radius\}"
+				as square
+					"square \{a.width\}"
+				else
+					"some other type"
+
+			shape variant
+			circle record(radius float) shape case
+			square record(width float) shape case
+
+		- aside "Variants are open",
+			- p quote
+				Since any type can declare itself a {case_} of the variant, variants must be treated as open-ended.
+				{br}
+				No code can be assumed to know all case types.
+			- p "So, the {else_} in the above example is mandatory, even though no other case types are in sight."
+			- p "If you want a closed set of case types, use a {union_}."
+
+	- section "Restrictions",
+		- bullets
+			- quote
+				Since a case type must explicitly {case_} an interface or variant,
+				they can't contain already-declared types like {nat}.
+			- "Auto functions won't work on interfaces or variants."

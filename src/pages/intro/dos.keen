@@ -1,0 +1,86 @@
+import
+	../../html
+
+intro-dos html[]()
+	- section "\"do\"",
+		- p quote
+			The {do_} keyword can be used to reduce indentation.
+			{br}
+			The below examples are equivalent:
+
+		- keen-runnable quote
+			main void()
+				if true
+					log "ok"
+
+		- keen-runnable quote
+			main void()
+				do if true
+				log "ok"
+
+		- p quote
+			{do_} can go in front of {if_}, {for_}, {for-star}, {trusted_}, {unless_}, {until_}, {with_}, or {while_}.
+			{br}
+			All lines after the line with the {do_} are treated as if they were an indented block.
+			{br}
+			This can chain to reduce many levels of indentation:
+
+		- keen-runnable quote
+			main void()
+				do for x in (1, 2, 3)::nat[]
+				do for y in (1, 2, 3)::nat[]
+				do unless x == y
+				log x, y
+
+	- section "\"do if\" and \"do unless\"",
+		- p "Unlike a normal {if_}, the condition in a {do-if} or {do-unless} can take an indented block."
+		- keen-runnable quote
+			main void()
+				a nat[] = 2, 4, 6
+				do if every a, of x
+					is-even x
+				log "all even"
+
+		- p quote
+			A {do-if} or {do-unless} can still have an {else_} branch.
+			If so, it goes to the right of the condition.
+			{br}
+			(This means the condition must fit on one line.)
+		- keen-runnable quote
+			main void()
+				log foo 10
+				log foo 11
+
+			foo string(a nat)
+				do if is-even a else "some odd number"
+				"twice \{a / 2\}"
+
+		- p "The {else_} branch can be an indented block."
+		- keen-runnable quote
+			main void()
+				log foo 10
+				log foo 11
+
+			foo string(a nat)
+				do if is-even a else
+					"some odd number"
+				"twice \{a / 2\}"
+
+		- p "Use {do-if} and {do-unless} when you want to emphasize a main path where all the {if_}s succeed."
+		- keen-runnable quote
+			main void()
+				log describe 1
+				log describe 101
+				log describe 50
+				log describe 51
+
+			describe string(a nat)
+				do if a > 10 else "too small"
+				do if a < 100 else "too big"
+				do unless is-even a else "too even"
+				"ok"
+
+-do-if html[]()
+	"{do_}{sp}{if_}"
+-do-unless html[]()
+	"{do_}{sp}{unless_}"

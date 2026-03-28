@@ -1,0 +1,52 @@
+import
+	keen/js/dom
+	../style/colors.css as colors-css string
+	../style/syntax-translate.css as syntax-translate-css string
+	./keen: keen-server, syntax-translate
+	./util/util: get-child-text
+	./syntax-translate-protocol
+
+define-syntax-translate-element void(keen keen-server) global, js
+	define-custom-element "syntax-translate-row", {}
+	define-custom-element "syntax-translate", (styles: colors-css, syntax-translate-css), of x
+		x.shadow-root ~= make-div keen, x.as-node.child-nodes
+
+-make-div node(keen keen-server, child-nodes node[]) js
+	create-node "table", (), "",
+		- create-node "thead", (), "",
+			- create-node "tr", (), "",
+				- th "Keen syntax"
+				- th "C-like syntax"
+		- create-node "tbody", (), "", for* x in child-nodes
+			unless is-text-node x
+				- create-row keen, x.get-child-text
+
+-create-row node(server keen-server, initial-keen-source string) js
+	inputs mut node[] = ()
+
+	input-for-lang = of lang language
+		inputs[index-of! langs, lang]
+
+	on-input = of input-lang language
+		:: void
+		for output-lang in langs
+			unless output-lang == input-lang
+				input-value = value input-for-lang[input-lang]
+				result = syntax-translate server, input-lang, input-value, output-lang
+				input-for-lang[output-lang].value := result
+
+	inputs := for lang in langs
+		create-input-text {on-input[lang]}, if lang == keen then initial-keen-source
+
+	on-input[keen]
+
+	create-node "tr", (), "", for x in inputs
+		create-node "td", (), "",
+			- x
+
+-langs language[]()
+	keen, c
+
+-th node(text string) js
+	create-node "th", (), "",
+		- create-text-node text

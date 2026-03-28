@@ -1,0 +1,157 @@
+import
+	keen/js
+	keen/js/dom
+	keen/unsafe
+	../../keen/app/model/lsp
+	../../keen/app/model/source-range
+	../../keen/app/model/uri
+	../style/colors.css as colors-css string
+	../style/keen-runnable.css as keen-runnable-css string
+	./keen
+	./keen-text
+	./icon
+	./loading-spinner
+	./util/util
+
+define-keen-runnable-custom-element void(keen keen-server) global, js
+	names names = ()
+	define-custom-element "keen-runnable", (styles: colors-css, keen-runnable-css), of x
+		trusted connected x, keen, names
+
+-names record(seen string mut-set, next-index mut nat) mut
+-new names()
+	(), 0
+-get-default-name string(a names) unsafe
+	index = a.next-index
+	a.next-index +:= 1
+	"demo{index}.keen"
+
+-get-keen-runnable-name string(a names, name-attr string?) unsafe, js
+	name = name-attr else get-default-name a
+	assert ends-with name, ".keen" or ends-with name, ".kid"
+	unless try-add a.seen, name
+		log-error "Two keen-runnable have the same name {name}"
+	name
+
+-connected void(a custom-element-node, keen keen-server, names names) global, unsafe, js
+	name-attr = a.attributes["name"]
+	name = get-keen-runnable-name names, name-attr
+	no-run = a.attributes["no-run"] == "true"
+	initial-text = get-child-text a.as-node
+	main-uri = parse-uri "file:///{name}"
+	keen-text mut keen-text? = ()
+	keen-text := create-keen-text (keen, main-uri, initial-text)
+	a.shadow-root ~~=
+		-- if name-attr
+			- create-div "name",
+				- create-text-node name
+		- keen-text!.node
+		-- unless no-run
+			make-output keen, main-uri, a.attributes["test"] == "true"
+
+-make-output node[](keen keen-server, main-uri uri, test_ bool) js, global, unsafe
+	output run-output = ()
+
+	collapse-button-ref mut node? = ()
+	collapse-button = create-button "Hide output", "collapsed", (up-icon,), of
+		hide output
+		collapse-button-ref!.classes ~= "collapsed"
+	collapse-button-ref := collapse-button
+	collapse-button.style["float"] := "right"
+
+	run-button node = create-button "Run", "", (play-icon,), of
+		start-running output
+		collapse-button.classes -= "collapsed"
+		main-kind = if test_ then tests else main
+		result = run-js build-js-script keen, main-kind, main-uri
+		# Get the diagnostics after running in case they weren't received yet when the user clicked 'Run'
+		diagnostics = get-diagnostics keen, main-uri
+		finish-running diagnostics, output, result
+
+	buttons node[] =
+		-- from-option run-button
+		- collapse-button
+
+	- output.container
+	- create-div "bottom", buttons
+
+-run-output record(container node) mut
+-new run-output() js
+	res run-output =
+		- create-div "output", ()
+	hide res
+	res
+-hide void(a run-output) js
+	a.container.style["height"] := "0"
+-start-running void(a run-output) js
+	a.container.classes := "output", "running"
+	a.container.style["height"] := "2em"
+	remove-all-children a.container
+	a.container ~= create-loading-spinner
+-finish-running void(diagnostics lsp-diagnostic[], a run-output, run-result write[]) unsafe, js
+	a.container.classes -= "running"
+	a.container.style["height"] := ""
+	remove-all-children a.container
+	add-spans-for-diagnostics a.container, diagnostics
+	add-spans-for-writes a.container, run-result
+
+-add-spans-for-diagnostics void(container node, diagnostics lsp-diagnostic[]) js
+	for diag in diagnostics
+		start = diag.range.start
+		container ~= create-span "error",
+			- create-text-node "Line {start.line + 1}: {diag.message}"
+		container ~= create-node "br"
+
+-add-spans-for-writes void(container node, writes write[]) js
+	cur mut string = ""
+	cur-pipe mut = out
+	finish-line = of
+		do unless is-empty cur
+		class_ = match cur-pipe
+		as out then "stdout"
+		as err then "stderr"
+		container ~= create-node "code", (), class_,
+			- create-text-node cur
+		cur := ""
+	for write in writes
+		unless write.pipe == cur-pipe
+			finish-line[]
+			cur-pipe := write.pipe
+		cur := "{cur}{write.text}"
+	if is-empty writes
+		cur := "<<no output>>"
+	finish-line[]
+
+-run-js write[](build build-js-script-result) js
+	do trusted
+	console = js-global["console"]
+	old-info = console["info"]
+	old-error = console["error"]
+	finally
+		console["info"] := old-info
+		console["error"] := old-error
+	writes write mut[] = ()
+	unless is-empty build.diagnostics
+		writes ~= err, "{build.diagnostics}\n"
+	new-info = of x js-any
+		writes ~= out, "{x.to::string}\n"
+	new-error = of x js-any
+		writes ~= err, "{x.to::string}\n"
+	console["info"] := new-info.to
+	console["error"] := new-error.to
+
+	if script = build.script
+		# Ensure the script is unique, so that side effects happen on js-import even if the same script runs twice
+		unique-script js-any = "{script}\n// ensure unique: {next-script-id}"
+		next-script-id +:= 1
+		encoded = call js-global["encodeURIComponent"], unique-script
+		data-url = "data:text/javascript;charset=utf-8,"::js-any + encoded
+		try
+			_ = js-import data-url
+		catch e
+			writes ~=
+				pipe: err
+				text: call-property e.reinterpret-cast::js-any, "toString" 'to
+	move-to writes
+
+-next-script-id global(nat) = 0

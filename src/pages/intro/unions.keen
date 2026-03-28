@@ -1,0 +1,208 @@
+import
+	../../html
+
+intro-unions html[]()
+	- section "Declaring unions",
+		- p quote
+			A {union_} value chooses one of several possible types. These are called the {em "case types"}.
+			{br}
+			Below, the case types of {u} are {nat} and {string}.
+			So a {u} value must be either a {nat} or a {string}.
+			{br}
+			A value of a case type can implicitly convert to the union type.
+
+		- keen-runnable quote
+			main void()
+				a u = 1
+				log a
+				b u = "foo"
+				log b
+
+			u union
+				nat
+				string
+
+		- p "Short unions can be squeezed onto one line."
+		- keen-not-runnable "u union(nat, string)"
+
+	- section "Case getters",
+		- p quote
+			Declaring the union implicitly creates functions for getting each of its case types.
+			{br}
+			In this example, those are
+			{function "nat64"}{sp}{type "nat64?"}{a-u} and {function "string"}{sp}{string}{type "?"}{a-u} .
+			{br}
+			({nat} is an alias for {nat64}, so the case getter function uses the type's true name.)
+		- keen-runnable quote
+			main void()
+				a u = 1
+				log nat64 a
+				log string a
+				b u = "foo"
+				log nat64 b
+				log string b
+
+			u union(nat, string)
+
+		- p quote
+			If a case getter is used as a condition, its argument will implicitly convert to the case type
+			in the scope where the condition is true.
+		- keen-runnable quote
+			main void()
+				a u = 1
+				b u = "foo"
+				log size a
+				log size b
+
+			u union(nat, string)
+
+			size nat(a u)
+				if nat64 a
+					a # 'a' implicitly converts to 'nat'
+				elif string a
+					# 'a' implicitly converts to 'string',
+					# so this calls the 'size' function for strings
+					size a
+				else
+					# This should never happen
+					99
+
+	- section "\"match\" on unions",
+		- p quote
+			{match_} works on a union value. This uses the same syntax as a {match_} on an enum value.
+			{br}
+			If you handle every case, you don't need an {else_} branch.
+		- keen-runnable quote
+			main void()
+				a u = 1
+				b u = "foo"
+				log size a
+				log size b
+
+			u union(nat, string)
+
+			size nat(a u)
+				match a
+				as nat
+					# 'a' implicitly converts to 'nat'
+					a
+				as string
+					# 'a' implicitly converts to 'string'
+					size a
+
+	- section "Methods",
+		- p "A union can list functions that must exist for all case types. These are called {em "methods"}."
+		- keen-runnable quote
+			main void()
+				a u = 1
+				b u = "foo"
+				log size a
+				log size b
+
+			u union
+				nat
+				string
+			do
+				size nat()
+
+			size nat(a nat)
+				a
+
+		- p quote
+			For each case type, there must be a function matching the method,
+			with the case type injected as the first parameter.
+			{br}
+			This is called the method {em "implementation"}.
+		- p quote
+			Above, the method implementations are {fn-size}{sp}{nat}{lparen}{var-a}{sp}{nat}{rparen} and
+			{fn-size}{sp}{nat}{lparen}{var-a}{sp}{string}{rparen} .
+			{br}
+			The {nat} implementation is defined in the example;
+			the {string} implementation comes from the standard library.
+		- p quote
+			Declaring the method also implicitly creates a {em "caller"} function
+			which takes the union type as its first parameter.
+			{br}
+			Above, the caller is {fn-size}{sp}{nat}{lparen}{var-a}{sp}{u}{rparen} .
+			{br}
+			The caller matches on the union and calls the appropriate implementation.
+		- aside-small quote
+			Union methods let you break up a function that would have been a huge {match_} expression,
+			and write separate functions for each case type.
+			{br}
+			Though, sometimes it is better to just write a {match_}.
+
+		- p quote
+			If the union is on one line, omit the {do_} keyword.
+		- keen-not-runnable quote
+			u union(nat[], string)
+				size nat()
+
+
+	- section "More implicit functions on unions",
+		- p quote
+			Unions support the same implicit functions as records:
+			{fn-equal}, {fn-compare}, {fn-hash}, and {fn-to}{sp}{json}.
+			{br}
+			As with records, the union must be immutable to get these functions.
+
+		- keen-runnable quote
+			main void()
+				n u = 10
+				s u = "9"
+				log n == s
+				log n <=> s
+				log deterministic-hash n
+				log n
+
+			u union(nat, string)
+
+		- bullets
+			- quote
+				{fn-equal} returns {fn-false} for different case types.
+				For values of the same case type, it calls the {fn-equal} function for that type.
+			- quote
+				{fn-compare} works similarly.
+				When the values are of the same case type, it calls {fn-compare} for the case type.
+				{br}
+				When the values are not of the same case type,
+				case types that were declared earlier are considered lesser.
+				{br}
+				If you declared the union as {union_}{lparen}{nat}{comma}{string}{rparen} ,
+				{nat}s are less than {string}s.
+				{br}
+				If you declared the union as {union_}{lparen}{string}{comma}{nat}{rparen} ,
+				{string}s are less than {nat}s.
+			- quote
+				{fn-hash} hashes the case type index (above {nat} is {num-0} and {string} is {num-1}),
+				then calls the {fn-hash} function for the case type.
+			- quote
+				{to-json} returns a single-key object with the case type name as a key,
+				and calls that type's {to-json} for the value.
+
+	- section "Restrictions",
+		- p quote
+			Almost any types can be combined in a union, but:
+		- bullets
+			- "Multiple aliases to the same type (e.g. {nat} and {nat64}) aren't allowed."
+			- quote
+				Multiple instances of the same generic type aren't allowed.
+				(These will be explained in {intro-link type-parameters}.)
+		- keen-not-runnable quote
+			u union(nat, nat64) # This won't work
+			v union(nat[], string[]) # This won't work
+
+		- p "You can work around that by defining wrapper types with unique names."
+		- keen-runnable quote
+			main void()
+				a u = nats (1, 2, 3)
+				log a
+				b u = strings ("a", "b", "c")
+				log b
+
+			u union(nats, strings)
+			nats record(values nat[])
+			strings record(values string[])
+
+-a-u html[]()
+	parenthesized "{var-a}{sp}{u}"

@@ -1,0 +1,104 @@
+import
+	../../html
+
+intro-global html[]()
+	- section "Direct global side effects",
+		- p quote
+			Global side effects aren't allowed in ordinary functions. (Though {fn-log} is allowed.)
+			{br}
+			That means we still haven't done a proper "Hello, world"!
+
+		- keen-runnable quote
+			import
+				keen/io/print
+
+			main void() global
+				print "Hello, world!"
+
+		- p quote
+			Any function like {fn-print} that directly has a global side effect must be marked with the {global_} spec.
+			{br}
+			Even {em "observing"} global state, such as reading a file, is considered a global side effect.
+
+	- section "Global side effects through a lambda",
+		- p "A function without the {global_} spec can still call lambdas that have global side effects."
+
+		- keen-runnable quote
+			import
+				keen/io/print
+
+			main void() global
+				do-times 10, of
+					print "Hello, world!"
+
+			do-times void(times nat, f void mut())
+				for _ in 0 .. times
+					f[]
+
+		- p quote
+			Notice that while a global side effect happened {em "during"} {function "do-times"},
+			{function "do-times"} itself does nto have global side effects.
+			So it does not have to be marked {global_}.
+
+		- p "{em "Creating"} a lambda that does {global_} things is {global_}, but {em "calling"} the lambda is not."
+
+		- p "A {data_} lambda can not have global side effects."
+
+	- section "Global side effects through an interface",
+		- p "A similar thing can be done with interfaces."
+
+		- keen-runnable quote
+			import
+				keen/io/print
+
+			main void() global
+				print-times 10, my-printer
+
+			print-times void(times nat, printer printer)
+				for _ in 0 .. times
+					print printer, "hello"
+
+			printer interface mut
+				print void(message string)
+			my-printer record global, mut, printer case
+			print void(_ my-printer, message string) global
+				print message
+
+		- p quote
+			Notice how {type "my-printer"} had to be marked as {global_}.
+			{br}
+			Marking a {record_} as {global_} makes its {fn-new}
+			(and named {function "my-printer"}) functions {global_} as well,
+			so you can only construct a {type "my-printer"} in {global_} code.
+			{br}
+			If a record is {global_}, it can implement an interface using {global_} functions.
+		- p quote
+			The interface needs to be {mut_} for this to work, since {data_} types can't have side effects.
+
+	- section "Trusting global side effects",
+		- p quote
+			{trusted_} allows its argument to call {global_} (in addition to {unsafe}) functions.
+			{br}
+			Do this only if you know that the side effects are harmless.
+
+		- keen-runnable quote
+			import
+				keen/io/print
+
+			main void()
+				trusted print "This is allowed"
+
+	- section "Global variables",
+		- keen-runnable quote
+			main void() global, unsafe
+				log x
+				x := 2
+				log x
+
+			x global(nat)
+				1 # This is the initial value
+
+		- aside-small quote
+			Accessing a global variable both has a global side effect and can violate thread safety.
+			{br}
+			So it is both {global_} and {unsafe}.

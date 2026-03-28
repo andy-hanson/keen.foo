@@ -1,0 +1,85 @@
+import
+	../../html
+	./collections
+	./configs
+	./contexts
+	./dos
+	./end
+	./enums
+	./exceptions
+	./expressions
+	./global
+	./ifs
+	./index
+	./interfaces
+	./iteration
+	./functions
+	./java
+	./js
+	./kid
+	./lambdas
+	./loops
+	./matches
+	./misc
+	./modules
+	./more-overloading
+	./mutability
+	./new
+	./operators
+	./options
+	./overloading
+	./parallel
+	./records
+	./specs
+	./strings
+	./targets
+	./tests
+	./tuples
+	./type-parameters
+	./types
+	./unions
+	./unsafe
+	./visibility
+
+intro html[](a intro-page)
+	match a
+	as collections then intro-collections
+	as configs then intro-configs
+	as contexts then intro-contexts
+	as dos then intro-dos
+	as end then intro-end
+	as enums then intro-enums
+	as exceptions then intro-exceptions
+	as expressions then intro-expressions
+	as functions then intro-functions
+	as globals then intro-global
+	as interfaces then intro-interfaces
+	as ifs then intro-ifs
+	as iteration then intro-iteration
+	as index then intro-index
+	as java then intro-java
+	as js then intro-js
+	as kid then intro-kid
+	as loops then intro-loops
+	as lambdas then intro-lambdas
+	as matches then intro-matches
+	as misc then intro-misc
+	as modules then intro-modules
+	as more-overloading then intro-more-overloading
+	as mutability then intro-mutability
+	as new_ then intro-new
+	as operators then intro-operators
+	as options then intro-options
+	as overloading then intro-overloading
+	as parallel then intro-parallel
+	as records then intro-records
+	as specs then intro-specs
+	as strings then intro-strings
+	as targets then intro-targets
+	as tests then intro-tests
+	as tuples then intro-tuples
+	as type-parameters then  intro-type-parameters
+	as types then intro-types
+	as unions then intro-unions
+	as unsafe then intro-unsafe
+	as visibility then intro-visibility

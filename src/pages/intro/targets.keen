@@ -1,0 +1,95 @@
+import
+	../../html
+
+intro-targets html[]()
+	- section "About targets",
+		- p quote
+			Keen currently supports two targets: Java and JavaScript.
+			The default is Java.
+		- p "Commands that use Java:"
+		- bullets
+			- "{code "keen foo.keen"}"
+			- "{code "keen run foo.keen"}"
+			- "{code "keen build foo.keen"}"
+			- "{code "keen test foo.keen"} (see {intro-link tests})"
+		- p "Commands that use JavaScript:"
+		- bullets
+			- "{code "keen run foo.keen --node-js"}"
+			- "{code "keen build foo.keen --out foo.js"}"
+			- "{code "keen test foo.keen --node-js"}"
+
+		- p quote
+			The target is considered global state.
+			{br}
+			So, non-{global_}, non-{unsafe} functions behave the same regardless of the target.
+
+		- p quote
+			Some functions only work on a particular target.
+			{br}
+			A function that only works in Java will use the {spec-java} spec.
+			{br}
+			A function that only works in JavaScript will use the {spec-js} spec.
+
+	- section "Testing the target",
+		- p quote
+			It's possible to call a {spec-java} or {spec-js} function from a regular function
+			by first testing {fn-java} or {fn-js}.
+			{br}
+			These are functions returning {bool}, but Keen treats them specially.
+
+		- keen-runnable quote
+			import
+				java/io/PrintStream
+				java/lang/System
+				keen/js
+
+			main void() global
+				if java
+					java-only-function
+				elif js
+					js-only-function
+				else
+					throw todo
+
+			java-only-function void() global, java
+				trusted println out, "This will only appear if the target is Java"
+
+			js-only-function void() global, js
+				_ = trusted call-property js-global["console"], "info",
+					"This will only appear if the target is JavaScript"
+
+		- aside-small "The details will be explained in {intro-link java} and {intro-link js}."
+
+		- p quote
+			The functions {fn-java} and {fn-js} are {global_}, since the target is considered global state.
+			{br}
+			Use {trusted_} to erase {global_} if the behavior is the same in any target.
+
+		- keen-runnable quote
+			import
+				keen/js
+				java/lang/Math
+
+			main void()
+				log square-root 4
+
+			square-root float(a float)
+				trusted if java
+					sqrt a
+				elif js
+					to call-property js-global["Math"], "sqrt", a.to
+				else
+					throw todo
+
+		- aside-small quote
+			The standard {std-function "keen/col/math", "square-root"} uses an implementation like this.
+
+	- section "Main target",
+		- p "A {fn-main} function can use a target."
+
+		- keen-runnable quote
+			import
+				keen/js
+
+			main void() global, js
+				_ = trusted call-property js-global["console"], "info", "JS only!"

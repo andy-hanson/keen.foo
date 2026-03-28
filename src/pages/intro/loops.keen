@@ -1,0 +1,107 @@
+import
+	../../html
+
+intro-loops html[]()
+	- section "\"while\" loops",
+		- p quote
+			A {while_} expression runs as long as the condition is {fn-true}.
+			{br}
+			The value of a {while_} expression is always {void}.
+		- keen-runnable quote
+			main void()
+				x mut = 10
+				while x != 0
+					x -:= 1
+					log x
+
+		- p "The condition of a {while_} loop can be an option."
+		- keen-runnable quote
+			main void()
+				xs nat mut[] = 1, 2, 3
+				while x = pop xs
+					log x
+
+	- section "Condition-bodied \"while\" loops",
+		- p quote
+			The condition and body can be combined.
+			This will repeatedly evaluate the body as long as it returns {fn-true}.
+			{br}
+			Unlike the above example, this has an additional log of an empty option.
+		- keen-runnable quote
+			main void()
+				xs nat mut[] = 1, 2, 3
+				while
+					x = pop xs
+					log x
+					x
+
+		- aside-small quote
+			In a condition-bodied {while_} loop,
+			{fn-true} means "continue the loop" and {fn-false} means "break".
+
+	- section "\"until\" loops",
+		- p "An {until_} expression is like a {while_} expression with the condition negated."
+		- keen-runnable quote
+			main void()
+				x mut nat = 10
+				until x == 0
+					log x
+					x -:= 1
+
+		- p quote
+			As with a {while_} loop, the condition can be an option.
+			{br}
+			Since the condition is negated, the value is avaluable {em "after"} the loop.
+		- keen-runnable quote
+			main void()
+				x mut nat = 11
+				until result = tenth x
+					# 'result' is not in scope here
+					log "x is", x
+					x +:= 1
+				log "result is", result
+
+			tenth nat?(a nat)
+				if is-multiple-of a, 10
+					a / 10
+
+	- section "Condition-bodied \"until\" loops",
+		- p quote
+			As with a {while_} loop, the condition and body can be combined.
+		- keen-runnable quote
+			main void()
+				x mut = 10
+				until
+					log x
+					x -:= 1
+					x == 0
+
+		- aside-small quote
+			In a condition-bodied {until_} loop,
+			{fn-true} means "break the loop" and {fn-false} means "continue".
+
+		- p quote
+			The body can also return an option.
+			{br}
+			In that case, the value of the {until_} expression is the first non-empty option returned by the body.
+			{br}
+			(It is unwrapped to a non-optional type, meaning {nat} instead of {type "nat?"} below.)
+			{br}
+			This is the only kind of loop to not be {void}.
+		- keen-runnable quote
+			main void()
+				x mut = 11
+				result = until
+					log "x is", x
+					x +:= 1
+					tenth x
+				log "result is", result
+
+			tenth nat?(a nat)
+				if is-multiple-of a, 10
+					a / 10
+
+		- aside-small quote
+			{until_} with an option body is a generally useful loop.
+			{br}
+			It runs any expression until it returns a result.

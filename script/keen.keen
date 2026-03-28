@@ -1,0 +1,127 @@
+import
+	keen/io/duration
+	keen/io/time
+	keen/js
+	keen/js/deferred
+	keen/js/util
+	../../keen/app/ide/get-tokens
+	../../keen/app/model/lsp
+	../../keen/app/model/source-range
+	../../keen/app/model/uri
+	../../keen/lib/parse: parse-json
+	./syntax-translate-protocol
+
+keen-server record mut
+	-worker js-any
+	-responses json deferred mut[nat]
+	-next-id mut nat
+	-diagnostics lsp-diagnostic[] mut[uri]
+	-diagnostics-handlers diagnostics-handler mut[uri]
+
+diagnostics-handler alias
+	void mut(diagnostics lsp-diagnostic[])
+
+get-diagnostics lsp-diagnostic[](a keen-server, uri uri)
+	a.diagnostics[uri] else ()
+
+subscribe-to-diagnostics void(a keen-server, uri uri, handler diagnostics-handler)
+	forbid a.diagnostics-handlers[uri]
+	a.diagnostics-handlers[uri] := handler
+
+log-perf bool()
+	false
+
+make-keen-server keen-server() global, js
+	do trusted
+	start = monotime
+	worker = call-new js-global["Worker"], "/worker.js", type: "module"
+
+	server keen-server =
+		worker: worker
+		responses: ()
+		next-id: 1
+		diagnostics: ()
+		diagnostics-handlers: ()
+
+	loaded void deferred = ()
+	on-message = of event js-any
+		object = parse-json event["data"].to
+		if has-key object, "id"
+			id nat = object["id"].to
+			resolve (remove! server.responses, id), object["result"]
+			if log-perf and id == 2
+				log "Took {monotime - start} to load Keen server"
+				resolve loaded, ()
+				log request server, "custom/perf-report", ()
+		else
+			method symbol = object["method"].to
+			params = object["params"]
+			assert method == "textDocument/publishDiagnostics" else todo
+			p publish-diagnostics-params = params.to
+			server.diagnostics[p.uri] := p.diagnostics
+			server.diagnostics-handlers[p.uri]?[p.diagnostics]
+	worker["onmessage"] := on-message.to
+
+	_ = deferred-request server, "initialize", ()
+
+	server
+
+-send-message void(server keen-server, method symbol, params json) unsafe, js
+	msg json = method: method.to, params: params
+	_ = call-property server.worker, "postMessage", msg.to-json.to
+
+-request json(server keen-server, method symbol, params json) js
+	trusted await deferred-request server, method, params
+
+-deferred-request json deferred(server keen-server, method symbol, params json) js
+	do trusted
+	id = server.next-id
+	server.next-id +:= 1
+	msg json =
+		id: id.to
+		method: method.to
+		params: params
+	deferred json deferred = ()
+	server.responses[id] := deferred
+	_ = call-property server.worker, "postMessage", msg.to-json.to
+	deferred
+
+open-file void(a keen-server, uri uri, text string) global, js
+	params did-open-text-document-params = textDocument: (uri: uri, text: text)
+	trusted send-message a, "textDocument/didOpen", params.to
+
+get-hover string(a keen-server, uri uri, position line-and-character) js
+	params hover-params =
+		params:
+			textDocument: uri: uri
+			position: position
+	res = request a, "textDocument/hover", params.to
+	unless res == null
+		res["contents"]["value"].to
+
+get-tokens token[](a keen-server, uri uri) js
+	params semantic-tokens-params =
+		textDocument: uri: uri
+	encoded = request a, "textDocument/semanticTokens/full", params.to
+	data_ nat[] = encoded["data"].to
+	(data_,).decode-semantic-tokens.to
+
+syntax-translate string
+	server keen-server
+	from-lang language
+	source string
+	to-lang language
+do js
+	params syntax-translate-params =
+		source: source
+		from-language: from-lang
+		to-language: to-lang
+	response syntax-translate-result = request server, "custom/syntax-translate", params.to 'to
+	if is-empty diagnostics response
+		output response
+	else
+		"Parse error at position {response.diagnostics[0]}"
+
+build-js-script build-js-script-result(server keen-server, main-kind js-script-main-kind, main uri) js
+	params build-js-script-params = main-kind: main-kind, uri: main, diagnosticsOnlyForUris: (main,)
+	request server, "custom/build-js-script", params.to 'to

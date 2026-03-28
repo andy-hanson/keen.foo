@@ -1,0 +1,137 @@
+import
+	../../html
+
+intro-unsafe html[]()
+	- section "Unsafe functions",
+		- p "Keen provides some safety guarantees:"
+		- bullets
+			- "Every value is what the type says it is."
+			- "No value is {null}."
+			- "Immutable objects never change."
+			- "Non-{global_} functions don't have global side effects. (See {intro-link globals}.)"
+			- "Non-{global_} functions behave the same on all targets."
+
+		- p quote
+			Some functions may break these guarantees, so they are marked {unsafe}.
+			{br}
+			Some common {unsafe} functions are in {std-module "keen/unsafe"}.
+		- p quote
+			{unsafe} is a {spec_} (see {intro-link specs}),
+			so any function can be marked {unsafe} with the syntax for using a spec.
+			{br}
+			An {unsafe} function can call any other {unsafe} function.
+
+		- keen-runnable quote
+			import
+				keen/unsafe
+
+			main void() unsafe
+				# Bad idea:
+				log reinterpret-cast::string 1
+
+		- aside-small "The above would have a different outcome in a Java build."
+
+		- p quote
+			You can mark your own functions {unsafe} for any reason.
+			{br}
+			For example, a function that exposes implementation details of a library could be marked {unsafe}
+			even if the library is written using only safe code.
+
+	- section "Using unsafe functions safely",
+		- p quote
+			There would be no point to {unsafe} functions if there weren't some way to use them safely.
+			{br}
+			How to do so depends on the function, so read the documentation carefully.
+		- p "To call an {unsafe} function from a non-{unsafe} function, wrap the call in a {trusted_} expression."
+		- keen-runnable quote
+			main void()
+				log two-of 2
+
+			two-of nat[](a nat)
+				buf nat buffer = trusted uninitialized-buffer 2
+				buf[0] := a
+				buf[1] := a
+				trusted cast-immutable buf
+
+		- aside-small quote
+			{trusted_} is like an identity function: {trusted_}{sp}{fn-foo} has the same value as {fn-foo}.
+			{br}
+			The only effect of {trusted_} is to allow calling {unsafe} functions in its argument.
+
+		- p "The above calls {unsafe} functions safely:"
+		- bullets
+			- quote
+				{function "uninitialized-buffer"} is {unsafe} {em "in general"} because it returns uninitialized memory.
+				{br}
+				(That means a default value such as {null}, but that is still unsafe by Keen's standards.)
+				{br}
+				It's safe in this case because all buffer elements are initialized before using them.
+			- quote
+				{function "cast-immutable"} is {unsafe} {em "in general"}
+				because it treats a {buffer} as an immutable {array} (without copying).
+				{br}
+				That's unsafe because immutable data should never change.
+				{br}
+				It's safe in this case because there is no remaining reference to the buffer.
+
+		- p "The argument to {trusted_} can be an indented block:"
+		- keen-runnable quote
+			main void()
+				log two-of 2
+
+			two-of nat[](a nat)
+				trusted
+					buf nat buffer = uninitialized-buffer 2
+					buf[0] := a
+					buf[1] := a
+					cast-immutable buf
+
+	- section "Some important unsafe functions",
+		- p quote
+			{fn-gc-safe-value} returns an arbitrary constant value for a type.
+			{br}
+			This is useful to overwrite unused elements of a buffer so that they don't hold on to memory.
+		- keen-runnable quote
+			import
+				keen/unsafe
+
+			main void() unsafe
+				buf string buffer = "foo", "bar"
+				# Release the reference so it can be garbage collected
+				buf[1] := gc-safe-value
+				# Still safe to access other elements
+				log buf[0]
+
+		- aside-small "There's no point to releasing a reference to a string literal, but this is just an example."
+
+		- p quote
+			{fn-reference-equal} returns {fn-true} if two references point to the same place in memory.
+			{br}
+			This can vary depending on how well Keen optimizes constants.
+		- keen-runnable quote
+			import
+				keen/unsafe
+
+			main void() unsafe
+				a nat[] = 1, 2
+				b nat[] = 1, 2
+				# 'true' thanks to optimization
+				log reference-equal a, b
+				c nat[] = for x in a then x * 10 / 10
+				# 'false' since Keen can't optimize that well
+				log reference-equal a, c
+				# They are still logically equal
+				log a == c
+
+		- p quote
+			{fn-reinterpret-cast} treats any type as any other type.
+			{br}
+			This can lead to bytecode validation errors given a Java target,
+			or unpredictable behavior when the target is JavaScript.
+		- keen-runnable quote
+			import
+				keen/unsafe
+
+			main void() unsafe
+				a int32 = -1
+				log reinterpret-cast::nat32 a

@@ -1,0 +1,105 @@
+import
+	../../html
+
+intro-ifs html[]()
+	- section
+		- p quote
+			An {if_} expression takes a {bool} condition and two branches of the same type.
+			It evaluates the first branch if the condition is {fn-true}
+			and the second branch if the condition is {fn-false}.
+			{br}
+			The syntax uses the {if_} and {else_} keywords and indented blocks for the branches.
+		- keen-runnable quote
+			main void()
+				if 1 < 2
+					log "ok"
+				else
+					log "what?"
+
+		- p "{if_} can be nested inside another expression."
+		- keen-runnable quote
+			main void()
+				log if 1 < 2
+					"ok"
+				else
+					"what?"
+
+		- p quote
+			{else_} can be omitted. In that case it calls a {fn-new} function with no arguments.
+			{br}
+		- keen-runnable quote
+			main void()
+				s string = if 2 < 1
+					"what?"
+				log s
+
+		- aside-small quote
+			There are many {fn-new} functions. Keen chooses one based on the expected type.
+			See {intro-link overloading}.
+			{br}
+			{fn-new} with no arguments returns an empty value of the type. Above, it returns an empty string.
+
+
+		- p "{elif_} can be used to chain {if_}s."
+		- keen-runnable quote
+			main void()
+				log if 2 < 1
+					"what?"
+				elif 2 < 2
+					"still unlikely"
+				else
+					"ok"
+
+		- p "Simple {if_}s can be squeezed into a single line using {then_}."
+		- keen-runnable quote
+			main void()
+				log if 1 < 2 then "ok" else "what?"
+
+	- section "\"unless\"",
+		- p "{unless_} is the opposite of {if_}."
+		- keen-runnable quote
+			main void()
+				log unless 2 < 1 then "ok"
+
+		- p quote
+			It's not recommended to combine {unless_} with {else_}. (In that case just swap the branches and use {if_}.)
+			{br}
+			There's no {keyword "elunless"} keyword. Just use {elif_} and negate the condition.
+
+	- section "Type-checking order",
+		- p quote
+			Keen always type-checks code in the order it is read: Left to right, top to bottom.
+			{br}
+			The first branch of an {if_} can provide an expected type for the {else_} branch.
+		- keen-runnable quote
+			main void()
+				j json = "j"
+				log if 1 < 2
+					j
+				else
+					"k" # This is a json literal
+
+		- p quote
+			Above, the first branch has a {json} value, so the second branch must too.
+			{br}
+			Below, there is an error because the first branch has a type of {string} (the default for string literals)
+			and the second branch has an incompatible type {json}.
+		- keen-runnable quote
+			main void()
+				j json = "j"
+				log if 2 < 1
+					"k"
+				else
+					j # error
+
+		- p quote
+			Keen won't travel back in time to change the type of an already-checked expression.
+			{br}
+			To fix this, give the first branch (or the entire {if_}) an expected type.
+		- keen-runnable quote
+			main void()
+				j json = "j"
+				log if 2 < 1
+					"k"::json
+				else
+					j

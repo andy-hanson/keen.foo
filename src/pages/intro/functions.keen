@@ -1,0 +1,155 @@
+import
+	../../html
+
+intro-functions html[]()
+	- section "Identifiers",
+		- p quote
+			An identifier is the name of a function, variable, type, record field, etc.
+			{br}
+			An identifier may contain letters, numbers, {code "_"} and {code "-"},
+			but it can't begin with a number, or begin or end with {code "-"}.
+			{br}
+			Examples of valid identifiers: {var-a}, {variable "is-empty"}, {variable "float32"},
+			{variable "BIG_WORDS"}, {variable "עורב"}, {variable "예리한"}.
+			{br}
+			Keen prefers {variable "kebab-case"}: lower-case words separated by {code "-"}.
+			{br}
+			Keywords like {if_} may not be used as identifiers.
+
+	- section "Comments",
+		- p "Comments begin with {comment "#"}."
+		- keen-runnable quote
+			main void()
+				log "I exist"
+				# log "I don't"
+
+		- p "Long comments begin and end with {comment "###"}."
+		- keen-runnable quote
+			main void()
+				###
+				A
+				long
+				comment
+				###
+				log "Hello"
+
+	- section "Prefix function calls",
+		- p quote
+			The most commont way to call functions in Keen is with a prefix syntax.
+		- p quote
+			The first column below shows how to call a function {fn-f} in Keen.
+			The other column shows an equivalent in C.
+		- syntax-translate
+			- "f"
+			- "f a"
+			- "f a, b"
+			- "f a, b, c"
+		- aside-small quote
+			You can edit any cell above to experiment.
+			{br}
+			This does not use a full parser; it only supports identifiers and calls.
+		- p quote
+			{fn-f} alone calls a function with no arguments.
+			Accessing a variable uses the same syntax.
+			{br}
+			Keen will access a variable if one is in scope, otherwise call a function.
+		- p quote
+			Multiple function calls can nest without parentheses.
+			{br}
+			Each new function name is the final argument to the previous function.
+		- syntax-translate
+			- "f g a"
+			- "f g a, b"
+			- "f g a, h b"
+			- "f g h a, b"
+
+	- section "Dot function calls",
+		- p quote
+			{a-dot-f} is equivalent to {f-of-a-parenthesized}.
+			This only works for a function with a single argument.
+			{br}
+			This often helps avoid parentheses.
+		- syntax-translate
+			- "f a.g, b"
+			- "f a.g.h, b"
+
+	- section "Infix function calls",
+		- p quote
+			{tick-f} calls {fn-f} with infix syntax.
+			This works with any number of arguments.
+		- syntax-translate
+			- "a 'f b, c"
+			- "a.f 'g b.h"
+
+	- section "Function definitions",
+		- p "Now to define a function and call it:"
+		- keen-runnable quote
+			main void()
+				log hello-world
+
+			hello-world string()
+				"Hello, world!"
+		- p quote
+			{function "log hello-world"} calls the function {function "log"} with one argument
+			{function "hello-world"}, which is a 0-argument function call.
+		- p quote
+			{function "hello-world "}{string}{parens} is the function signature.
+			It takes no parameters and returns a {string}.
+			{br}
+			The function body always goes beneath the signature and indented.
+
+		- p "Here's a modified version that takes a single parameter."
+		- keen-runnable quote
+			main void()
+				log hello-world 3
+
+			hello-world string(times nat)
+				join " ", n-of times, "Hello, world!"
+		- p quote
+			This defines a function {function "hello-world"} that takes a {nat} (natural number) and returns a {string}.
+			{br}
+			The argument {num-3} becomes the value of the parameter
+			{parameter "times"}, causing the string to repeat 3 times.
+
+		- p quote
+			The below takes 2 parameters {parameter "name"} and {parameter "times"}
+			and passes arguments {string "\"keen\""} and {num-3}, respectively.
+		- keen-runnable quote
+			main void()
+				log hello "Keen", 3
+
+			hello string(name string, times nat)
+				join " ", n-of times, "Hello, \{name\}!"
+		- aside-small quote
+			{string "\"Hello, \{name\}!\""} is string interpolation.
+			This will be explained in {intro-link strings}.
+
+		- p quote
+			Functions with many parameters can be written on multiple lines using the below syntax.
+			{br}
+			{do_} is used to separate the parameters from the function body.
+		- keen-runnable quote
+			main void()
+				log hello "keen", 3
+
+			hello string
+				name string
+				times nat
+			do
+				join " ", n-of times, "Hello, \{name\}!"
+
+-a-dot-f html[]()
+	"{var-a}{dot}{fn-f}"
+
+-f-of-a html[]()
+	"{fn-f}{sp}{var-a}"
+
+-f-of-a-parenthesized html[]()
+	"{lparen}{f-of-a}{rparen}"
+
+-tick-f html[]()
+	"{keyword "'"}{fn-f}"
+
+-syntax-translate html-node(examples string[])
+	node "syntax-translate", (), for x in examples
+		node "syntax-translate-row", (), (x,)

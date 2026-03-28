@@ -1,0 +1,113 @@
+import
+	../../html
+
+intro-matches html[]()
+	- section "Matching numbers",
+		- p quote
+			A {match_} expression branches based on a single value.
+			It can be any numeric type.
+		- keen-runnable quote
+			main void()
+				log shape-name 3
+				log shape-name 4
+				log shape-name 11
+
+			shape-name string(sides nat)
+				match sides
+				as 3
+					"triangle"
+				as 4
+					"square"
+				else
+					"\{sides\}-gon"
+
+		- p quote
+			{match_} is an expression and can be nested inside other expressions.
+		- keen-runnable quote
+			main void()
+				a nat = 1
+				log match a
+				as 1
+					"OK"
+				else
+					"what?"
+
+		- p "Branches of the {match_} can be squeezed onto one line using {then_}."
+		- keen-runnable quote
+			main void()
+				a nat = 1
+				log match a
+				as 1 then "OK"
+				else then "what?"
+
+		- p "The argument to {match_} can introduce a local."
+		- keen-runnable quote
+			main void()
+				log match x = 3
+				as 2 then "two"
+				as 4 then "four"
+				else then "some other number: \{x\}"
+
+	- section "About symbols",
+		- p quote
+			A {symbol} is a simple value that can tested against other {symbol} values using {fn-equal}.
+			{br}
+			Like an {enum_} value, this kind of value is intended to be used for its identity.
+			{br}
+			You can't directly access the characters in a {symbol}, although
+			it can be converted to or from a {string} using {std-function "keen/symbol", "to"}.
+		- p quote
+			Think of the {symbol} type as an infinitely large {enum_} supporting all possible values.
+			{br}
+			This makes it useful when you don't know all possible values up-front.
+		- p quote
+			If you are dealing with a limited set of values with likely repetition,
+			you should usually use a {symbol}.
+			{br}
+			For example, the keys of a {json} object are {symbol}s.
+
+	- section "Matching symbols and strings",
+		- p "{match_} works on {symbol} and {string} values too."
+		- p quote
+			String values may be unquoted (as in {as_}{sp}{variable "left"} below) if they are valid Keen identifiers.
+			{br}
+			Otherwise they should be quoted like regular string literals.
+		- keen-runnable quote
+			main void()
+				log opposite "left"
+				log opposite "right"
+				log opposite "potato"
+
+			opposite symbol(a symbol)
+				match a
+				as left
+					"right"
+				as right
+					"left"
+				else
+					"anti-\{a\}"
+		- aside-small quote
+			The above would work the same with {string}, though {symbol} has better performance.
+
+		- p "{match_} also works on {char8} or {char32}."
+		- keen-runnable quote
+			main void()
+				log opposite "<"
+
+			opposite char8(a char8)
+				match a
+				as l then "r"
+				as r then "l"
+				as "<" then ">"
+				as ">" then "<"
+				else then a
+
+	- section "\"else\" branches",
+		- p quote
+			Unlike with an {if_} expression,
+			a {match_} expression on a number or string-like type must have an {else_} branch.
+			{br}
+			The reason is that {match_} expressions are usually used with an enum or union,
+			and in those cases no {else_} is required.
+			{br}
+			This will be explained in {intro-link enums} and {intro-link unions}.

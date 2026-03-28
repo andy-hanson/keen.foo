@@ -1,0 +1,24 @@
+import
+	keen/js/dom
+	./keen
+	./keen-runnable
+	./keen-text
+	./icon
+	./loading-spinner
+	./syntax-translate
+	./theme-switcher
+
+main void() global, js
+	keen = make-keen-server
+	define-icon-custom-element
+	define-theme-switcher-element
+	define-keen-runnable-custom-element keen
+	define-keen-text-custom-element
+	define-loading-spinner-element
+	define-syntax-translate-element keen
+	setup-collapsible-sections
+
+setup-collapsible-sections void() global, js
+	for section in query-all document, "section.collapsible"
+		button = query! section, ":scope > button"
+		add-event-listener button, "click", {toggle section.classes, "collapsed"}

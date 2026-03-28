@@ -1,0 +1,104 @@
+import
+	../../html
+
+intro-type-parameters html[]()
+	- section "Type parameters for functions",
+		- p quote
+			Functions can declare type parameters.
+			Below, {fn-swap} can work on a pair of any type.
+
+		- keen-runnable quote
+			main void()
+				a (nat, nat) = 1, 2
+				log swap a
+				b (string, string) = "world", "hello"
+				log swap b
+
+			swap[t] (t, t)(a (t, t))
+				a.b, a.a
+
+		- p quote
+			In {fn-swap}{sp}{var-a} , {nat} is substituted for {t}.
+			{br}
+			In {fn-swap}{sp}{var-b} , {string} is substituted for {t}.
+
+		- p "A type parameter must be consistent, so {fn-swap} would not work on a {type "(nat, string)"}."
+
+		- p quote
+			Within the body of {fn-swap}, {t} is treated as "any type";
+			it can't be passed to another function unless that function also takes it as a type parameter.
+			(The tuple getters {fn-a} and {fn-b} do so.)
+			{br}
+			In the next section, {intro-link specs}, we'll see how to add more useful operations on type parameters.
+
+		- aside-small "Type parameters are almost always named {t} (then {u}, etc.), but they can have any name."
+
+	- section "Explicit type arguments",
+		- p "An explicit type argument can be specified using {keyword "@"}."
+
+		- keen-runnable quote
+			main void()
+				a (nat, nat) = 1, 2
+				log swap@nat a
+				b (string, string) = "world", "hello"
+				log swap@string b
+
+			swap[t] (t, t)(a (t, t))
+				a.b, a.a
+
+		- p quote
+			If there are multiple type arguments, put them in parentheses.
+
+		- keen-runnable quote
+			main void()
+				a (nat, string) = 1, "foo"
+				log swap@(nat, string) a
+
+			swap[t, u] (u, t)(a (t, u))
+				a.b, a.a
+
+		- p quote
+			You should almost never use explicit type arguments,
+			but they can help diagnose errors if Keen doesn't know what function you're trying to call.
+			Then remove the explicit type arguments once it's working.
+
+	- section "Type parameters for types",
+		- p "A type can itself have type parameters."
+
+		- keen-runnable quote
+			main void()
+				a nat ranker = best: 7, worst: 13
+				log worst invert a
+
+			ranker[t] record
+				best t
+				worst t
+			invert[t] t ranker(a t ranker)
+				a.worst, a.best
+
+		- p quote
+			Types with type parameters use a suffix syntax:
+			{type "t ranker"} is a {ranker} of {t}, just like {type "t[]"} is an {array} of {t}.
+			{br}
+			The suffixes can stack, so you can have a {type "t ranker[]"} (array of {ranker}s) or
+			a {type "t[] ranker"} (ranker arrays).
+		- p quote
+			Type annotations such types may require parentheses, as in
+			{fn-foo}{colon-colon}{lparen}{nat}{sp}{ranker}{rparen} .
+		- p quote
+			If there are multiple type parameters, write them like a tuple, as in
+			{lparen}{nat}{comma}{string}{rparen}{sp}{type "pair"} .
+
+		- keen-runnable quote
+			main void()
+				a (nat, string) pair = 1, "foo"
+				log a.a, a.b
+
+			pair[t, u] record
+				a t
+				b u
+
+-ranker html-node()
+	type "ranker"
+-fn-swap html-node()
+	function "swap"

@@ -1,0 +1,77 @@
+import
+	keen/parse
+	../../keen/app/model/model
+	./html
+
+parse-doc-comment html[]
+	doc string
+	references doc-comment-reference[]
+	link-for-decl html-node mut(a any-decl)
+do
+	reference-index mut = 0
+	all-ps html mut[] = ()
+	cur-p html mut[] = ()
+	cur char8 mut[] = ()
+	in-backticks mut bool = false
+	iter string-iterator = begin doc
+
+	finish-string = of
+		s char8[] = move-to cur
+		unless is-empty s
+			cur-p ~= to::string s
+
+	until is-at-end iter
+		match x = take-next iter
+		as "\{"
+			finish-string[]
+			start = copy iter
+			until
+				iter.take-next == "\}"
+			ref = references[reference-index]
+			reference-index +:= 1
+			if decl = to::any-decl? ref
+				cur-p ~= link-for-decl[decl]
+			else
+				cur-p ~= code to::string (slice start, iter)[0 .. end - 1]
+		as "\n"
+			if try-take iter, "\n"
+				finish-string[]
+				all-ps ~= p move-to cur-p
+			else
+				cur ~= " "
+		as "`"
+			if in-backticks
+				s char8[] = move-to cur
+				unless is-empty s
+					cur-p ~= code to::string s
+				in-backticks := false
+			else
+				finish-string[]
+				in-backticks := true
+		else
+			cur ~= x
+
+	assert reference-index == references.size
+	finish-string[]
+	if is-empty all-ps
+		move-to cur-p
+	else
+		unless is-empty cur-p
+			all-ps ~= p move-to cur-p
+		move-to all-ps
+
+to any-decl?(a doc-comment-reference)
+	match a
+	as doc-comment-reference-bogus then ()
+	as doc-comment-reference-context then a.type.decl
+	as called-spec-sig then ()
+	as enum-or-flags-member then ()
+	as fun-decl then a
+	as local then ()
+	as record-field then ()
+	as signature then ()
+	as spec-decl then a
+	as type-alias then a
+	as type-decl then a
+	as type-param-index then ()
+	as var-decl then a

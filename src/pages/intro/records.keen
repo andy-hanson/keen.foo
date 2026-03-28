@@ -1,0 +1,192 @@
+import
+	../../html
+
+intro-records html[]()
+	- section "Defining record types",
+		- p "A record type is declared with fields in an intented block, each on their own line."
+
+		- keen-runnable quote
+			main void()
+				a point = 1, 2
+				log a.x
+				b point = x: 1, y: 2
+				log b.y
+
+			point record
+				x float
+				y float
+
+		- p quote
+			Defining a record implicitly defines a {fn-new} function.
+			{br}
+			In the above example, its signature would be:
+			{fn-new}{sp}{type " point"}{lparen}{var-x}{sp}{float}{comma}{var-y}{sp}{float}{rparen}
+			{br}
+			Like any {fn-new} function, it can be called with either {num-1-2} or
+			{var-x}{colon}{num-1}{comma}{var-y}{colon}{num-2}.
+			{br}
+			The record also implicitly defines functions for getting each field.
+			{br}
+			In the above example, these would have signatures of {fn-x}{float-of-a-point} and {fn-y}{float-of-a-point}.
+
+		- aside-small quote
+			The example uses the {code "a.x"} syntax to get the field, but it could be written as {code "x a"}.
+
+		- subsection "Short record syntax",
+			- p "For simple records, you can collapse the definition onto one line."
+			- keen-not-runnable quote
+				point record(x float, y float)
+
+		- subsection "Empty records",
+			- p "The fields can be omitted, resulting in an empty type."
+			- keen-not-runnable quote
+				empty record
+
+		- subsection "Arguments records",
+			- p "For functions with many arguments, you may want to make them a {record_}:"
+			- keen-runnable quote
+				main void()
+					log foo x: 1, y: 2
+
+				foo-args record(x nat, y nat)
+				foo nat(args foo-args)
+					args.x + args.y
+
+	- section "Mutable records",
+		- p quote
+			Any record fields marked with {mut_} are mutable.
+			As with mutable locals, the {mut_} goes before the type.
+
+		- keen-runnable quote
+			main void()
+				a mut-point = 1, 2
+				a.x := 3
+				log a.x
+
+			mut-point record mut
+				x mut float
+				y mut float
+
+		- p "{code "a.x := 3"} is a syntax equivalent to calling {fn-set-x}{sp}{var-a}{comma}{num-3}."
+		- p quote
+			Mutable record fields implicitly define setter functions.
+			{br}
+			In this case, they are {fn-set-x}{void-of-a-point-value-float}
+			and {fn-set-y}{void-of-a-point-value-float}.
+
+	- aside-small quote
+		The {mut_} in {type "mut-point"}{sp}{record_}{sp}{mut_} will be explained in {intro-link mutability}.
+
+	- section "Defining \"new\"",
+		- p quote
+			Since {fn-new} functions are just ordinary functions,
+			you can define additional {fn-new} overloads.
+
+		- keen-runnable quote
+			main void()
+				a point = ()
+				log a.x
+
+			point record(x float, y float)
+			new point()
+				# This calls 'new point(x float, y float)'
+				0, 0
+
+	- section "Named constructors",
+		- p quote
+			Defining a record also implicitly creates a function with the same name as the record
+			and the same signature as {fn-new}.
+		- keen-runnable quote
+			main void()
+				log point 1, 2
+
+			point record(x float, y float)
+
+		- p quote
+			{point}{sp}{num-1-2} looks better than {parenthesized num-1-2}{colon-colon}{point}.
+			{br}
+			But if the type annotation is not necessary, prefer to write just {num-1-2}.
+
+	- section "Other implicit functions",
+		- p "Declaring a record type {point} also implicitly declares:"
+		- bullets
+			- "{fn-equal}{sp}{bool}{parenthesized a-point-b-point}"
+			- "{fn-compare}{sp}{comparison}{parenthesized a-point-b-point}"
+			- "{fn-hash}{sp}{void}{lparen}{a-point}{comma}{variable "state"}{sp}{hash-state}{rparen}"
+			- "{fn-to}{sp}{json}{parenthesized a-point}"
+			- "{fn-to}{sp}{point}{parenthesized a-json}"
+
+		- keen-runnable quote
+			main void()
+				a point = 1, 2
+				log a == a
+				log a <=> (2, 1)
+				log deterministic-hash a # Uses 'hash'
+				log a # Uses 'to json'
+				log a.to::json.to::point == a
+
+			point record(x float, y float)
+
+		- p "These functions are only defined for immutable records with no private fields."
+
+		- p quote
+			It is possible to define these functions explicitly yourself.
+			{br}
+			However, {fn-equal}, {fn-compare}, and {fn-hash} are unsafe to define yourself,
+			so the body must be wrapped in {trusted_}. (See {intro-link unsafe}.)
+			{br}
+			The reason they are unsafe is that badly written comparison or hash functions can break {map}s.
+			{br}
+			{json} conversion functions are safe to define yourself, but make sure a round trip
+			({var-a}{dot}{fn-to}{colon-colon}{json}{dot}{fn-to}{colon-colon}{point}) is the identity function.
+
+		- p "If they were defined explicitly, they would look like this:"
+		- keen-runnable quote
+			main void()
+				a point = 1, 2
+				log a == a
+				log a <=> (2, 1)
+				log deterministic-hash a # Uses 'hash'
+				log a # Uses 'to json'
+				log a.to::json.to::point == a
+
+			point record(x float, y float)
+			== bool(a point, b point)
+				trusted a.x == b.x and a.y == b.y
+			<=> comparison(a point, b point)
+				trusted
+					compare-x = a.x <=> b.x
+					if compare-x == equal then a.y <=> b.y else compare-x
+			hash void(a point, state hash-state)
+				trusted
+					hash a.x, state
+					hash a.y, state
+			to json(a point)
+				x: a.x.to
+				y: a.y.to
+			to point(a json)
+				x: a["x"].to
+				y: a["y"].to
+
+		- aside-small quote
+			{fn-not-equal}, {function "<"}, {function ">"}, {function "<="}, or {function ">="} are generic functions
+			defined in terms of {fn-equal} and {fn-compare}.
+
+-float-of-a-point html[]()
+	"{sp}{float}{parenthesized a-point}"
+-void-of-a-point-value-float html[]()
+	"{sp}{void}{parenthesized a-point-value-float}"
+-a-point-value-float html[]()
+	"{a-point}{comma}{value-float}"
+-a-json html[]()
+	"{var-a}{sp}{json}"
+-a-point html[]()
+	"{var-a}{sp}{point}"
+-b-point html[]()
+	"{var-b}{sp}{point}"
+-a-point-b-point html[]()
+	"{a-point}{comma}{b-point}"
+-value-float html[]()
+	"{variable "value"}{sp}{float}"
+-point html-node()
+	type "point"
